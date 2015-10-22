@@ -20,7 +20,6 @@
 \input{pages/cover}
 
 \frontmatter{}
-
 \input{pages/title}
 \input{pages/disclaimer}
 %\input{pages/acknowledgements}
@@ -29,17 +28,21 @@
 \tableofcontents{}
 \microtypesetup{protrusion=true}
 \printglossaries{}
+
+
 \mainmatter{}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyhead[C]{\slshape \leftmark}
+\fancyfoot[C]{\thepage}
+
 
 \input{chapters/introduction}
 % TODO: add more chapters here
 
 \appendix{}
-
  % TODO: remove if glossary not needed
 \glsaddall{} % add all defined terms to glossary, even if not referenced in text
-
-
 \microtypesetup{protrusion=false}
 \listoffigures{}
 \listoftables{}
