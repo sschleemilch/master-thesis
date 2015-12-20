@@ -18,7 +18,7 @@ public class ELFSymbolTableEntry {
 	}
 	
 	public void dump(){
-		System.out.println("\n\tELF SYMBOL TABLE ENTRY***********************");
+		System.out.println("\n\tELF SYMBOL TABLE ENTRY----------------------->");
 		System.out.println("\tName:\t\t\t"+sName);
 		System.out.println("\tValue:\t\t\t" + Convertions.bytesToInt(value.data, 0, value.bSize));
 		System.out.print("\tSize:\t\t\t");
@@ -71,7 +71,7 @@ public class ELFSymbolTableEntry {
 			System.out.println("CPU Semantics");
 			break;
 		}
-		System.out.println("\n\tEND OF ELF SYMBOL TABLE ENTRY****************");
+		System.out.println("\n\tEND OF ELF SYMBOL TABLE ENTRY----------------<");
 	}
 	
 	private int st_bind(int i){

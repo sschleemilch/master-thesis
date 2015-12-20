@@ -59,7 +59,7 @@ public class ELFHeader {
 	}
 	
 	public void dump(){
-		System.out.println("ELF-HEADER ##################################################\n");
+		System.out.println("ELF-HEADER --------------------------------------------------------->\n");
 		System.out.print("\tFile Bit Class: \t\t\t\t");
 		switch(iFileBitClass.data[0]){
 		case 0:
@@ -171,7 +171,7 @@ public class ELFHeader {
 						0, ehsize.bSize));
 		System.out.println("\tSection Header Table Index <-> String Table:\t" +
 						Convertions.bytesToInt(shstrndx.data, 0, shstrndx.bSize));
-		System.out.println("\nEND OF ELF-HEADER ############################################");
+		System.out.println("\nEND OF ELF-HEADER --------------------------------------------------<\n");
 	}
 	
 }

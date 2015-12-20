@@ -1,26 +1,17 @@
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
 
 public class ELFFile {
 	public ELFHeader header;
 	public ELFSectionHeaderTable shtable;
 	public ELFSymbolTable sytable;
-	public byte[] rawBytes;
+	public byte[] bytes;
+	public OatdataSection oatdata;
 	
 	public ELFFile(String pathToFile){
 		//load ELF File
-		Path path = Paths.get(pathToFile);
-		try {
-			rawBytes = Files.readAllBytes(path);
-		}catch (IOException e){
-			System.err.println("Could not load ELF-File. Exiting");
-			System.exit(0);
-			e.getMessage();
-		}
-		header = new ELFHeader(rawBytes);
-		shtable = new ELFSectionHeaderTable(rawBytes,
+		bytes = FileOperations.readFileInBytes(pathToFile);
+		header = new ELFHeader(bytes);
+		shtable = new ELFSectionHeaderTable(bytes,
 				Convertions.bytesToInt(header.shoff.data, 0, header.shoff.bSize),
 				Convertions.bytesToInt(header.shnum.data, 0, header.shnum.bSize),
 				Convertions.bytesToInt(header.shentsize.data, 0, header.shentsize.bSize),
@@ -49,14 +40,21 @@ public class ELFFile {
 						0,shtable.entries[i].size.bSize);
 			}
 		}
-		sytable = new ELFSymbolTable(rawBytes, sytable_off,
+		sytable = new ELFSymbolTable(bytes, sytable_off,
 				sytable_size, systrtable_off, systrtable_size);
 		
-	}
-	
-	
-	public void setOatFile(byte[] bytes){
-		
+		int ti = -1; //tableindex
+		for (int i = 0; i < sytable.entries.length; i++){
+			if (sytable.entries[i].sName.equals("oatdata")&&
+					Convertions.bytesToInt(sytable.entries[i].name.data,
+							0, sytable.entries[i].name.bSize)>0){
+				ti = Convertions.bytesToInt(sytable.entries[i].shndx.data,
+						0, sytable.entries[i].shndx.bSize);
+			}
+		}
+		int oatoff = Convertions.bytesToInt(shtable.entries[ti].offset.data,
+				0, shtable.entries[ti].offset.bSize);
+		oatdata = new OatdataSection(bytes, oatoff);
 	}
 	
 }

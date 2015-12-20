@@ -2,7 +2,7 @@
 public class ELFSymbolTable {
 	
 	private static final int entrySize = 16;
-	private ELFSymbolTableEntry[] entries;
+	public ELFSymbolTableEntry[] entries;
 	
 	public ELFSymbolTable(byte[]src, int off, int size, int stoff, int stsize){
 		int nEntries = size/entrySize;
@@ -17,10 +17,10 @@ public class ELFSymbolTable {
 	}
 	
 	public void dump(){
-		System.out.println("\nSYMBOL TABLE-----------------------------------");
+		System.out.println("\nSYMBOL TABLE------------------------------------------------->");
 		for (int i = 0; i < entries.length; i++){
 			entries[i].dump();
 		}
-		System.out.println("END OF SYMBOL TABLE-----------------------------------");
+		System.out.println("\nEND OF SYMBOL TABLE------------------------------------------<");
 	}
 }

@@ -20,11 +20,11 @@ public class ELFSectionHeaderTable {
 	}
 	
 	public void dump(){
-		System.out.println("\nELF-SECTION-HEADER-TABLE >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
+		System.out.println("\nELF-SECTION-HEADER-TABLE ------------------------------------>");
 		System.out.println("Number of Entries: " + entries.length);
 		for (int i = 0; i < entries.length; i++){
 			entries[i].dump();
 		}
-		System.out.println("END OF ELF-SECTION-HEADER-TABLE <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+		System.out.println("\nEND OF ELF-SECTION-HEADER-TABLE -----------------------------<");
 	}
 }

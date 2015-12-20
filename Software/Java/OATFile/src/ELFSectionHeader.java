@@ -26,7 +26,7 @@ public class ELFSectionHeader {
 	}
 	
 	public void dump(){
-		System.out.println("\n\t-->ELF SECTION HEADER..........................");
+		System.out.println("\n\tELF SECTION HEADER-------------------------->");
 		System.out.println("\tSection Name: \t\t\t" + sName);
 		System.out.print("\tSection Attributes\t\t");
 		
@@ -110,7 +110,7 @@ public class ELFSectionHeader {
 		default:
 			System.out.println("\tFixed-size Entry Table:\t\tTrue");
 		}
-		System.out.println("\t-->END OF ELF SECTION HEADER...................");
+		System.out.println("\n\tEND OF ELF SECTION HEADER-------------------<");
 	}
 	
 }
