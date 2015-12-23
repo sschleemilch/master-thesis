@@ -1,11 +1,10 @@
-import java.util.Arrays;
-
 public class ELFFile {
 	public ELFHeader header;
 	public ELFSectionHeaderTable shtable;
 	public ELFSymbolTable sytable;
 	public byte[] bytes;
 	public OatdataSection oatdata;
+	public ELFProgramHeaderTable phtable;
 	
 	public ELFFile(String pathToFile){
 		//load ELF File
@@ -16,6 +15,10 @@ public class ELFFile {
 				Convertions.bytesToInt(header.shnum.data, 0, header.shnum.bSize),
 				Convertions.bytesToInt(header.shentsize.data, 0, header.shentsize.bSize),
 				Convertions.bytesToInt(header.shstrndx.data, 0, header.shstrndx.bSize));
+		phtable = new ELFProgramHeaderTable(bytes,
+				Convertions.bytesToInt(header.phoff.data, 0, header.phoff.bSize),
+				Convertions.bytesToInt(header.phnum.data, 0, header.phnum.bSize),
+				Convertions.bytesToInt(header.phentsize.data, 0, header.phentsize.bSize));
 		
 		//find symbol table section
 		int sytable_off = 0;

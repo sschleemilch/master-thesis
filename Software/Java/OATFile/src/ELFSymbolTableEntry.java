@@ -83,5 +83,4 @@ public class ELFSymbolTableEntry {
 	private int st_info(int b, int t){
 		return ((b<<4) + (t&0xf));
 	}
-	
 }

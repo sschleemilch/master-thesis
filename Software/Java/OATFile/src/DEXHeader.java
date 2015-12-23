@@ -81,7 +81,7 @@ public class DEXHeader {
 		version = new String(Arrays.copyOfRange(magic.data, 4, 7), StandardCharsets.UTF_8);
 	}
 	public void dump(){
-		System.out.println("\tDEX HEADER ------------------------>");
+		System.out.println("\n\tDEX HEADER ------------------------>");
 		System.out.println("\tVersion:\t\t" + version);
 		System.out.println("\tFile Size:\t\t" + Convertions.bytesToInt(file_size.data, 0, file_size.bSize));
 		System.out.println("\tHeader Size:\t\t" + Convertions.bytesToInt(header_size.data, 0, header_size.bSize));

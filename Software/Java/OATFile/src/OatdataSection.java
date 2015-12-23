@@ -1,5 +1,3 @@
-import java.nio.charset.StandardCharsets;
-
 public class OatdataSection {
 	public OATHeader header;
 	public int headersize;

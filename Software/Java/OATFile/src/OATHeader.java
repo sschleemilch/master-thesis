@@ -86,7 +86,7 @@ public class OATHeader {
 	}
 	
 	public void dump(){
-		System.out.println("OAT-HEADER--------------------------------->");
+		System.out.println("\nOAT-HEADER--------------------------------->");
 		System.out.println("\tVersion:\t\t" + 
 		new String(Arrays.copyOfRange(version.data, 0, 3), StandardCharsets.UTF_8));
 		System.out.println("\tHeader Checksum:\t" +
