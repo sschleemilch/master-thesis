@@ -10,11 +10,11 @@ public class ELFProgramHeaderTable {
 		}
 	}
 	public void dump(){
-		System.out.println("PROGRAM HEADER TABLE --------------------->");
+		System.out.println("\nPROGRAM HEADER TABLE ---------------------------------------->");
 		for (int i = 0; i < entries.length; i++){
 			entries[i].dump();
 		}
-		System.out.println("END OF PROGRAM HEADER TABLE --------------<");
+		System.out.println("\nEND OF PROGRAM HEADER TABLE ---------------------------------<");
 	}
 	
 }

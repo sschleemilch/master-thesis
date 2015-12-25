@@ -9,7 +9,9 @@ public class Playground {
 		f.header.dump();	
 		f.shtable.dump();
 		f.sytable.dump();
-		f.oatdata.header.dump();
-		f.oatdata.dexfile.dump();
+		f.phtable.dump();
+		f.oatdata.dump();
+		f.strtable.dump();
+		f.htable.dump();
 	}
 }

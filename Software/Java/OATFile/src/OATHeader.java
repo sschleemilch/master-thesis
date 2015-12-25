@@ -26,6 +26,7 @@ public class OATHeader {
 	public BData image_file_location_oat_data_begin;
 	public BData key_value_store_size;
 	public BData key_value_store;
+	public int size;
 	
 	public String creationArguments;
 	public String[] key_value_store_strings; 
@@ -82,6 +83,7 @@ public class OATHeader {
 		key_value_store = new BData(off+80, ksbytes);
 		key_value_store_strings = extractKeyPairStrings();
 		creationArguments = key_value_store_strings[1];
+		size = 84 + kssize;
 		
 	}
 	
@@ -89,6 +91,8 @@ public class OATHeader {
 		System.out.println("\nOAT-HEADER--------------------------------->");
 		System.out.println("\tVersion:\t\t" + 
 		new String(Arrays.copyOfRange(version.data, 0, 3), StandardCharsets.UTF_8));
+		System.out.print("\tSize:\t\t\t");
+		System.out.printf("0x%08X\n", size);
 		System.out.println("\tHeader Checksum:\t" +
 		Convertions.bytesToInt(adler32_checksum.data, 0, adler32_checksum.bSize));
 		System.out.print("\tInstruction Set:\t");
@@ -120,6 +124,9 @@ public class OATHeader {
 		}
 		System.out.println("\tDex-Files:\t\t" +
 		Convertions.bytesToInt(dex_file_count.data, 0, dex_file_count.bSize));
+		System.out.print("\tExe Offset(oatdata):\t");
+		System.out.printf("0x%08X\n", Convertions.bytesToInt(executable_offset.data, 0, executable_offset.bSize));
+		
 		System.out.println("\tCreate-Arguments:\t"+creationArguments);
 		System.out.println("END-OF-OAT-HEADER--------------------------<");
 	}

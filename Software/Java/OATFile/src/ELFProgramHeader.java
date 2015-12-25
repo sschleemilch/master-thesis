@@ -29,9 +29,47 @@ public class ELFProgramHeader {
 	}
 	
 	public void dump(){
-		System.out.println("PROGRAM HEADER --------------------->");
-		
-		System.out.println("END OF PROGRAM HEADER --------------<");
+		System.out.println("\tPROGRAM HEADER --------------------->");
+		System.out.print("\tType:\t\t");
+		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
+		case 0:
+			System.out.println("Unused");
+			break;
+		case 1:
+			System.out.println("Loadable Segment");
+			break;
+		case 2:
+			System.out.println("Dynamic Linking Info");
+			break;
+		case 3:
+			System.out.println("Path Name to Invoke");
+			break;
+		case 4:
+			System.out.println("Auxilialry Info");
+			break;
+		case 5:
+			System.out.println("Reserved, Unspecified Semantics");
+			break;
+		case 6:
+			System.out.println("Location + Size of PHTable");
+			break;
+		case 0x70000000:
+			System.out.println("CPU Semantics");
+			break;
+		case 0x7fffffff:
+			System.out.println("CPU Semantics");
+			break;
+		}
+		System.out.print("\tOffset:\t\t");
+		System.out.printf("0x%08X\n", Convertions.bytesToInt(offset.data, 0, offset.bSize));
+		System.out.print("\tVirtAddress:\t");
+		System.out.printf("0x%08X\n", Convertions.bytesToInt(vaddr.data, 0, vaddr.bSize));
+		System.out.print("\tPhysAddress:\t");
+		System.out.printf("0x%08X\n", Convertions.bytesToInt(paddr.data, 0, paddr.bSize));
+		System.out.println("\tFilesize:\t" + Convertions.bytesToInt(filesz.data, 0, filesz.bSize));
+		System.out.println("\tMemsize:\t" + Convertions.bytesToInt(memsz.data, 0, memsz.bSize));
+		System.out.println("\tAlignment:\t" + Convertions.bytesToInt(align.data, 0, align.bSize));
+		System.out.println("\tEND OF PROGRAM HEADER --------------<");
 	}
 	
 }
