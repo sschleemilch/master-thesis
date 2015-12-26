@@ -15,7 +15,13 @@ public class ELFDynamicLinkingInfo extends ELFSection{
 	
 	@Override
 	public void dump() {
-		// TODO Auto-generated method stub
+		System.out.println("|");
+		System.out.println("|--ELF Dynamic Linking Info");
+		System.out.print("|----Offset:\t");
+		System.out.printf("0x%08X\n", offset);
+		System.out.print("|----Size:\t");
+		System.out.printf("0x%08X\n", size);
+		System.out.println("|--ELF Dynamic Linking Info");
 	}
 
 	@Override

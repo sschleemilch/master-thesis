@@ -35,9 +35,9 @@ public class ELFSectionHeader extends ELFSection{
 	}
 	
 	public void dump(){
-		System.out.println("\n\tELF SECTION HEADER-------------------------->");
-		System.out.println("\tSection Name: \t\t\t" + sName);
-		System.out.print("\tSection Attributes\t\t");
+		System.out.println("|----ELF Section Header");
+		System.out.println("|--------Section Name: \t\t\t" + sName);
+		System.out.print("|--------Section Attributes\t\t");
 		
 		switch(Convertions.bytesToInt(flags.data, 0, flags.bSize)){
 		case 1:
@@ -56,7 +56,7 @@ public class ELFSectionHeader extends ELFSection{
 			System.out.println("Unknown");	
 		}
 		
-		System.out.print("\tSection Content: \t\t");
+		System.out.print("|--------Section Content: \t\t");
 		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
 		case 0:
 			System.out.println("Section Inactive");
@@ -107,19 +107,19 @@ public class ELFSectionHeader extends ELFSection{
 			System.out.println("Upper Bound of Range Indexes");
 			break;
 		}
-		System.out.print("\tOffset to Section:\t\t");
+		System.out.print("|--------Offset to Section:\t\t");
 		System.out.printf("0x%08X\n",Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
-		System.out.print("\tSection Size:\t\t\t");
+		System.out.print("|--------Section Size:\t\t\t");
 		System.out.printf("0x%08X\n", + Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
 		
 		switch(Convertions.bytesToInt(entsize.data, 0, entsize.bSize)){
 		case 0:
-			System.out.println("\tFixed-size Entry Table:\t\tFalse");
+			System.out.println("|--------Fixed-size Entry Table:\t\tFalse");
 			break;
 		default:
-			System.out.println("\tFixed-size Entry Table:\t\tTrue");
+			System.out.println("|--------Fixed-size Entry Table:\tTrue");
 		}
-		System.out.println("\n\tEND OF ELF SECTION HEADER-------------------<");
+		System.out.println("|----ELF Section Header");
 	}
 
 	@Override

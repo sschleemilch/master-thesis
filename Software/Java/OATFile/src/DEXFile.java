@@ -18,10 +18,14 @@ public class DEXFile extends ELFSection{
 	}
 	
 	public void dump(){
-		System.out.println("\nDEX FILE ------------------------------------>");
+		System.out.println("|----Dex File");
+		System.out.print("|--------Offset:\t");
+		System.out.printf("0x%08X\n", offset);
+		System.out.print("|--------Size:\t\t");
+		System.out.printf("0x%08X\n", size);
 		header.dump();
 		maplist.dump();
-		System.out.println("\nEND OF DEX FILE -----------------------------<");
+		System.out.println("|----Dex File");
 	}
 
 	@Override

@@ -1,7 +1,7 @@
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class OatdataSection extends ELFSection{
+public class ELFOatdataSection extends ELFSection{
 	public OATHeader header;
 	public int headersize;
 	
@@ -29,7 +29,7 @@ public class OatdataSection extends ELFSection{
 	//Dex File
 	public DEXFile dexfile;
 	
-	public OatdataSection (byte[] src, int off, int size){
+	public ELFOatdataSection (byte[] src, int off, int size){
 		int doff = off;
 		header = new OATHeader(src, off);
 		headersize = 84 + header.key_value_store.bSize;
@@ -70,6 +70,8 @@ public class OatdataSection extends ELFSection{
 		chstart = oat_class_headers[0].getOffset();
 		chend = getZerosOffset(src, chstart);
 		chcontent = Arrays.copyOfRange(src, chstart, chend);
+		offset = off;
+		this.size = size;
 	}
 	
 	private int getZerosOffset(byte[]src, int chstart){
@@ -91,33 +93,36 @@ public class OatdataSection extends ELFSection{
 	}
 	
 	public void dump(){
-		System.out.println("OATDATA SECTION ----------------------------->");
-		System.out.println("Size:\t\t" + size);
-		System.out.print("Offset:\t\t");
+		System.out.println("|");
+		System.out.println("|--ELF Oatdata Section");
+		System.out.print("|----Offset:\t");
 		System.out.printf("0x%08X\n", offset);
+		System.out.print("|----Size:\t");
+		System.out.printf("0x%08X\n", size);
 		header.dump();
-		System.out.println("\nOAT DEX FILE HEADER -------------->");
-		System.out.println("Dex Path Length:\t" + 
+		System.out.println("|----Oat Dex File Header");
+		System.out.println("|--------Dex Path Length:\t" + 
 				Convertions.bytesToInt(dex_file_location_size.data, 0, dex_file_location_size.bSize));
-		System.out.println("Dex Path:\t\t" + new String(dex_file_location_data.data,
+		System.out.println("|--------Dex Path:\t\t" + new String(dex_file_location_data.data,
 				StandardCharsets.UTF_8));
-		System.out.print("Dex Offset(oatdata):\t");
+		System.out.print("|--------Dex Offset(oatdata):\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(dex_file_pointer.data, 0, dex_file_pointer.bSize));
-		System.out.println("OatClassHeader Offsets (oatdata):\t");
+		System.out.println("|--------OatClassHeader Offsets (oatdata):\t");
 		for (int i = 0; i < cosize*4; i+=4){
-			System.out.print("\t\t\t");
+			System.out.print("|------------");
 			int off = Convertions.bytesToInt(Arrays.copyOfRange(classes_offsets.data,
 					i, i+4), 0, 4);
 			System.out.printf("0x%08X\n", off);
 		}
-		System.out.println("\nEND OF OAT DEX FILE HEADER -------<");
-		System.out.println("\nOAT CLASS HEADERS----------------->");
+		System.out.println("|----Oat Dex File Header");
+		
+		System.out.println("|----Oat Class Headers");
 		for (int i = 0; i < oat_class_headers.length; i ++){
 			oat_class_headers[i].dump();
 		}
-		System.out.println("\nEND OF OAT CLASS HEADERS----------<");
+		System.out.println("|----Oat Class Headers");
 		dexfile.dump();
-		System.out.println("END OF OATDATA SECTION ----------------------<");
+		System.out.println("|--ELF Oatdata Section");
 	}
 
 	@Override

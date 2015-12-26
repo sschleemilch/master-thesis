@@ -33,16 +33,21 @@ public class ELFSymbolHashTable extends ELFSection{
 		
 	}
 	public void dump(){
-		System.out.println("ELF HASH TABLE -------------------->");
-		System.out.println("Bucket:");
+		System.out.println("|");
+		System.out.println("|--ELF Symbol Hash Table");
+		System.out.print("|----Offset:\t");
+		System.out.printf("0x%08X\n", offset);
+		System.out.print("|----Size:\t");
+		System.out.printf("0x%08X\n", size);
+		System.out.println("|----Bucket:");
 		for (int i = 0; i < bucket.length; i++){
-			System.out.println("\t\t" + Convertions.bytesToInt(bucket[i].data, 0, bucket[i].bSize));
+			System.out.println("|--------" + Convertions.bytesToInt(bucket[i].data, 0, bucket[i].bSize));
 		}
-		System.out.println("Chain:");
+		System.out.println("|----Chain:");
 		for (int i = 0; i < chain.length; i++){
-			System.out.println("\t\t" + Convertions.bytesToInt(chain[i].data, 0, chain[i].bSize));
+			System.out.println("|--------" + Convertions.bytesToInt(chain[i].data, 0, chain[i].bSize));
 		}
-		System.out.println("END OF ELF HASH TABLE -------------<");
+		System.out.println("|--ELF Symbol Hash Table");
 	}
 	@Override
 	public byte[] getBytes() {

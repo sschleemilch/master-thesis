@@ -28,10 +28,10 @@ public class OATClassHeader extends ELFSection{
 		offset = off;
 	}
 	public void dump(){
-		System.out.println("OATClass HEADER ------------------>");
-		System.out.print("Offset:\t\t");
+		System.out.println("|--------Oat Class Header");
+		System.out.print("|------------Offset:\t\t");
 		System.out.printf("0x%08X\n", offset);
-		System.out.print("Status:\t\t");
+		System.out.print("|------------Status:\t\t");
 		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
 		case 0:
 			System.out.println("All methods compiled");
@@ -44,15 +44,15 @@ public class OATClassHeader extends ELFSection{
 			break;
 		}
 		if (bitmap_size != null){
-			System.out.println("Type:\t\t" + Convertions.bytesToInt(type.data, 0, type.bSize));
-			System.out.println("Bitmap Size:\t" + Convertions.bytesToInt(bitmap_size.data, 0, bitmap_size.bSize));
-			System.out.println("Bitmap:\t\t");
+			System.out.println("|------------Type:\t\t" + Convertions.bytesToInt(type.data, 0, type.bSize));
+			System.out.println("|------------Bitmap Size:\t" + Convertions.bytesToInt(bitmap_size.data, 0, bitmap_size.bSize));
+			System.out.println("|------------Bitmap:\t\t");
 			for (int i = 0; i < bitmap.data.length; i++){
 				System.out.printf("\t\t0x%02X\n",bitmap.data[i]);
 			}
 
 		}
-		System.out.println("END OF OATClass HEADER -----------<");
+		System.out.println("|--------Oat Class Header");
 	}
 	@Override
 	public byte[] getBytes() {

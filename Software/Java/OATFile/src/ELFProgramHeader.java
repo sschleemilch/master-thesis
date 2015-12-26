@@ -37,8 +37,8 @@ public class ELFProgramHeader extends ELFSection{
 	}
 	
 	public void dump(){
-		System.out.println("\tPROGRAM HEADER --------------------->");
-		System.out.print("\tType:\t\t");
+		System.out.println("|----Program Header");
+		System.out.print("|--------Type:\t\t");
 		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
 		case 0:
 			System.out.println("Unused");
@@ -68,16 +68,16 @@ public class ELFProgramHeader extends ELFSection{
 			System.out.println("CPU Semantics");
 			break;
 		}
-		System.out.print("\tOffset:\t\t");
+		System.out.print("|--------Offset:\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
-		System.out.print("\tVirtAddress:\t");
+		System.out.print("|--------VirtAddress:\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(vaddr.data, 0, vaddr.bSize));
-		System.out.print("\tPhysAddress:\t");
+		System.out.print("|--------PhysAddress:\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(paddr.data, 0, paddr.bSize));
-		System.out.println("\tFilesize:\t" + Convertions.bytesToInt(filesz.data, 0, filesz.bSize));
-		System.out.println("\tMemsize:\t" + Convertions.bytesToInt(memsz.data, 0, memsz.bSize));
-		System.out.println("\tAlignment:\t" + Convertions.bytesToInt(align.data, 0, align.bSize));
-		System.out.println("\tEND OF PROGRAM HEADER --------------<");
+		System.out.println("|--------Filesize:\t" + Convertions.bytesToInt(filesz.data, 0, filesz.bSize));
+		System.out.println("|--------Memsize:\t" + Convertions.bytesToInt(memsz.data, 0, memsz.bSize));
+		System.out.println("|--------Alignment:\t" + Convertions.bytesToInt(align.data, 0, align.bSize));
+		System.out.println("|----Program Header");
 	}
 
 	@Override

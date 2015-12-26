@@ -12,7 +12,13 @@ public class ELFNullSection extends ELFSection{
 	
 	@Override
 	public void dump() {
-		//nothing to dump
+		System.out.println("|");
+		System.out.println("|--ELF Null Section");
+		System.out.print("|----Offset:\t");
+		System.out.printf("0x%08X\n", offset);
+		System.out.print("|----Size:\t");
+		System.out.printf("0x%08X\n", size);
+		System.out.println("|--ELF Null Section");
 	}
 
 	@Override

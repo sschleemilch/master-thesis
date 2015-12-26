@@ -10,26 +10,31 @@ public class ELFSymbolTable extends ELFSection{
 	public ELFSymbolTable(byte[]src, int off, int size, int stoff, int stsize){
 		int nEntries = size/entrySize;
 		entries = new ELFSymbolTableEntry[nEntries];
-		ELFSectionHeaderStringTable stringTable = new ELFSectionHeaderStringTable(src, stoff, stsize);
-		for (int i = 0; i < nEntries; i++){
+		ELFStringTable stringTable = new ELFStringTable(src, stoff, stsize);
+		for (int i = 0; i < entries.length; i++){
 			entries[i] = new ELFSymbolTableEntry(src, off+(i*entrySize));
 			entries[i].sName = stringTable.
 					getString(Convertions.bytesToInt(entries[i].name.data,
 							0, entries[i].name.bSize));
 		}
-		size = 0;
+		this.size = 0;
 		for (int i = 0; i < entries.length; i++){
-			size += entries[i].getSize();
+			this.size += entries[i].getSize();
 		}
 		offset = off;
 	}
 	
 	public void dump(){
-		System.out.println("\nSYMBOL TABLE------------------------------------------------->");
+		System.out.println("|");
+		System.out.println("|--Symbol Table");
+		System.out.print("|----Offset:\t");
+		System.out.printf("0x%08X\n", offset);
+		System.out.print("|----Size:\t");
+		System.out.printf("0x%08X\n", size);
 		for (int i = 0; i < entries.length; i++){
 			entries[i].dump();
 		}
-		System.out.println("\nEND OF SYMBOL TABLE------------------------------------------<");
+		System.out.println("|--Symbol Table");
 	}
 
 	@Override
@@ -52,6 +57,6 @@ public class ELFSymbolTable extends ELFSection{
 
 	@Override
 	public int getOffset() {
-		return size;
+		return offset;
 	}
 }

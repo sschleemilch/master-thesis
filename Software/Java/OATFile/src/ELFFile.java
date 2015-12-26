@@ -1,16 +1,44 @@
 public class ELFFile {
+	//ELF Sections
 	public ELFHeader header;
 	public ELFProgramHeaderTable phtable;
 	public ELFSymbolTable sytable;
-	public ELFSectionHeaderStringTable shstrtable;
-	public ELFSymbolHashTable htable;
-	public OatdataSection oatdata;
-	public OatexecSection oatexec;
+	public ELFStringTable systrtable;
+	public ELFSymbolHashTable syhtable;
+	public ELFNullSection nsection1;
+	public ELFOatdataSection oatdata;
+	public ELFOatexecSection oatexec;
+	public ELFNullSection nsection2;
+	public ELFDynamicLinkingInfo dlinfo;
+	public ELFStringTable shstrtable;
 	public ELFSectionHeaderTable shtable;
 	
+	//Container for all Sections
+	public int nsections = 12; 
+	public ELFSection[] sections = new ELFSection[nsections];
+	
+	//Raw byte content of ELF file
 	public byte[] bytes;
-	public int exe_off;
-	public int exe_size;
+	
+	//Sizes and offsets of Sections
+	public int sytab_off;
+	public int sytab_size;
+	public int systrtab_off;
+	public int systrtab_size;
+	public int syhtab_off;
+	public int syhtab_size;
+	public int nsection1_off;
+	public int nsection1_size;
+	public int oatdata_off;
+	public int oatdata_size;
+	public int oatexec_off;
+	public int oatexec_size;
+	public int nsection2_off;
+	public int nsection2_size;
+	public int dylinfo_off;
+	public int dylinfo_size;
+	public int shstrtab_off;
+	public int shstrtab_size;
 	
 	public ELFFile(String pathToFile){
 		//load ELF File
@@ -25,76 +53,89 @@ public class ELFFile {
 				Convertions.bytesToInt(header.shnum.data, 0, header.shnum.bSize),
 				Convertions.bytesToInt(header.shentsize.data, 0, header.shentsize.bSize),
 				Convertions.bytesToInt(header.shstrndx.data, 0, header.shstrndx.bSize));
+		fillSectionsInfo();
+		sytable = new ELFSymbolTable(bytes, sytab_off, sytab_size, systrtab_off, systrtab_size);
+		systrtable = new ELFStringTable(bytes, systrtab_off, systrtab_size);
+		syhtable = new ELFSymbolHashTable(bytes, syhtab_off, syhtab_size);
+		nsection1 = new ELFNullSection(nsection1_off, nsection1_size);
+		oatdata = new ELFOatdataSection(bytes, oatdata_off, oatdata_size);
+		oatexec = new ELFOatexecSection(bytes, oatexec_off, oatexec_size);
+		nsection2 = new ELFNullSection(nsection2_off, nsection2_size);
+		dlinfo = new ELFDynamicLinkingInfo(bytes, dylinfo_off, dylinfo_size);
+		shstrtable = new ELFStringTable(bytes, shstrtab_off, shstrtab_size);
+		fillSectionsContainer();
+		
+		
+	}
+
+	public void fillSectionsContainer(){
+		sections[0] = header;
+		sections[1] = phtable;
+		sections[2] = sytable;
+		sections[3] = systrtable;
+		sections[4] = syhtable;
+		sections[5] = nsection1;
+		sections[6] = oatdata;
+		sections[7] = oatexec;
+		sections[8] = nsection2;
+		sections[9] = dlinfo;
+		sections[10] = shstrtable;
+		sections[11] = shtable;
+	}
 	
-		//find symbol/string/hash/exe sections
-		int sytable_off = 0;
-		int sytable_size = 0;
-		int systrtable_off = 0;
-		int systrtable_size = 0;
-		int htable_off = 0;
-		int htable_size = 0;
-		int oatdata_size = 0;
-		int oatdata_off = 0;
+	public void fillSectionsInfo(){
 		for (int i = 0; i < shtable.entries.length; i++){
-			if (shtable.entries[i].sName.equals(".dynsym")){
-				sytable_off = Convertions.bytesToInt(
-						shtable.entries[i].boffset.data,
-						0,shtable.entries[i].boffset.bSize);
-				sytable_size = Convertions.bytesToInt(
-						shtable.entries[i].bsize.data,
-						0,shtable.entries[i].bsize.bSize);
-			}
-			if(shtable.entries[i].sName.equals(".dynstr")){
-				systrtable_off = Convertions.bytesToInt(
-								shtable.entries[i].boffset.data,
-								0,shtable.entries[i].boffset.bSize);
-				systrtable_size = Convertions.bytesToInt(
-						shtable.entries[i].bsize.data,
-						0,shtable.entries[i].bsize.bSize);
-			}
-			if(shtable.entries[i].sName.equals(".hash")){
-				htable_off = Convertions.bytesToInt(
-								shtable.entries[i].boffset.data,
-								0,shtable.entries[i].boffset.bSize);
-				htable_size = Convertions.bytesToInt(
-						shtable.entries[i].bsize.data,
-						0,shtable.entries[i].bsize.bSize);
-			}
-			if(shtable.entries[i].sName.equals(".text")){
-				exe_off = Convertions.bytesToInt(
-								shtable.entries[i].boffset.data,
-								0,shtable.entries[i].boffset.bSize);
-				exe_size = Convertions.bytesToInt(
-						shtable.entries[i].bsize.data,
-						0,shtable.entries[i].bsize.bSize);
-			}
-			if(shtable.entries[i].sName.equals(".rodata")){
-				oatdata_off = Convertions.bytesToInt(
-								shtable.entries[i].boffset.data,
-								0,shtable.entries[i].boffset.bSize);
-				oatdata_size = Convertions.bytesToInt(
-						shtable.entries[i].bsize.data,
-						0,shtable.entries[i].bsize.bSize);
-			}
 			
+			int of = Convertions.bytesToInt(shtable.entries[i].boffset.data,
+					0, shtable.entries[i].boffset.bSize);
+			int si = Convertions.bytesToInt(shtable.entries[i].bsize.data,
+					0, shtable.entries[i].bsize.bSize);
+			
+			switch(shtable.entries[i].sName){
+			case ".dynsym":
+				sytab_off = of;
+				sytab_size = si;
+				break;
+			case ".dynstr":
+				systrtab_off = of;
+				systrtab_size = si;
+				break;
+			case ".hash":
+				syhtab_off = of;
+				syhtab_size = si;
+				break;
+			case ".rodata":
+				oatdata_off = of;
+				oatdata_size = si;
+				break;
+			case ".text":
+				oatexec_off = of;
+				oatexec_size = si;
+				break;
+			case ".dynamic":
+				dylinfo_off = of;
+				dylinfo_size = si;
+				break;
+			case ".shstrtab":
+				shstrtab_off = of;
+				shstrtab_size = si;
+				break;
+			}
 		}
-		sytable = new ELFSymbolTable(bytes, sytable_off,
-				sytable_size, systrtable_off, systrtable_size);
-		shstrtable = new ELFSectionHeaderStringTable(bytes, systrtable_off, systrtable_size);
+		nsection1_off = syhtab_off + syhtab_size;
+		nsection1_size = oatdata_off - nsection1_off;
 		
-		htable = new ELFSymbolHashTable(bytes, htable_off, htable_size);
-		
-		
-		oatdata = new OatdataSection(bytes, oatdata_off, oatdata_size); // == .rodata
+		nsection2_off = oatexec_off + oatexec_size;
+		nsection2_size = dylinfo_off - nsection2_off;
 	}
-	public byte[] getExecutable(){
-		byte[] exe = new byte[exe_size];
-		for (int i = 0; i < exe.length; i++){
-			exe[i] = bytes[ exe_off + i];
+	
+	public void dump(){
+		System.out.println("\n|>>> ELF File Format <<<");
+		System.out.println("|");
+		for (int i = 0; i < sections.length; i++){
+			sections[i].dump();
 		}
-		return exe;
-	}
-	public void setNewExecutable(byte[] nexe){
-		
+		System.out.println("|");
+		System.out.println("-");
 	}
 }

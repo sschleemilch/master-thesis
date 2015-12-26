@@ -2,6 +2,7 @@
 public class ELFProgramHeaderTable extends ELFSection{
 	
 	public ELFProgramHeader[] entries;
+	
 	private int offset;
 	private int size;
 	
@@ -18,11 +19,16 @@ public class ELFProgramHeaderTable extends ELFSection{
 		
 	}
 	public void dump(){
-		System.out.println("\nPROGRAM HEADER TABLE ---------------------------------------->");
+		System.out.println("|");
+		System.out.println("|--Program Header Table");
+		System.out.print("|----Offset:\t");
+		System.out.printf("0x%08X\n", offset);
+		System.out.print("|----Size:\t");
+		System.out.printf("0x%08X\n", size);
 		for (int i = 0; i < entries.length; i++){
 			entries[i].dump();
 		}
-		System.out.println("\nEND OF PROGRAM HEADER TABLE ---------------------------------<");
+		System.out.println("|--Program Header Table");
 	}
 	
 	@Override

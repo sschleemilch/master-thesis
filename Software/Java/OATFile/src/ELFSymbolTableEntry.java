@@ -24,16 +24,16 @@ public class ELFSymbolTableEntry extends ELFSection{
 	}
 	
 	public void dump(){
-		System.out.println("\n\tELF SYMBOL TABLE ENTRY----------------------->");
-		System.out.println("\tName:\t\t\t"+sName);
-		System.out.println("\tValue:\t\t\t" + Convertions.bytesToInt(value.data, 0, value.bSize));
-		System.out.print("\tSize:\t\t\t");
+		System.out.println("|----Symbol Table Entry");
+		System.out.println("|--------Name:\t\t\t"+sName);
+		System.out.println("|--------Value:\t\t\t" + Convertions.bytesToInt(value.data, 0, value.bSize));
+		System.out.print("|--------Size:\t\t\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
-		System.out.println("\tSection Table Index:\t" + 
+		System.out.println("|--------Section Table Index:\t" + 
 				Convertions.bytesToInt(shndx.data, 0, shndx.bSize));
 		
 		int inf = Convertions.bytesToInt(info.data, 0, info.bSize);	
-		System.out.print("\tSymbol Binding:\t\t");
+		System.out.print("|--------Symbol Binding:\t");
 		switch(st_bind(inf)){
 		case 0:
 			System.out.println("LOCAL");
@@ -53,7 +53,7 @@ public class ELFSymbolTableEntry extends ELFSection{
 		default:
 			System.out.println("Unknown");
 		}
-		System.out.print("\tSymbol Types:\t\t");
+		System.out.print("|--------Symbol Types:\t\t");
 		switch(st_type(inf)){
 		case 0:
 			System.out.println("Not Specified");
@@ -77,7 +77,7 @@ public class ELFSymbolTableEntry extends ELFSection{
 			System.out.println("CPU Semantics");
 			break;
 		}
-		System.out.println("\n\tEND OF ELF SYMBOL TABLE ENTRY----------------<");
+		System.out.println("|----Symbol Table Entry");
 	}
 	
 	private int st_bind(int i){

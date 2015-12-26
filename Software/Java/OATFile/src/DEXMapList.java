@@ -18,12 +18,12 @@ public class DEXMapList extends ELFSection{
 		offset = off;
 	}
 	public void dump(){
-		System.out.println("\n\tDEX MAP LIST ------------------------->");
-		System.out.println("\tSize: \t" + Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
+		System.out.println("|--------Dex Map List");
+		System.out.println("|------------Size: " + Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
 		for (int i = 0 ; i < list.length; i++){
 			list[i].dump();
 		}
-		System.out.println("\tEND OF DEX MAP LIST ------------------<");
+		System.out.println("|--------Dex Map List");
 	}
 	@Override
 	public byte[] getBytes() {

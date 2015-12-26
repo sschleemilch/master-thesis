@@ -91,14 +91,14 @@ public class OATHeader extends ELFSection{
 	}
 	
 	public void dump(){
-		System.out.println("\nOAT-HEADER--------------------------------->");
-		System.out.println("\tVersion:\t\t" + 
+		System.out.println("|----Oat Header");
+		System.out.println("|--------Version:\t\t" + 
 		new String(Arrays.copyOfRange(version.data, 0, 3), StandardCharsets.UTF_8));
-		System.out.print("\tSize:\t\t\t");
+		System.out.print("|--------Size:\t\t\t");
 		System.out.printf("0x%08X\n", size);
-		System.out.println("\tHeader Checksum:\t" +
+		System.out.println("|--------Header Checksum:\t" +
 		Convertions.bytesToInt(adler32_checksum.data, 0, adler32_checksum.bSize));
-		System.out.print("\tInstruction Set:\t");
+		System.out.print("|--------Instruction Set:\t");
 		switch (Convertions.bytesToInt(instruction_set.data, 0, instruction_set.bSize)){
 		case 0:
 			System.out.println("Unspecified");
@@ -125,13 +125,13 @@ public class OATHeader extends ELFSection{
 			System.out.println("MIPS_64");
 			break;
 		}
-		System.out.println("\tDex-Files:\t\t" +
+		System.out.println("|--------Dex-Files:\t\t" +
 		Convertions.bytesToInt(dex_file_count.data, 0, dex_file_count.bSize));
-		System.out.print("\tExe Offset(oatdata):\t");
+		System.out.print("|--------Exe Offset(oatdata):\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(executable_offset.data, 0, executable_offset.bSize));
 		
-		System.out.println("\tCreate-Arguments:\t"+creationArguments);
-		System.out.println("END-OF-OAT-HEADER--------------------------<");
+		System.out.println("|--------Create-Arguments:\t"+creationArguments);
+		System.out.println("|----Oat Header");
 	}
 	
 	
