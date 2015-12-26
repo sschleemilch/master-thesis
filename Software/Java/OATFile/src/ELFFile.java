@@ -33,38 +33,48 @@ public class ELFFile {
 		int systrtable_size = 0;
 		int htable_off = 0;
 		int htable_size = 0;
+		int oatdata_size = 0;
+		int oatdata_off = 0;
 		for (int i = 0; i < shtable.entries.length; i++){
 			if (shtable.entries[i].sName.equals(".dynsym")){
 				sytable_off = Convertions.bytesToInt(
-						shtable.entries[i].offset.data,
-						0,shtable.entries[i].offset.bSize);
+						shtable.entries[i].boffset.data,
+						0,shtable.entries[i].boffset.bSize);
 				sytable_size = Convertions.bytesToInt(
-						shtable.entries[i].size.data,
-						0,shtable.entries[i].size.bSize);
+						shtable.entries[i].bsize.data,
+						0,shtable.entries[i].bsize.bSize);
 			}
 			if(shtable.entries[i].sName.equals(".dynstr")){
 				systrtable_off = Convertions.bytesToInt(
-								shtable.entries[i].offset.data,
-								0,shtable.entries[i].offset.bSize);
+								shtable.entries[i].boffset.data,
+								0,shtable.entries[i].boffset.bSize);
 				systrtable_size = Convertions.bytesToInt(
-						shtable.entries[i].size.data,
-						0,shtable.entries[i].size.bSize);
+						shtable.entries[i].bsize.data,
+						0,shtable.entries[i].bsize.bSize);
 			}
 			if(shtable.entries[i].sName.equals(".hash")){
 				htable_off = Convertions.bytesToInt(
-								shtable.entries[i].offset.data,
-								0,shtable.entries[i].offset.bSize);
+								shtable.entries[i].boffset.data,
+								0,shtable.entries[i].boffset.bSize);
 				htable_size = Convertions.bytesToInt(
-						shtable.entries[i].size.data,
-						0,shtable.entries[i].size.bSize);
+						shtable.entries[i].bsize.data,
+						0,shtable.entries[i].bsize.bSize);
 			}
 			if(shtable.entries[i].sName.equals(".text")){
 				exe_off = Convertions.bytesToInt(
-								shtable.entries[i].offset.data,
-								0,shtable.entries[i].offset.bSize);
+								shtable.entries[i].boffset.data,
+								0,shtable.entries[i].boffset.bSize);
 				exe_size = Convertions.bytesToInt(
-						shtable.entries[i].size.data,
-						0,shtable.entries[i].size.bSize);
+						shtable.entries[i].bsize.data,
+						0,shtable.entries[i].bsize.bSize);
+			}
+			if(shtable.entries[i].sName.equals(".rodata")){
+				oatdata_off = Convertions.bytesToInt(
+								shtable.entries[i].boffset.data,
+								0,shtable.entries[i].boffset.bSize);
+				oatdata_size = Convertions.bytesToInt(
+						shtable.entries[i].bsize.data,
+						0,shtable.entries[i].bsize.bSize);
 			}
 			
 		}
@@ -73,20 +83,9 @@ public class ELFFile {
 		shstrtable = new ELFSectionHeaderStringTable(bytes, systrtable_off, systrtable_size);
 		
 		htable = new ELFSymbolHashTable(bytes, htable_off, htable_size);
-		//hash table here...........
 		
-		int ti = -1; //tableindex
-		for (int i = 0; i < sytable.entries.length; i++){
-			if (sytable.entries[i].sName.equals("oatdata")&&
-					Convertions.bytesToInt(sytable.entries[i].name.data,
-							0, sytable.entries[i].name.bSize)>0){
-				ti = Convertions.bytesToInt(sytable.entries[i].shndx.data,
-						0, sytable.entries[i].shndx.bSize);
-			}
-		}
-		int oatoff = Convertions.bytesToInt(shtable.entries[ti].offset.data,
-				0, shtable.entries[ti].offset.bSize);
-		oatdata = new OatdataSection(bytes, oatoff); // == .rodata
+		
+		oatdata = new OatdataSection(bytes, oatdata_off, oatdata_size); // == .rodata
 	}
 	public byte[] getExecutable(){
 		byte[] exe = new byte[exe_size];

@@ -3,8 +3,8 @@ public class DEXMapList extends ELFSection{
 	public BData bsize;
 	public DEXMapItem[] list;
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public DEXMapList(byte[] src, int off){
 		bsize = new BData(off + 0 , new byte[]{src[off+0], src[off+1],
@@ -13,7 +13,7 @@ public class DEXMapList extends ELFSection{
 		size = bsize.bSize;
 		for (int i = 0; i < list.length; i++){
 			list[i] = new DEXMapItem(src, off + 4 + (i*12));
-			size+=list[i].size;
+			size+=list[i].getSize();
 		}
 		offset = off;
 	}

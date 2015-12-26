@@ -1,8 +1,9 @@
 
 public class OatexecSection extends ELFSection{
 	public byte[] bytes;
-	public int size;
-	public int offset;
+	
+	private int size;
+	private int offset;
 	
 	public OatexecSection(byte[] src, int off, int size){
 		bytes = new byte[size];

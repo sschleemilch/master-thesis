@@ -16,13 +16,20 @@ public class OatdataSection extends ELFSection{
 	
 	private int cosize = -1;
 	
-	public int size;
-	public int offset;
+
+	private int offset;
+	private int size;
+	
+	//Oat Class Header start and end
+	public int chstart;
+	public int chend;
+	public byte[] chcontent;
+
 	
 	//Dex File
 	public DEXFile dexfile;
 	
-	public OatdataSection (byte[] src, int off){
+	public OatdataSection (byte[] src, int off, int size){
 		int doff = off;
 		header = new OATHeader(src, off);
 		headersize = 84 + header.key_value_store.bSize;
@@ -60,12 +67,34 @@ public class OatdataSection extends ELFSection{
 			oat_class_headers[i] = new OATClassHeader(src, abs_off);
 		}
 		
-		
-		offset = off;
+		chstart = oat_class_headers[0].getOffset();
+		chend = getZerosOffset(src, chstart);
+		chcontent = Arrays.copyOfRange(src, chstart, chend);
+	}
+	
+	private int getZerosOffset(byte[]src, int chstart){
+		int zerocount = 0;
+		boolean followingZero = false;
+		int sp = chstart;
+		int zerostart = 0;
+		while(zerocount < 20){
+			if(src[sp++] == 0){
+				if(zerocount == 0){
+					zerostart = sp-1;
+				}
+				zerocount++;
+			}else{
+				zerocount = 0;
+			}
+		}
+		return zerostart;
 	}
 	
 	public void dump(){
 		System.out.println("OATDATA SECTION ----------------------------->");
+		System.out.println("Size:\t\t" + size);
+		System.out.print("Offset:\t\t");
+		System.out.printf("0x%08X\n", offset);
 		header.dump();
 		System.out.println("\nOAT DEX FILE HEADER -------------->");
 		System.out.println("Dex Path Length:\t" + 
@@ -93,14 +122,36 @@ public class OatdataSection extends ELFSection{
 
 	@Override
 	public byte[] getBytes() {
-		// TODO Auto-generated method stub
-		return null;
+		byte[] bytes = new byte[size];
+		
+		//fill with header
+		byte[] tmp = header.getBytes();
+		int bp = 0;
+		for (int i = 0; i < tmp.length; i++){
+			bytes[bp++] = tmp[i];
+		}
+		//fill in oat dex file header
+		BData[] bd = {dex_file_location_size, dex_file_location_data,
+				dex_file_location_checksum, dex_file_pointer, classes_offsets};
+		for (int i = 0; i < bd.length; i++){
+			for(int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		//fill in oat class headers 
+		for(int i = 0; i < chcontent.length; i++){
+			bytes[bp++] = chcontent[i];
+		}
+		// fill in filling zeros
+		for(int i = bp; i < bytes.length; i++){
+			bytes[i] = 0x00;
+		}
+		return bytes;
 	}
 
 	@Override
 	public int getSize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return size;
 	}
 
 	@Override

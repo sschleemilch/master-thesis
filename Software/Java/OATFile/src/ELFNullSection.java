@@ -1,7 +1,7 @@
 
 public class ELFNullSection extends ELFSection{
-	public int offset;
-	public int size;
+	private int offset;
+	private int size;
 	
 	
 	public ELFNullSection(int off, int size) {

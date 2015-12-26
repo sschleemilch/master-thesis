@@ -3,8 +3,9 @@ public class ELFSymbolTable extends ELFSection{
 	
 	private static final int entrySize = 16;
 	public ELFSymbolTableEntry[] entries;
-	public int size;
-	public int offset;
+	
+	private int size;
+	private int offset;
 	
 	public ELFSymbolTable(byte[]src, int off, int size, int stoff, int stsize){
 		int nEntries = size/entrySize;
@@ -18,7 +19,7 @@ public class ELFSymbolTable extends ELFSection{
 		}
 		size = 0;
 		for (int i = 0; i < entries.length; i++){
-			size += entries[i].size;
+			size += entries[i].getSize();
 		}
 		offset = off;
 	}

@@ -9,8 +9,8 @@ public class ELFProgramHeader extends ELFSection{
 	public BData flags;
 	public BData align;
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public ELFProgramHeader(byte[]src, int off){
 		type = new BData(off + 0, new byte[]{src[off + 0], src[off + 1],

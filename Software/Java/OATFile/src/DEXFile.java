@@ -5,8 +5,8 @@ public class DEXFile extends ELFSection{
 	public DEXHeader header;
 	public DEXMapList maplist;
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	byte[] bytes;
 	
 	public DEXFile(byte[] src, int off){

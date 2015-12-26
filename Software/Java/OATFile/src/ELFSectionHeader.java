@@ -1,28 +1,37 @@
 
-public class ELFSectionHeader {
+public class ELFSectionHeader extends ELFSection{
 	public BData name; 		//index into string table
-	public String sName;	//String of section name
 	public BData type; 		//section content and semantics
 	public BData flags;		//1 bit flags
 	public BData addr;		//
-	public BData offset;	//byte offset from filebegin to section
-	public BData size;		//section size in Bytes
+	public BData boffset;	//byte offset from filebegin to section
+	public BData bsize;		//section size in Bytes
 	public BData link;		//section header table index link
 	public BData info;		//extra information about section
 	public BData addralign;	//section alignment constraints
 	public BData entsize;	//fixed size entries in table? 0 if not
+	
+	public String sName;	//String of section name
+	
+	private int size;
+	private int offset;
 	
 	public ELFSectionHeader(byte[]src, int off){
 		name = new BData(off + 0, new byte[]{src[off+0],src[off+1],src[off+2],src[off+3]});
 		type = new BData(off + 4, new byte[]{src[off+4],src[off+5],src[off+6],src[off+7]});
 		flags = new BData(off + 8, new byte[]{src[off+8],src[off+9],src[off+10],src[off+11]});
 		addr = new BData(off + 12, new byte[]{src[off+12],src[off+13],src[off+14],src[off+15]});
-		offset = new BData(off + 16, new byte[]{src[off+16],src[off+17],src[off+18],src[off+19]});
-		size = new BData(off + 20, new byte[]{src[off+20],src[off+21],src[off+22],src[off+23]});
+		boffset = new BData(off + 16, new byte[]{src[off+16],src[off+17],src[off+18],src[off+19]});
+		bsize = new BData(off + 20, new byte[]{src[off+20],src[off+21],src[off+22],src[off+23]});
 		link = new BData(off + 24, new byte[]{src[off+24],src[off+25],src[off+26],src[off+27]});
 		info = new BData(off + 28, new byte[]{src[off+28],src[off+29],src[off+30],src[off+31]});
 		addralign = new BData(off + 32, new byte[]{src[off+32],src[off+33],src[off+34],src[off+35]});
 		entsize = new BData(off + 36, new byte[]{src[off+36],src[off+37],src[off+38],src[off+39]});
+		
+		offset = off;
+		size = name.bSize + type.bSize + flags.bSize + addr.bSize +
+				boffset.bSize + bsize.bSize + link.bSize + info.bSize +
+				addralign.bSize + entsize.bSize;
 	}
 	
 	public void dump(){
@@ -99,9 +108,9 @@ public class ELFSectionHeader {
 			break;
 		}
 		System.out.print("\tOffset to Section:\t\t");
-		System.out.printf("0x%08X\n",Convertions.bytesToInt(offset.data, 0, offset.bSize));
+		System.out.printf("0x%08X\n",Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
 		System.out.print("\tSection Size:\t\t\t");
-		System.out.printf("0x%08X\n", + Convertions.bytesToInt(size.data, 0, size.bSize));
+		System.out.printf("0x%08X\n", + Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
 		
 		switch(Convertions.bytesToInt(entsize.data, 0, entsize.bSize)){
 		case 0:
@@ -111,6 +120,31 @@ public class ELFSectionHeader {
 			System.out.println("\tFixed-size Entry Table:\t\tTrue");
 		}
 		System.out.println("\n\tEND OF ELF SECTION HEADER-------------------<");
+	}
+
+	@Override
+	public byte[] getBytes() {
+		BData[] bd = {name, type, flags, addr, boffset, bsize, link, info,
+				addralign, entsize};
+		byte[]bytes = new byte[size];
+		
+		int bp = 0;
+		for (int i = 0; i < bd.length; i++){
+			for (int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		return bytes;
+	}
+
+	@Override
+	public int getSize() {
+		return size;
+	}
+
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 	
 }

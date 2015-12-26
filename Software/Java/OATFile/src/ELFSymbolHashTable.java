@@ -4,8 +4,9 @@ public class ELFSymbolHashTable extends ELFSection{
 	public BData nchain;
 	public BData[] bucket;
 	public BData[] chain;
-	public int size;
-	public int offset;
+	
+	private int size;
+	private int offset;
 	
 	public ELFSymbolHashTable(byte[] src, int off, int size){
 		this.size = size;

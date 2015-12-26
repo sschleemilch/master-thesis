@@ -27,8 +27,8 @@ public class OATHeader extends ELFSection{
 	public BData key_value_store_size;
 	public BData key_value_store;
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public String creationArguments;
 	public String[] key_value_store_strings; 

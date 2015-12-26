@@ -27,8 +27,8 @@ public class DEXHeader extends ELFSection{
 	public BData data_off;
 	
 	public String version;
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public DEXHeader (byte[] src, int off){
 		magic = new BData(off+0, new byte[]{src[off+0],src[off+1],

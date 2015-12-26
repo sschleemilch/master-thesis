@@ -8,8 +8,8 @@ public class ELFSymbolTableEntry extends ELFSection{
 	public BData shndx;
 	public String sName;
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public ELFSymbolTableEntry(byte[] src, int off){
 		name = new BData(off+0, new byte[]{src[off+0],src[off+1],src[off+2],src[off+3]});

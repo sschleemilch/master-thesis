@@ -5,8 +5,8 @@ import java.util.List;
 
 public class ELFSectionHeaderStringTable extends ELFSection{
 	private byte[] stringTable;
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public ELFSectionHeaderStringTable(byte[]src, int off, int size){
 		this.stringTable = Arrays.copyOfRange(src, off, off+size);

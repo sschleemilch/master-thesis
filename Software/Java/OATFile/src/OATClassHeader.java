@@ -6,8 +6,8 @@ public class OATClassHeader extends ELFSection{
 	public BData bitmap;
 	public BData methods_offsets;
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public OATClassHeader(byte[] src, int off){
 		status = new BData(off + 0, new byte[]{src[off+0],src[off+1]});

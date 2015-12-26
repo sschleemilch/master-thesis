@@ -24,8 +24,8 @@ public class ELFHeader extends ELFSection{
 	public BData shnum; //n-entries in section header table
 	public BData shstrndx; //section header string table index
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	private boolean isELFFile(byte[]src){
 		if (src[0] == iMagic0.data[0] &&

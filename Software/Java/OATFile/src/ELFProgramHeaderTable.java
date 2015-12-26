@@ -2,8 +2,8 @@
 public class ELFProgramHeaderTable extends ELFSection{
 	
 	public ELFProgramHeader[] entries;
-	public int offset;
-	public int size;
+	private int offset;
+	private int size;
 	
 	public ELFProgramHeaderTable(byte[]src, int off, int nEntries, int entrySize){
 		entries = new ELFProgramHeader[nEntries];
@@ -12,7 +12,7 @@ public class ELFProgramHeaderTable extends ELFSection{
 		}
 		size = 0;
 		for (int i = 0; i < entries.length; i++){
-			size += entries[i].size;
+			size += entries[i].getSize();
 		}
 		offset = off;
 		

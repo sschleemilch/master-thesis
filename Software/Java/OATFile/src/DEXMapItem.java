@@ -25,8 +25,8 @@ public class DEXMapItem extends ELFSection{
 	public BData bsize;
 	public BData boffset;
 	
-	public int size;
-	public int offset;
+	private int size;
+	private int offset;
 	
 	public DEXMapItem(byte[] src, int off){
 		type = new BData(off + 0 , new byte[]{src[off+0],src[off+1]});
