@@ -9,5 +9,8 @@ public class BData {
 		this.data = data;
 		this.bSize = data.length;
 	}
+	public void setInt(int value){
+		data = Convertions.intToBytes(value, bSize);
+	}
 	
 }

@@ -1,5 +1,5 @@
 
-public class ELFHeader {
+public class ELFHeader extends ELFSection{
 	//ident-----------------16Bytes
 	public BData iMagic0 = new BData(0,new byte[]{0x7f});
 	public BData iMagic1 = new BData(1,new byte[]{'E'});
@@ -23,6 +23,9 @@ public class ELFHeader {
 	public BData shentsize; //size of 1 entry in section header table
 	public BData shnum; //n-entries in section header table
 	public BData shstrndx; //section header string table index
+	
+	public int size;
+	public int offset;
 	
 	private boolean isELFFile(byte[]src){
 		if (src[0] == iMagic0.data[0] &&
@@ -55,6 +58,9 @@ public class ELFHeader {
 			shentsize = new BData(46, new byte[]{src[46],src[47]});
 			shnum = new BData(48, new byte[]{src[48],src[49]});
 			shstrndx = new BData(50, new byte[]{src[50],src[51]});
+			
+			size = Convertions.bytesToInt(ehsize.data, 0, ehsize.bSize);
+			offset = 0;
 		}
 	}
 	
@@ -172,6 +178,32 @@ public class ELFHeader {
 		System.out.println("\tSection Header Table Index <-> String Table:\t" +
 						Convertions.bytesToInt(shstrndx.data, 0, shstrndx.bSize));
 		System.out.println("\nEND OF ELF-HEADER --------------------------------------------------<\n");
+	}
+
+	@Override
+	public byte[] getBytes() {
+		BData bd[] = {iMagic0, iMagic1, iMagic2, iMagic3, iFileBitClass, iDataEncoding,
+				iHVersion, iPadding, type, machine, fVersion, entry, phoff, shoff, flags,
+				ehsize, phentsize, phnum, shentsize, shnum, shstrndx};
+		byte[] bytes = new byte[size];
+		
+		int bp = 0;
+		for (int i = 0; i < bd.length; i++){
+			for (int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		return bytes;
+	}
+
+	@Override
+	public int getSize() {
+		return size;
+	}
+
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 	
 }

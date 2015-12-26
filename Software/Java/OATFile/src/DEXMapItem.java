@@ -1,5 +1,5 @@
 
-public class DEXMapItem {
+public class DEXMapItem extends ELFSection{
 	public static final int TYPE_HEADER_ITEM = 0;
 	public static final int TYPE_STRING_ID_ITEM = 1;
 	public static final int TYPE_TYPE_ID_ITEM = 2;
@@ -22,16 +22,23 @@ public class DEXMapItem {
 	
 	public BData type;
 	public BData unused;
-	public BData size;
-	public BData offset;
+	public BData bsize;
+	public BData boffset;
+	
+	public int size;
+	public int offset;
 	
 	public DEXMapItem(byte[] src, int off){
 		type = new BData(off + 0 , new byte[]{src[off+0],src[off+1]});
 		unused = new BData(off + 2 , new byte[]{src[off+2],src[off+3]});
-		size = new BData(off + 4, new byte[]{src[off+4], src[off+5],
+		bsize = new BData(off + 4, new byte[]{src[off+4], src[off+5],
 				src[off+6], src[off+7]});
-		offset = new BData(off + 8, new byte[]{src[off+8], src[off+9],
+		boffset = new BData(off + 8, new byte[]{src[off+8], src[off+9],
 				src[off+10], src[off+11]});
+		
+		size = type.bSize + unused.bSize + bsize.bSize + boffset.bSize;
+		offset = off;
+		
 	}
 	
 	public void dump(){
@@ -95,9 +102,34 @@ public class DEXMapItem {
 		default:
 			System.out.println("Unknown");
 		}
-		System.out.println("\t\tN-Items:\t" + Convertions.bytesToInt(size.data, 0, size.bSize));
+		System.out.println("\t\tN-Items:\t" + Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
 		System.out.print("\t\tOffset(Dex):\t");
-		System.out.printf("0x%08X\n",Convertions.bytesToInt(offset.data, 0, offset.bSize));
+		System.out.printf("0x%08X\n",Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
 		System.out.println("\t\tEND OF DEX MAP ITEM----------<");
+	}
+
+	@Override
+	public byte[] getBytes() {
+		BData[] bd = {type, unused, bsize, boffset};
+		
+		byte[]bytes = new byte[size];
+		
+		int bp = 0;
+		for (int i = 0; i < bd.length; i++){
+			for (int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		return bytes;
+	}
+
+	@Override
+	public int getSize() {
+		return size;
+	}
+
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 }

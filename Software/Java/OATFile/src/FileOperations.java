@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 public class FileOperations {
-	public static byte[] readFileInBytes(String pathToFile){
+	public static byte[] readFileToBytes(String pathToFile){
 		
 		byte [] result = null;
 		Path path = Paths.get(pathToFile);
@@ -20,7 +20,7 @@ public class FileOperations {
 		return result;
 	}
 	
-	public static void writeBytesInFile(String pathToFile, byte[] bytes){
+	public static void writeBytesToFile(String pathToFile, byte[] bytes){
 		Path path = Paths.get(pathToFile);
 		try{
 			Files.deleteIfExists(path);

@@ -1,18 +1,20 @@
 public class ELFFile {
 	public ELFHeader header;
-	public ELFSectionHeaderTable shtable;
-	public ELFSymbolTable sytable;
-	public byte[] bytes;
-	public OatdataSection oatdata;
 	public ELFProgramHeaderTable phtable;
-	public ELFStringTable strtable;
-	public ELFHashTable htable;
+	public ELFSymbolTable sytable;
+	public ELFSectionHeaderStringTable shstrtable;
+	public ELFSymbolHashTable htable;
+	public OatdataSection oatdata;
+	public OatexecSection oatexec;
+	public ELFSectionHeaderTable shtable;
+	
+	public byte[] bytes;
 	public int exe_off;
 	public int exe_size;
 	
 	public ELFFile(String pathToFile){
 		//load ELF File
-		bytes = FileOperations.readFileInBytes(pathToFile);
+		bytes = FileOperations.readFileToBytes(pathToFile);
 		header = new ELFHeader(bytes);
 		phtable = new ELFProgramHeaderTable(bytes,
 				Convertions.bytesToInt(header.phoff.data, 0, header.phoff.bSize),
@@ -68,9 +70,9 @@ public class ELFFile {
 		}
 		sytable = new ELFSymbolTable(bytes, sytable_off,
 				sytable_size, systrtable_off, systrtable_size);
-		strtable = new ELFStringTable(bytes, systrtable_off, systrtable_size);
+		shstrtable = new ELFSectionHeaderStringTable(bytes, systrtable_off, systrtable_size);
 		
-		htable = new ELFHashTable(bytes, htable_off, htable_size);
+		htable = new ELFSymbolHashTable(bytes, htable_off, htable_size);
 		//hash table here...........
 		
 		int ti = -1; //tableindex

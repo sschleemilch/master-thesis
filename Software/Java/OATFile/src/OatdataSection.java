@@ -1,7 +1,7 @@
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class OatdataSection {
+public class OatdataSection extends ELFSection{
 	public OATHeader header;
 	public int headersize;
 	
@@ -15,6 +15,9 @@ public class OatdataSection {
 	public OATClassHeader[] oat_class_headers;
 	
 	private int cosize = -1;
+	
+	public int size;
+	public int offset;
 	
 	//Dex File
 	public DEXFile dexfile;
@@ -57,6 +60,8 @@ public class OatdataSection {
 			oat_class_headers[i] = new OATClassHeader(src, abs_off);
 		}
 		
+		
+		offset = off;
 	}
 	
 	public void dump(){
@@ -84,5 +89,22 @@ public class OatdataSection {
 		System.out.println("\nEND OF OAT CLASS HEADERS----------<");
 		dexfile.dump();
 		System.out.println("END OF OATDATA SECTION ----------------------<");
+	}
+
+	@Override
+	public byte[] getBytes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 }

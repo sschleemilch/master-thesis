@@ -1,7 +1,7 @@
 
-public class ELFProgramHeader {
+public class ELFProgramHeader extends ELFSection{
 	public BData type;
-	public BData offset;
+	public BData boffset;
 	public BData vaddr;
 	public BData paddr;
 	public BData filesz;
@@ -9,10 +9,13 @@ public class ELFProgramHeader {
 	public BData flags;
 	public BData align;
 	
+	public int size;
+	public int offset;
+	
 	public ELFProgramHeader(byte[]src, int off){
 		type = new BData(off + 0, new byte[]{src[off + 0], src[off + 1],
 				src[off + 2], src[off + 3]});
-		offset = new BData(off + 4, new byte[]{src[off + 4], src[off + 5],
+		boffset = new BData(off + 4, new byte[]{src[off + 4], src[off + 5],
 				src[off + 6], src[off + 7]});
 		vaddr = new BData(off + 8, new byte[]{src[off + 8], src[off + 9],
 				src[off + 10], src[off + 11]});
@@ -26,6 +29,11 @@ public class ELFProgramHeader {
 				src[off + 26], src[off + 27]});
 		align = new BData(off + 28, new byte[]{src[off + 28], src[off + 29],
 				src[off + 30], src[off + 31]});
+		
+		offset = off;
+		size = type.bSize + boffset.bSize + vaddr.bSize + 
+				paddr.bSize + filesz.bSize + memsz.bSize +
+				flags.bSize + align.bSize;
 	}
 	
 	public void dump(){
@@ -61,7 +69,7 @@ public class ELFProgramHeader {
 			break;
 		}
 		System.out.print("\tOffset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(offset.data, 0, offset.bSize));
+		System.out.printf("0x%08X\n", Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
 		System.out.print("\tVirtAddress:\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(vaddr.data, 0, vaddr.bSize));
 		System.out.print("\tPhysAddress:\t");
@@ -70,6 +78,30 @@ public class ELFProgramHeader {
 		System.out.println("\tMemsize:\t" + Convertions.bytesToInt(memsz.data, 0, memsz.bSize));
 		System.out.println("\tAlignment:\t" + Convertions.bytesToInt(align.data, 0, align.bSize));
 		System.out.println("\tEND OF PROGRAM HEADER --------------<");
+	}
+
+	@Override
+	public byte[] getBytes() {
+		BData[] bd = {type, boffset, vaddr, paddr, filesz, memsz, flags, align};
+		byte[]bytes = new byte[size];
+		
+		int bp = 0;
+		for (int i = 0; i < bd.length; i++){
+			for (int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		return bytes;
+	}
+
+	@Override
+	public int getSize() {
+		return size;
+	}
+
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 	
 }

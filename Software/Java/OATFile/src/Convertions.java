@@ -13,4 +13,24 @@ public class Convertions {
 		}
 		return -1;
 	}
+	public static byte[] intToBytes(int value, int nbytes){
+		byte[] res = new byte[nbytes];
+		
+		switch(nbytes){
+		case 1:
+			res[0] = (byte)value;
+			break;
+		case 2:
+			res[0] = (byte)(value & 0xff);
+			res[1] = (byte)((value >> 8) & 0xff);
+			break;
+		case 4:
+			res[0] = (byte)(value & 0xff);
+			res[1] = (byte)((value >> 8) & 0xff);
+			res[1] = (byte)((value >> 16) & 0xff);
+			res[3] = (byte)((value >> 24) & 0xff);
+			break;
+		}
+		return res;
+	}
 }

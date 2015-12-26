@@ -3,10 +3,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ELFStringTable {
+public class ELFSectionHeaderStringTable extends ELFSection{
 	private byte[] stringTable;
-	public ELFStringTable(byte[]src, int offset, int size){
-		this.stringTable = Arrays.copyOfRange(src, offset, offset+size);
+	public int size;
+	public int offset;
+	
+	public ELFSectionHeaderStringTable(byte[]src, int off, int size){
+		this.stringTable = Arrays.copyOfRange(src, off, off+size);
+		this.size = size;
+		this.offset = off;
 	}
 	public String getString(int index){
 		List<Byte> l = new ArrayList<Byte>();
@@ -48,5 +53,17 @@ public class ELFStringTable {
 			index+=lastlength+1;
 		}
 		System.out.println("ENF OF STRING TABLE --------<");
+	}
+	@Override
+	public byte[] getBytes() {
+		return stringTable;
+	}
+	@Override
+	public int getSize() {
+		return size;
+	}
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 }

@@ -1,10 +1,13 @@
 
-public class OATClassHeader {
+public class OATClassHeader extends ELFSection{
 	public BData status;
 	public BData type;
 	public BData bitmap_size;
 	public BData bitmap;
 	public BData methods_offsets;
+	
+	public int size;
+	public int offset;
 	
 	public OATClassHeader(byte[] src, int off){
 		status = new BData(off + 0, new byte[]{src[off+0],src[off+1]});
@@ -22,9 +25,12 @@ public class OATClassHeader {
 			bitmap_size = null;
 			bitmap = null;
 		}
+		offset = off;
 	}
 	public void dump(){
 		System.out.println("OATClass HEADER ------------------>");
+		System.out.print("Offset:\t\t");
+		System.out.printf("0x%08X\n", offset);
 		System.out.print("Status:\t\t");
 		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
 		case 0:
@@ -42,13 +48,25 @@ public class OATClassHeader {
 			System.out.println("Bitmap Size:\t" + Convertions.bytesToInt(bitmap_size.data, 0, bitmap_size.bSize));
 			System.out.println("Bitmap:\t\t");
 			for (int i = 0; i < bitmap.data.length; i++){
-				if(i%10==0){
-					System.out.println("");
-				}
-				System.out.printf("0x%02X",bitmap.data[i]);
+				System.out.printf("\t\t0x%02X\n",bitmap.data[i]);
 			}
-			
+
 		}
 		System.out.println("END OF OATClass HEADER -----------<");
+	}
+	@Override
+	public byte[] getBytes() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	@Override
+	public int getSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	@Override
+	public int getOffset() {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 }

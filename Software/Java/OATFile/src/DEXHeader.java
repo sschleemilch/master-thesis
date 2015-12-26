@@ -1,7 +1,7 @@
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class DEXHeader {
+public class DEXHeader extends ELFSection{
 	public BData magic;
 	public BData checksum;
 	public BData signature;
@@ -25,7 +25,10 @@ public class DEXHeader {
 	public BData class_defs_off;
 	public BData data_size;
 	public BData data_off;
+	
 	public String version;
+	public int size;
+	public int offset;
 	
 	public DEXHeader (byte[] src, int off){
 		magic = new BData(off+0, new byte[]{src[off+0],src[off+1],
@@ -78,10 +81,22 @@ public class DEXHeader {
 				src[off+106],src[off+107]});
 		data_off = new BData(off+108, new byte[]{src[off+108], src[off+109],
 				src[off+110],src[off+111]});
+		
+		size = magic.bSize + checksum.bSize + signature.bSize + file_size.bSize + 
+				header_size.bSize + endian_tag.bSize + link_size.bSize + link_off.bSize +
+				map_off.bSize + string_ids_size.bSize + string_ids_off.bSize + 
+				type_ids_size.bSize + type_ids_off.bSize + proto_ids_size.bSize + proto_ids_off.bSize +
+				field_ids_size.bSize + field_ids_off.bSize + method_ids_size.bSize + method_ids_off.bSize +
+				class_defs_size.bSize + class_defs_off.bSize + data_size.bSize + data_off.bSize;
+		
+		offset = off;
+		
 		version = new String(Arrays.copyOfRange(magic.data, 4, 7), StandardCharsets.UTF_8);
 	}
 	public void dump(){
 		System.out.println("\n\tDEX HEADER ------------------------>");
+		System.out.print("\tOffset:\t\t\t");
+		System.out.printf("0x%08X\n", offset);
 		System.out.println("\tVersion:\t\t" + version);
 		System.out.println("\tFile Size:\t\t" + Convertions.bytesToInt(file_size.data, 0, file_size.bSize));
 		System.out.println("\tHeader Size:\t\t" + Convertions.bytesToInt(header_size.data, 0, header_size.bSize));
@@ -114,5 +129,31 @@ public class DEXHeader {
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(data_off.data, 0, data_off.bSize));
 		System.out.println("\tData Section Size:\t" + Convertions.bytesToInt(data_size.data, 0, data_size.bSize));
 		System.out.println("\tEND OF DEX HEADER -----------------<");
+	}
+	@Override
+	public byte[] getBytes() {
+		BData[] bd = {magic, checksum, signature, file_size, header_size, endian_tag, 
+				link_size, link_off, map_off, string_ids_size, string_ids_off, 
+				type_ids_size, type_ids_off, proto_ids_size, proto_ids_off, 
+				field_ids_size, field_ids_off, method_ids_size, method_ids_off,
+				class_defs_size, class_defs_off, data_size, data_off};
+		byte[]bytes = new byte[size];
+		
+		int bp = 0;
+		for (int i = 0; i < bd.length; i++){
+			for (int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		return bytes;
+	}	
+	
+	@Override
+	public int getSize() {
+		return size;
+	}
+	@Override
+	public int getOffset() {
+		return size;
 	}
 }

@@ -1,7 +1,7 @@
 
 public class ELFSectionHeaderTable {
 	ELFSectionHeader [] entries;
-	ELFStringTable stringTable;
+	ELFSectionHeaderStringTable stringTable;
 	ELFSectionHeader stringTableHeader;
 	
 	public ELFSectionHeaderTable(byte[] src, int offset,
@@ -10,7 +10,7 @@ public class ELFSectionHeaderTable {
 		entries = new ELFSectionHeader[nEntries]; //-StringTable
 		
 		stringTableHeader = new ELFSectionHeader(src, offset+(strTableIndex*entrySize));
-		stringTable = new ELFStringTable(src,
+		stringTable = new ELFSectionHeaderStringTable(src,
 				Convertions.bytesToInt(stringTableHeader.offset.data,0,stringTableHeader.offset.bSize),
 				Convertions.bytesToInt(stringTableHeader.size.data, 0, stringTableHeader.size.bSize));
 		for (int i = 0; i < nEntries; i++){

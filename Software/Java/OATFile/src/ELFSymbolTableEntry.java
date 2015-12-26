@@ -1,20 +1,26 @@
 
-public class ELFSymbolTableEntry {
+public class ELFSymbolTableEntry extends ELFSection{
 	public BData name;
 	public BData value;
-	public BData size;
+	public BData bsize;
 	public BData info;
 	public BData other;
 	public BData shndx;
 	public String sName;
 	
+	public int size;
+	public int offset;
+	
 	public ELFSymbolTableEntry(byte[] src, int off){
 		name = new BData(off+0, new byte[]{src[off+0],src[off+1],src[off+2],src[off+3]});
 		value = new BData(off+4, new byte[]{src[off+4],src[off+5],src[off+6],src[off+7]});
-		size = new BData(off+8, new byte[]{src[off+8],src[off+9],src[off+10],src[off+11]});
+		bsize = new BData(off+8, new byte[]{src[off+8],src[off+9],src[off+10],src[off+11]});
 		info = new BData(off+12, new byte[]{src[off+12]});
 		other = new BData(off+13, new byte[]{src[off+13]});
 		shndx = new BData(off+14, new byte[]{src[off+14],src[off+15]});
+		
+		size = name.bSize + value.bSize + bsize.bSize + info.bSize + other.bSize + shndx.bSize;
+		offset = off;
 	}
 	
 	public void dump(){
@@ -22,7 +28,7 @@ public class ELFSymbolTableEntry {
 		System.out.println("\tName:\t\t\t"+sName);
 		System.out.println("\tValue:\t\t\t" + Convertions.bytesToInt(value.data, 0, value.bSize));
 		System.out.print("\tSize:\t\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(size.data, 0, size.bSize));
+		System.out.printf("0x%08X\n", Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
 		System.out.println("\tSection Table Index:\t" + 
 				Convertions.bytesToInt(shndx.data, 0, shndx.bSize));
 		
@@ -82,5 +88,29 @@ public class ELFSymbolTableEntry {
 	}
 	private int st_info(int b, int t){
 		return ((b<<4) + (t&0xf));
+	}
+
+	@Override
+	public byte[] getBytes() {
+		BData[] bd = {name, value, bsize, info, other, shndx};
+		byte[]bytes = new byte[size];
+		
+		int bp = 0;
+		for (int i = 0; i < bd.length; i++){
+			for (int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		return bytes;
+	}
+
+	@Override
+	public int getSize() {
+		return size;
+	}
+
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 }

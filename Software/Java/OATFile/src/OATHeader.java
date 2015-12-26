@@ -2,7 +2,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class OATHeader {
+public class OATHeader extends ELFSection{
 	
 	public BData magic;
 	public BData version;
@@ -26,7 +26,9 @@ public class OATHeader {
 	public BData image_file_location_oat_data_begin;
 	public BData key_value_store_size;
 	public BData key_value_store;
+	
 	public int size;
+	public int offset;
 	
 	public String creationArguments;
 	public String[] key_value_store_strings; 
@@ -84,6 +86,7 @@ public class OATHeader {
 		key_value_store_strings = extractKeyPairStrings();
 		creationArguments = key_value_store_strings[1];
 		size = 84 + kssize;
+		offset = off;
 		
 	}
 	
@@ -158,6 +161,38 @@ public class OATHeader {
 		String[] ret = new String[list.size()];
 		ret = list.toArray(ret);
 		return ret;
+	}
+
+	@Override
+	public byte[] getBytes() {
+		BData[] bd = {version, adler32_checksum, instruction_set, instruction_set_features,
+				dex_file_count, executable_offset, interpreter_to_interpreter_bridge_offset, 
+				interpreter_to_compiled_code_bridge_offset, jni_dlsym_lookup_offset,
+				portable_imt_conflict_trampoline_offset, portable_resolution_trampoline_offset,
+				portable_to_interpreter_bridge_offset, quick_generic_jni_trampoline_offset,
+				quick_imt_conflict_trampoline_offset, quick_resolution_trampoline_offset,
+				quick_to_interpreter_bridge_offset, image_patch_delta, image_file_location_oat_checksum,
+				image_file_location_oat_data_begin, key_value_store_size, key_value_store_size};
+		
+		byte[]bytes = new byte[size];
+		
+		int bp = 0;
+		for (int i = 0; i < bd.length; i++){
+			for (int j = 0; j < bd[i].bSize; j++){
+				bytes[bp++] = bd[i].data[j];
+			}
+		}
+		return bytes;
+	}
+	
+	@Override
+	public int getSize() {
+		return size;
+	}
+
+	@Override
+	public int getOffset() {
+		return offset;
 	}
 	
 }
