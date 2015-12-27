@@ -3,17 +3,17 @@
 public class Playground {
 
 	public static void main(String[] args) {
-		ELFFile fMine = new ELFFile("C:\\Users\\basti\\Dropbox\\Studium\\"
+		ELFFile f1 = new ELFFile("C:\\Users\\basti\\Dropbox\\Studium\\"
 				+ "Masterarbeit\\master-thesis\\Software\\Java\\OATFile\\"
 				+ "src\\oatFile.oat");
-		ELFFile fHeise = new ELFFile("C:\\Users\\basti\\Dropbox\\Studium\\"
+		ELFFile f2 = new ELFFile("C:\\Users\\basti\\Dropbox\\Studium\\"
 				+ "Masterarbeit\\master-thesis\\Software\\Java\\OATFile\\"
-				+ "src\\oatHeise.oat");
+				+ "src\\oatFile.oat");
 		
-		fMine.injectExecutable(fHeise.getBytes());
-		fMine.dump();
+		f1.injectExecutable(f2.getExecutable());
+		f1.dump();
 		FileOperations.writeBytesToFile("C:\\Users\\basti\\Dropbox\\Studium\\"
 				+ "Masterarbeit\\master-thesis\\Software\\Java\\OATFile\\"
-				+ "src\\test.oat", fMine.getBytes());
+				+ "src\\test.oat", f1.getBytes());
 	}
 }

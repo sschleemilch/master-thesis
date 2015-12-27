@@ -27,7 +27,7 @@ public class Convertions {
 		case 4:
 			res[0] = (byte)(value & 0xff);
 			res[1] = (byte)((value >> 8) & 0xff);
-			res[1] = (byte)((value >> 16) & 0xff);
+			res[2] = (byte)((value >> 16) & 0xff);
 			res[3] = (byte)((value >> 24) & 0xff);
 			break;
 		}

@@ -10,7 +10,10 @@ public class BData {
 		this.bSize = data.length;
 	}
 	public void setInt(int value){
-		data = Convertions.intToBytes(value, bSize);
+		byte[] bytes = Convertions.intToBytes(value, bSize);
+		for (int i = 0; i < bytes.length; i++){
+			data[i] = bytes[i];
+		}
 	}
 	
 }

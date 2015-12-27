@@ -102,6 +102,10 @@ public class ELFFile {
 		size = tsize;
 	}
 	
+	public byte[] getExecutable(){
+		return oatexec.getBytes();
+	}
+	
 	//get updated bytes if something has changed
 	public byte[] getBytes(){
 		updateSize();
