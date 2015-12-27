@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">AppInjection</string>
 
-    <string name="injection_status">Injection success!</string>
+    <string name="injection_status">Injection testing</string>
 
     <string name="action_settings">Settings</string>
 </resources>

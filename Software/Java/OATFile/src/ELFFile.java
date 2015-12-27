@@ -79,7 +79,6 @@ public class ELFFile {
 		sections[9] = dlinfo;
 		sections[10] = shstrtable;
 		sections[11] = shtable;
-		updateSize();
 	}
 	
 	public int nZeroBytesBetweenSections(){
@@ -109,18 +108,18 @@ public class ELFFile {
 	//get updated bytes if something has changed
 	public byte[] getBytes(){
 		updateSize();
-		byte[] bytes = new byte[size];
-		Arrays.fill(bytes, (byte)0);
+		byte[] by = new byte[size];
+		Arrays.fill(by, (byte)0);
 		
 		for(int i = 0; i < sections.length; i++){
 			int soff = sections[i].getOffset();
 			int ssize = sections[i].getSize();
 			byte[] sb = sections[i].getBytes();
 			for(int j = soff; j < soff + ssize; j++){
-				bytes[j] = sb[j-soff];
+				by[j] = sb[j-soff];
 			}
 		}
-		return bytes;
+		return by;
 	}
 
 	public void injectExecutable(byte[] exe){
@@ -157,6 +156,7 @@ public class ELFFile {
 		shtable.entries[5].bsize.setInt(oatexec.getSize());
 		shtable.entries[6].boffset.setInt(dlinfo.getOffset());
 		shtable.entries[7].boffset.setInt(shstrtable.getOffset());
+		updateSize();
 	}
 	
 	public void fillSectionsInfo(){

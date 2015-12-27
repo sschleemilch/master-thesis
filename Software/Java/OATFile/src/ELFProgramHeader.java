@@ -83,15 +83,15 @@ public class ELFProgramHeader extends ELFSection{
 	@Override
 	public byte[] getBytes() {
 		BData[] bd = {type, boffset, vaddr, paddr, filesz, memsz, flags, align};
-		byte[]bytes = new byte[size];
-		
+		byte[] b = new byte[size];
 		int bp = 0;
 		for (int i = 0; i < bd.length; i++){
-			for (int j = 0; j < bd[i].bSize; j++){
-				bytes[bp++] = bd[i].data[j];
+			for(int j = 0; j < bd[i].bSize; j++){
+				b[bp++] = bd[i].data[j];
 			}
 		}
-		return bytes;
+		
+		return b;
 	}
 
 	@Override

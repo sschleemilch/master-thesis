@@ -190,15 +190,17 @@ public class ELFHeader extends ELFSection{
 		BData bd[] = {iMagic0, iMagic1, iMagic2, iMagic3, iFileBitClass, iDataEncoding,
 				iHVersion, iPadding, type, machine, fVersion, entry, phoff, shoff, flags,
 				ehsize, phentsize, phnum, shentsize, shnum, shstrndx};
-		byte[] bytes = new byte[size];
+		byte[] b = new byte[size];
 		
-		int bp = 0;
 		for (int i = 0; i < bd.length; i++){
-			for (int j = 0; j < bd[i].bSize; j++){
-				bytes[bp++] = bd[i].data[j];
+			int toff = bd[i].off;
+			int tsize = bd[i].bSize;
+			for(int j = toff; j < toff + tsize; j++){
+				b[j] = bd[i].data[j-toff];
 			}
 		}
-		return bytes;
+		
+		return b;
 	}
 
 	@Override

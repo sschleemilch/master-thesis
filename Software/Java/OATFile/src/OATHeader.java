@@ -174,15 +174,15 @@ public class OATHeader extends ELFSection{
 				quick_to_interpreter_bridge_offset, image_patch_delta, image_file_location_oat_checksum,
 				image_file_location_oat_data_begin, key_value_store_size, key_value_store_size};
 		
-		byte[]bytes = new byte[size];
-		
+		byte[] b = new byte[size];
 		int bp = 0;
 		for (int i = 0; i < bd.length; i++){
-			for (int j = 0; j < bd[i].bSize; j++){
-				bytes[bp++] = bd[i].data[j];
+			for(int j = 0; j < bd[i].bSize; j++){
+				b[bp++] = bd[i].data[j];
 			}
 		}
-		return bytes;
+		
+		return b;
 	}
 	
 	@Override

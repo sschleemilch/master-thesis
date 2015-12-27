@@ -93,15 +93,15 @@ public class ELFSymbolTableEntry extends ELFSection{
 	@Override
 	public byte[] getBytes() {
 		BData[] bd = {name, value, bsize, info, other, shndx};
-		byte[]bytes = new byte[size];
-		
+		byte[] b = new byte[size];
 		int bp = 0;
 		for (int i = 0; i < bd.length; i++){
-			for (int j = 0; j < bd[i].bSize; j++){
-				bytes[bp++] = bd[i].data[j];
+			for(int j = 0; j < bd[i].bSize; j++){
+				b[bp++] = bd[i].data[j];
 			}
 		}
-		return bytes;
+		
+		return b;
 	}
 
 	@Override

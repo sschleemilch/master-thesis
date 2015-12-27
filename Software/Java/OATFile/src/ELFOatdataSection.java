@@ -24,6 +24,8 @@ public class ELFOatdataSection extends ELFSection{
 	public int chstart;
 	public int chend;
 	public byte[] chcontent;
+	
+	public byte[] bytes;
 
 	
 	//Dex File
@@ -72,6 +74,7 @@ public class ELFOatdataSection extends ELFSection{
 		chcontent = Arrays.copyOfRange(src, chstart, chend);
 		offset = off;
 		this.size = size;
+		this.bytes = Arrays.copyOfRange(src, off, off + size);
 	}
 	
 	private int getZerosOffset(byte[]src, int chstart){
@@ -105,6 +108,9 @@ public class ELFOatdataSection extends ELFSection{
 				Convertions.bytesToInt(dex_file_location_size.data, 0, dex_file_location_size.bSize));
 		System.out.println("|--------Dex Path:\t\t" + new String(dex_file_location_data.data,
 				StandardCharsets.UTF_8));
+		System.out.print("|--------Dex Checksum:\t\t");
+		System.out.printf("0x%08X\n", Convertions.bytesToInt(dex_file_location_checksum.data,
+				0, dex_file_location_checksum.bSize));
 		System.out.print("|--------Dex Offset(oatdata):\t");
 		System.out.printf("0x%08X\n", Convertions.bytesToInt(dex_file_pointer.data, 0, dex_file_pointer.bSize));
 		System.out.println("|--------OatClassHeader Offsets (oatdata):\t");
@@ -125,33 +131,10 @@ public class ELFOatdataSection extends ELFSection{
 		System.out.println("|--ELF Oatdata Section");
 	}
 
+	
 	@Override
 	public byte[] getBytes() {
-		byte[] bytes = new byte[size];
-		
-		//fill with header
-		byte[] tmp = header.getBytes();
-		int bp = 0;
-		for (int i = 0; i < tmp.length; i++){
-			bytes[bp++] = tmp[i];
-		}
-		//fill in oat dex file header
-		BData[] bd = {dex_file_location_size, dex_file_location_data,
-				dex_file_location_checksum, dex_file_pointer, classes_offsets};
-		for (int i = 0; i < bd.length; i++){
-			for(int j = 0; j < bd[i].bSize; j++){
-				bytes[bp++] = bd[i].data[j];
-			}
-		}
-		//fill in oat class headers 
-		for(int i = 0; i < chcontent.length; i++){
-			bytes[bp++] = chcontent[i];
-		}
-		// fill in filling zeros
-		for(int i = bp; i < bytes.length; i++){
-			bytes[i] = 0x00;
-		}
-		return bytes;
+		return this.bytes;
 	}
 
 	@Override
