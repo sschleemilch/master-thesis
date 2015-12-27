@@ -69,4 +69,8 @@ public class OATClassHeader extends ELFSection{
 		// TODO Auto-generated method stub
 		return 0;
 	}
+	@Override
+	public void setOffset(int off) {
+		offset = off;
+	}
 }

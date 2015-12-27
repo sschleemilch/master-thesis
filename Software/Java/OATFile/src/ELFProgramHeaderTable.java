@@ -51,5 +51,9 @@ public class ELFProgramHeaderTable extends ELFSection{
 	public int getOffset() {
 		return offset;
 	}
+	@Override
+	public void setOffset(int off) {
+		offset = off;	
+	}
 	
 }

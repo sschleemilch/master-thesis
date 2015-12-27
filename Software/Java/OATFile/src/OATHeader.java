@@ -194,5 +194,10 @@ public class OATHeader extends ELFSection{
 	public int getOffset() {
 		return offset;
 	}
+
+	@Override
+	public void setOffset(int off) {
+		offset = off;
+	}
 	
 }

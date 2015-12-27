@@ -1,5 +1,7 @@
+import java.util.Arrays;
+
 public class ELFFile {
-	//ELF Sections
+	//File Sections
 	public ELFHeader header;
 	public ELFProgramHeaderTable phtable;
 	public ELFSymbolTable sytable;
@@ -14,11 +16,11 @@ public class ELFFile {
 	public ELFSectionHeaderTable shtable;
 	
 	//Container for all Sections
-	public int nsections = 12; 
-	public ELFSection[] sections = new ELFSection[nsections];
+	public ELFSection[] sections = new ELFSection[12];
 	
 	//Raw byte content of ELF file
 	public byte[] bytes;
+	public int size;
 	
 	//Sizes and offsets of Sections
 	public int sytab_off;
@@ -39,10 +41,12 @@ public class ELFFile {
 	public int dylinfo_size;
 	public int shstrtab_off;
 	public int shstrtab_size;
+
 	
 	public ELFFile(String pathToFile){
 		//load ELF File
 		bytes = FileOperations.readFileToBytes(pathToFile);
+		size = bytes.length;
 		header = new ELFHeader(bytes);
 		phtable = new ELFProgramHeaderTable(bytes,
 				Convertions.bytesToInt(header.phoff.data, 0, header.phoff.bSize),
@@ -63,12 +67,6 @@ public class ELFFile {
 		nsection2 = new ELFNullSection(nsection2_off, nsection2_size);
 		dlinfo = new ELFDynamicLinkingInfo(bytes, dylinfo_off, dylinfo_size);
 		shstrtable = new ELFStringTable(bytes, shstrtab_off, shstrtab_size);
-		fillSectionsContainer();
-		
-		
-	}
-
-	public void fillSectionsContainer(){
 		sections[0] = header;
 		sections[1] = phtable;
 		sections[2] = sytable;
@@ -81,6 +79,80 @@ public class ELFFile {
 		sections[9] = dlinfo;
 		sections[10] = shstrtable;
 		sections[11] = shtable;
+		updateSize();
+	}
+	
+	public int nZeroBytesBetweenSections(){
+		int zeros = 0;
+		for(int i = 0; i < sections.length - 1; i++){
+			int sEnd = sections[i].getOffset() + sections[i].getSize();
+			int sBegin = sections[i+1].getOffset();
+			zeros += sBegin - sEnd;
+		}
+		return zeros;
+	}
+	
+	//compute new size after changes
+	public void updateSize(){
+		int tsize = 0;
+		for (int i = 0; i < sections.length; i++){
+			tsize += sections[i].getSize();
+		}
+		tsize += nZeroBytesBetweenSections();
+		size = tsize;
+	}
+	
+	//get updated bytes if something has changed
+	public byte[] getBytes(){
+		updateSize();
+		byte[] bytes = new byte[size];
+		Arrays.fill(bytes, (byte)0);
+		
+		for(int i = 0; i < sections.length; i++){
+			int soff = sections[i].getOffset();
+			int ssize = sections[i].getSize();
+			byte[] sb = sections[i].getBytes();
+			for(int j = soff; j < soff + ssize; j++){
+				bytes[j] = sb[j-soff];
+			}
+		}
+		return bytes;
+	}
+
+	public void injectExecutable(byte[] exe){
+		oatexec.setNewContent(exe); //setting new exe
+		//adapting offsets of the following sections
+		nsection2.setOffset(oatexec.getOffset()+oatexec.getSize());
+		
+		//keep alignment of 0x1000
+		int nsecend = nsection2.getOffset() + nsection2.getSize();
+		int aldif = 0;
+		while (nsecend%4096 != 0){
+			aldif++;
+			nsecend++;
+		}
+		nsection2.setSize(nsection2.getSize() + aldif);
+		dlinfo.setOffset(nsection2.getOffset() + nsection2.getSize());
+		shstrtable.setOffset(dlinfo.getOffset() + dlinfo.getSize());
+		shtable.setOffset(shstrtable.getOffset() + shstrtable.getSize());
+		
+		//updating size+offset depending sections
+		header.shoff.setInt(shtable.getOffset());
+		
+		phtable.entries[2].filesz.setInt(oatexec.getSize());
+		phtable.entries[2].memsz.setInt(oatexec.getSize());
+		phtable.entries[3].boffset.setInt(dlinfo.getOffset());
+		phtable.entries[3].vaddr.setInt(dlinfo.getOffset());
+		phtable.entries[3].paddr.setInt(dlinfo.getOffset());
+		phtable.entries[4].boffset.setInt(dlinfo.getOffset());
+		phtable.entries[4].vaddr.setInt(dlinfo.getOffset());
+		phtable.entries[4].paddr.setInt(dlinfo.getOffset());
+		
+		sytable.entries[2].bsize.setInt(oatexec.getSize());
+		
+		shtable.entries[5].bsize.setInt(oatexec.getSize());
+		shtable.entries[6].boffset.setInt(dlinfo.getOffset());
+		shtable.entries[7].boffset.setInt(shstrtable.getOffset());
 	}
 	
 	public void fillSectionsInfo(){

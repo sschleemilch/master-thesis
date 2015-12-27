@@ -156,4 +156,8 @@ public class DEXHeader extends ELFSection{
 	public int getOffset() {
 		return size;
 	}
+	@Override
+	public void setOffset(int off) {
+		offset = off;
+	}
 }
