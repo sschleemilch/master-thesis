@@ -66,11 +66,23 @@ public class ELFOatdataSection extends ELFSection{
 		oat_class_headers = new OATClassHeader[cosize];
 		for (int i = 0; i < cosize; i++){
 			int abs_off = off + Convertions.bytesToInt(Arrays.copyOfRange(classes_offsets.data, i*4, i*4+4),0,4);
-			oat_class_headers[i] = new OATClassHeader(src, abs_off);
+			//compute size
+			int sze = 0;
+			if (i < cosize - 1){
+				int abs_off_next = off + Convertions.bytesToInt(Arrays.copyOfRange(classes_offsets.data, (i+1)*4, (i+1)*4+4),0,4);
+				sze = abs_off_next - abs_off;
+			}	
+			oat_class_headers[i] = new OATClassHeader(src, abs_off, sze);
 		}
 		
 		chstart = oat_class_headers[0].getOffset();
 		chend = getZerosOffset(src, chstart);
+		
+		//fill last entry
+		int abs_off = off + Convertions.bytesToInt(Arrays.copyOfRange(classes_offsets.data,
+				(cosize-1)*4, (cosize-1)*4+4),0,4);
+		oat_class_headers[cosize-1] = new OATClassHeader(src, abs_off, chend-abs_off-0x72);
+		
 		chcontent = Arrays.copyOfRange(src, chstart, chend);
 		offset = off;
 		this.size = size;
@@ -79,7 +91,6 @@ public class ELFOatdataSection extends ELFSection{
 	
 	private int getZerosOffset(byte[]src, int chstart){
 		int zerocount = 0;
-		boolean followingZero = false;
 		int sp = chstart;
 		int zerostart = 0;
 		while(zerocount < 20){
@@ -123,6 +134,10 @@ public class ELFOatdataSection extends ELFSection{
 		System.out.println("|----Oat Dex File Header");
 		
 		System.out.println("|----Oat Class Headers");
+		System.out.print("|--------Offset:\t\t");
+		System.out.printf("0x%08X\n", chstart);
+		System.out.print("|--------Size:\t\t\t");
+		System.out.printf("0x%08X\n", chend-chstart);
 		for (int i = 0; i < oat_class_headers.length; i ++){
 			oat_class_headers[i].dump();
 		}

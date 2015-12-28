@@ -1,3 +1,4 @@
+import java.util.Arrays;
 
 public class OATClassHeader extends ELFSection{
 	public BData status;
@@ -9,10 +10,13 @@ public class OATClassHeader extends ELFSection{
 	private int size;
 	private int offset;
 	
-	public OATClassHeader(byte[] src, int off){
+	private int mosize = 0;
+	private int mooff;
+	
+	public OATClassHeader(byte[] src, int off, int size){
 		status = new BData(off + 0, new byte[]{src[off+0],src[off+1]});
 		type = new BData(off + 2, new byte[]{src[off+2],src[off+3]});
-		if (Convertions.bytesToInt(type.data, 0, type.bSize) == 1){
+		if (type.data[0] == 1){
 			bitmap_size = new BData(off + 4, new byte[]{src[off+4],src[off+5],
 					src[off+6],src[off+7]});
 			int bsize = Convertions.bytesToInt(bitmap_size.data, 0, bitmap_size.bSize);
@@ -21,11 +25,24 @@ public class OATClassHeader extends ELFSection{
 				bdata[i] = src[off+8+i];
 			}
 			bitmap = new BData(off+8, bdata);
+			
+			mosize = size - status.bSize - type.bSize - bitmap_size.bSize -
+					bitmap.bSize;
+			mooff = off + status.bSize + type.bSize + bitmap_size.bSize +
+					bitmap.bSize;
 		}else{
 			bitmap_size = null;
 			bitmap = null;
+			mosize = size - status.bSize - type.bSize;
+			mooff = off + status.bSize + type.bSize;
 		}
+		
+		if(mosize >= 4){
+			methods_offsets = new BData(mooff, Arrays.copyOfRange(src, mooff, mooff + mosize));
+		}
+		
 		offset = off;
+		this.size = size;
 	}
 	public void dump(){
 		System.out.println("|--------Oat Class Header");
@@ -52,6 +69,13 @@ public class OATClassHeader extends ELFSection{
 			}
 
 		}
+		if(mosize>=4){
+			System.out.println("|------------Method Offs:");
+			for(int i = 0; i < mosize/4; i++){
+				int v = Convertions.bytesToInt(Arrays.copyOfRange(methods_offsets.data, i*4, (i*4)+4), 0, 4);
+				System.out.printf("|----------------0x%08X\n", v);
+			}
+		}
 		System.out.println("|--------Oat Class Header");
 	}
 	@Override
@@ -61,8 +85,7 @@ public class OATClassHeader extends ELFSection{
 	}
 	@Override
 	public int getSize() {
-		// TODO Auto-generated method stub
-		return 0;
+		return size;
 	}
 	@Override
 	public int getOffset() {
