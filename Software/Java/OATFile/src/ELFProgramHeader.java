@@ -1,5 +1,5 @@
 
-public class ELFProgramHeader extends ELFSection{
+public class ELFProgramHeader extends Section{
 	public BData type;
 	public BData boffset;
 	public BData vaddr;
@@ -39,7 +39,7 @@ public class ELFProgramHeader extends ELFSection{
 	public void dump(){
 		System.out.println("|----Program Header");
 		System.out.print("|--------Type:\t\t");
-		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
+		switch(type.getInt()){
 		case 0:
 			System.out.println("Unused");
 			break;
@@ -69,14 +69,14 @@ public class ELFProgramHeader extends ELFSection{
 			break;
 		}
 		System.out.print("|--------Offset:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
+		System.out.printf("0x%08X\n", boffset.getInt());
 		System.out.print("|--------VirtAddress:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(vaddr.data, 0, vaddr.bSize));
+		System.out.printf("0x%08X\n", vaddr.getInt());
 		System.out.print("|--------PhysAddress:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(paddr.data, 0, paddr.bSize));
-		System.out.println("|--------Filesize:\t" + Convertions.bytesToInt(filesz.data, 0, filesz.bSize));
-		System.out.println("|--------Memsize:\t" + Convertions.bytesToInt(memsz.data, 0, memsz.bSize));
-		System.out.println("|--------Alignment:\t" + Convertions.bytesToInt(align.data, 0, align.bSize));
+		System.out.printf("0x%08X\n", paddr.getInt());
+		System.out.println("|--------Filesize:\t" + filesz.getInt());
+		System.out.println("|--------Memsize:\t" + memsz.getInt());
+		System.out.println("|--------Alignment:\t" + align.getInt());
 		System.out.println("|----Program Header");
 	}
 

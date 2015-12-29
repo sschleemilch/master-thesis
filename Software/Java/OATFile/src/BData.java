@@ -15,5 +15,15 @@ public class BData {
 			data[i] = bytes[i];
 		}
 	}
+	public int getInt(){
+		return Convertions.bytesToInt(data, 0, bSize);
+	}
+	public void setData(byte[] data){
+		this.data = data;
+		this.bSize = this.data.length;
+	}
+	public byte[] getData(){
+		return this.data;
+	}
 	
 }

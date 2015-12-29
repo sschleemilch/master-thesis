@@ -1,6 +1,6 @@
 import java.util.Arrays;
 
-public class OATClassHeader extends ELFSection{
+public class OATClassHeader extends Section{
 	public BData status;
 	public BData type;
 	public BData bitmap_size;
@@ -19,7 +19,7 @@ public class OATClassHeader extends ELFSection{
 		if (type.data[0] == 1){
 			bitmap_size = new BData(off + 4, new byte[]{src[off+4],src[off+5],
 					src[off+6],src[off+7]});
-			int bsize = Convertions.bytesToInt(bitmap_size.data, 0, bitmap_size.bSize);
+			int bsize = bitmap_size.getInt();
 			byte bdata[] = new byte[bsize];
 			for (int i = 0; i < bsize; i++){
 				bdata[i] = src[off+8+i];
@@ -49,7 +49,7 @@ public class OATClassHeader extends ELFSection{
 		System.out.print("|------------Offset:\t\t");
 		System.out.printf("0x%08X\n", offset);
 		System.out.print("|------------Status:\t\t");
-		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
+		switch(type.getInt()){
 		case 0:
 			System.out.println("All methods compiled");
 			break;
@@ -61,8 +61,8 @@ public class OATClassHeader extends ELFSection{
 			break;
 		}
 		if (bitmap_size != null){
-			System.out.println("|------------Type:\t\t" + Convertions.bytesToInt(type.data, 0, type.bSize));
-			System.out.println("|------------Bitmap Size:\t" + Convertions.bytesToInt(bitmap_size.data, 0, bitmap_size.bSize));
+			System.out.println("|------------Type:\t\t" + type.getInt());
+			System.out.println("|------------Bitmap Size:\t" + bitmap_size.getInt());
 			System.out.println("|------------Bitmap:\t\t");
 			for (int i = 0; i < bitmap.data.length; i++){
 				System.out.printf("\t\t0x%02X\n",bitmap.data[i]);

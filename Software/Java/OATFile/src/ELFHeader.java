@@ -1,5 +1,5 @@
 
-public class ELFHeader extends ELFSection{
+public class ELFHeader extends Section{
 	//ident-----------------16Bytes
 	public BData iMagic0 = new BData(0,new byte[]{0x7f});
 	public BData iMagic1 = new BData(1,new byte[]{'E'});
@@ -59,7 +59,7 @@ public class ELFHeader extends ELFSection{
 			shnum = new BData(48, new byte[]{src[48],src[49]});
 			shstrndx = new BData(50, new byte[]{src[50],src[51]});
 			
-			size = Convertions.bytesToInt(ehsize.data, 0, ehsize.bSize);
+			size = ehsize.getInt();
 			offset = 0;
 		}
 	}
@@ -99,7 +99,7 @@ public class ELFHeader extends ELFSection{
 		System.out.println("|----Unused Bytes from:\t\t\t\t\t" + iPadding.data[0]);;
 		
 		System.out.print("|----Object File Type:\t\t\t\t\t");
-		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
+		switch(type.getInt()){
 		case 0:
 			System.out.println("NONE");
 			break;
@@ -157,31 +157,25 @@ public class ELFHeader extends ELFSection{
 			System.out.println("ARM?");
 		}
 		System.out.println("|----Object File Version: \t\t\t\t" 
-		+ Convertions.bytesToInt(fVersion.data,
-				0, fVersion.bSize));
+		+ fVersion.getInt());
 		System.out.print("|----Virtual Entry Address:\t\t\t\t");
-		System.out.printf("0x%08X\n",Convertions.bytesToInt(entry.data, 0, entry.bSize));
+		System.out.printf("0x%08X\n",entry.getInt());
 		System.out.print("|----Program Header Table Offset:\t\t\t");
-		System.out.printf("0x%08X\n",Convertions.bytesToInt(phoff.data, 0, phoff.bSize));
+		System.out.printf("0x%08X\n",phoff.getInt());
 		System.out.println("|----Size of Program Header Table Entry: \t\t" 
-		+ Convertions.bytesToInt(phentsize.data,
-				0, phentsize.bSize));
+		+ phentsize.getInt());
 		System.out.println("|----Number of Entries in Program Header Table: \t" 
-				+ Convertions.bytesToInt(phnum.data,
-						0, phnum.bSize));
+				+ phnum.getInt());
 		System.out.print("|----Section Header Table Offset:\t\t\t");
-		System.out.printf("0x%08X\n",Convertions.bytesToInt(shoff.data, 0, shoff.bSize));
+		System.out.printf("0x%08X\n",shoff.getInt());
 		System.out.println("|----Size of Section Header Table Entry: \t\t" 
-				+ Convertions.bytesToInt(shentsize.data,
-						0, shentsize.bSize));
+				+ shentsize.getInt());
 		System.out.println("|----Number of Entries in Section Header Table: \t" 
-				+ Convertions.bytesToInt(shnum.data,
-						0, shnum.bSize));
+				+ shnum.getInt());
 		System.out.println("|----ELF Header Size: \t\t\t\t\t" 
-				+ Convertions.bytesToInt(ehsize.data,
-						0, ehsize.bSize));
+				+ ehsize.getInt());
 		System.out.println("|----Section Header Table Index <-> String Table:\t" +
-						Convertions.bytesToInt(shstrndx.data, 0, shstrndx.bSize));
+						shstrndx.getInt());
 		System.out.println("|--ELF-Header");
 	}
 
@@ -206,7 +200,7 @@ public class ELFHeader extends ELFSection{
 	@Override
 	public int getSize() {
 		//check size from ehsize Attribute
-		size = Convertions.bytesToInt(ehsize.data, 0, ehsize.bSize);
+		size = ehsize.getInt();
 		return size;
 	}
 

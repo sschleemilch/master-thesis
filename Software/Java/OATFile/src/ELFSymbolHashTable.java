@@ -1,5 +1,5 @@
 
-public class ELFSymbolHashTable extends ELFSection{
+public class ELFSymbolHashTable extends Section{
 	public BData nbucket;
 	public BData nchain;
 	public BData[] bucket;
@@ -16,10 +16,8 @@ public class ELFSymbolHashTable extends ELFSection{
 		nchain = new BData(off + 4, new byte[]{src[off+4],
 				src[off+5],src[off+6],src[off+7]});
 		int doff = off + 8;
-		bucket = new BData[Convertions.bytesToInt(nbucket.data,
-				0, nbucket.bSize)];
-		chain = new BData[Convertions.bytesToInt(nchain.data,
-				0, nchain.bSize)];
+		bucket = new BData[nbucket.getInt()];
+		chain = new BData[nchain.getInt()];
 		
 		for (int i = 0; i < bucket.length; i++){
 			bucket[i] = new BData(doff + (i*4), new byte[]{src[doff + (i*4)+0],
@@ -41,11 +39,11 @@ public class ELFSymbolHashTable extends ELFSection{
 		System.out.printf("0x%08X\n", size);
 		System.out.println("|----Bucket:");
 		for (int i = 0; i < bucket.length; i++){
-			System.out.println("|--------" + Convertions.bytesToInt(bucket[i].data, 0, bucket[i].bSize));
+			System.out.println("|--------" + bucket[i].getInt());
 		}
 		System.out.println("|----Chain:");
 		for (int i = 0; i < chain.length; i++){
-			System.out.println("|--------" + Convertions.bytesToInt(chain[i].data, 0, chain[i].bSize));
+			System.out.println("|--------" + chain[i].getInt());
 		}
 		System.out.println("|--ELF Symbol Hash Table");
 	}

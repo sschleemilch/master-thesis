@@ -1,7 +1,7 @@
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class DEXHeader extends ELFSection{
+public class DEXHeader extends Section{
 	public BData magic;
 	public BData checksum;
 	public BData signature;
@@ -98,36 +98,36 @@ public class DEXHeader extends ELFSection{
 		System.out.print("|------------Offset:\t\t\t");
 		System.out.printf("0x%08X\n", offset);
 		System.out.println("|------------Version:\t\t\t" + version);
-		System.out.println("|------------File Size:\t\t\t" + Convertions.bytesToInt(file_size.data, 0, file_size.bSize));
-		System.out.println("|------------Header Size:\t\t" + Convertions.bytesToInt(header_size.data, 0, header_size.bSize));
+		System.out.println("|------------File Size:\t\t\t" + file_size.getInt());
+		System.out.println("|------------Header Size:\t\t" + header_size.getInt());
 		System.out.print("|------------Endian Constant:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(endian_tag.data, 0, endian_tag.bSize));
-		System.out.println("|------------Link Size:\t\t\t" + Convertions.bytesToInt(link_size.data, 0, link_size.bSize));
+		System.out.printf("0x%08X\n", endian_tag.getInt());
+		System.out.println("|------------Link Size:\t\t\t" + link_size.getInt());
 		System.out.print("|------------Link Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(link_off.data, 0, link_off.bSize));
+		System.out.printf("0x%08X\n", link_off.getInt());
 		System.out.print("|------------Map Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(map_off.data, 0, map_off.bSize));
+		System.out.printf("0x%08X\n", map_off.getInt());
 		System.out.print("|------------String Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(string_ids_off.data, 0, string_ids_off.bSize));
-		System.out.println("|------------N-Strings\t\t\t"+ Convertions.bytesToInt(string_ids_size.data, 0, string_ids_size.bSize));
+		System.out.printf("0x%08X\n", string_ids_off.getInt());
+		System.out.println("|------------N-Strings\t\t\t"+ string_ids_size.getInt());
 		System.out.print("|------------Type IDs Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(type_ids_off.data, 0, type_ids_off.bSize));
-		System.out.println("|------------N-Type IDs\t\t\t"+ Convertions.bytesToInt(type_ids_size.data, 0, type_ids_size.bSize));
+		System.out.printf("0x%08X\n", type_ids_off.getInt());
+		System.out.println("|------------N-Type IDs\t\t\t"+ type_ids_size.getInt());
 		System.out.print("|------------Proto IDs Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(proto_ids_off.data, 0, proto_ids_off.bSize));
-		System.out.println("|------------N-Proto IDs\t\t"+ Convertions.bytesToInt(proto_ids_size.data, 0, proto_ids_size.bSize));
+		System.out.printf("0x%08X\n", proto_ids_off.getInt());
+		System.out.println("|------------N-Proto IDs\t\t"+ proto_ids_size.getInt());
 		System.out.print("|------------Field IDs Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(field_ids_off.data, 0, field_ids_off.bSize));
-		System.out.println("|------------N-Field IDs\t\t"+ Convertions.bytesToInt(field_ids_size.data, 0, field_ids_size.bSize));
+		System.out.printf("0x%08X\n", field_ids_off.getInt());
+		System.out.println("|------------N-Field IDs\t\t"+ field_ids_size.getInt());
 		System.out.print("|------------Method IDs Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(method_ids_off.data, 0, method_ids_off.bSize));
-		System.out.println("|------------N-Method IDs\t\t"+ Convertions.bytesToInt(method_ids_size.data, 0, method_ids_size.bSize));
+		System.out.printf("0x%08X\n", method_ids_off.getInt());
+		System.out.println("|------------N-Method IDs\t\t"+ method_ids_size.getInt());
 		System.out.print("|------------Class Defs Offset:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(class_defs_off.data, 0, class_defs_off.bSize));
-		System.out.println("|------------N-Class Defs\t\t"+ Convertions.bytesToInt(class_defs_size.data, 0, class_defs_size.bSize));
+		System.out.printf("0x%08X\n", class_defs_off.getInt());
+		System.out.println("|------------N-Class Defs\t\t"+ class_defs_size.getInt());
 		System.out.print("|------------Data Section Offset:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(data_off.data, 0, data_off.bSize));
-		System.out.println("|------------Data Section Size:\t\t" + Convertions.bytesToInt(data_size.data, 0, data_size.bSize));
+		System.out.printf("0x%08X\n", data_off.getInt());
+		System.out.println("|------------Data Section Size:\t\t" + data_size.getInt());
 		System.out.println("|--------Dex Header");
 	}
 	@Override

@@ -1,5 +1,5 @@
 
-public class ELFOatexecSection extends ELFSection{
+public class ELFOatexecSection extends Section{
 	public byte[] bytes;
 	
 	private int size;

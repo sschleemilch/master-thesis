@@ -1,20 +1,46 @@
 import java.util.Arrays;
 
-//DEX File not completely specified so far...
-public class DEXFile extends ELFSection{
+public class DEXFile extends Section{
+	
 	public DEXHeader header;
-	public DEXMapList maplist;
+	public DEXStringIDs string_ids;
+	public DEXTypeIDs type_ids;
+	public DEXProtoIDs proto_ids;
+	public DEXFieldIDs field_ids;
+	public DEXMethodIDs method_ids;
+	public DEXClassDefs class_defs;
+	public DEXData data;
+	public DEXLinkData link_data;
 	
 	private int size;
 	private int offset;
-	byte[] bytes;
+	
+	public Section[] sections = new Section[9];
+	
 	
 	public DEXFile(byte[] src, int off){
-		header = new DEXHeader(src, off);
-		maplist = new DEXMapList(src, off + Convertions.bytesToInt(header.map_off.data, 0, header.map_off.bSize));
 		offset = off;
-		size = Convertions.bytesToInt(header.file_size.data, 0, header.file_size.bSize);
-		bytes = Arrays.copyOfRange(src, off, off+size);
+		header = new DEXHeader(src, off);
+		size = header.file_size.getInt();
+		string_ids = new DEXStringIDs(src, off + header.string_ids_off.getInt(), header.string_ids_size.getInt());
+		string_ids = new DEXStringIDs(src, off + header.string_ids_off.getInt(), header.string_ids_size.getInt());
+		type_ids = new DEXTypeIDs(src, off + header.type_ids_off.getInt(), header.type_ids_size.getInt());
+		proto_ids = new DEXProtoIDs(src, off + header.proto_ids_off.getInt(), header.proto_ids_size.getInt());
+		field_ids = new DEXFieldIDs(src, off + header.field_ids_off.getInt(), header.field_ids_size.getInt());
+		method_ids = new DEXMethodIDs(src, off + header.method_ids_off.getInt(), header.method_ids_size.getInt());
+		class_defs = new DEXClassDefs(src, off + header.class_defs_off.getInt(), header.class_defs_size.getInt());
+		data = new DEXData(src, off + header.data_off.getInt(), header.data_size.getInt());
+		link_data = new DEXLinkData(src, off + header.link_off.getInt(), header.link_size.getInt());
+		
+		sections[0] = header;
+		sections[1] = string_ids;
+		sections[2] = type_ids;
+		sections[3] = proto_ids;
+		sections[4] = field_ids;
+		sections[5] = method_ids;
+		sections[6] = class_defs;
+		sections[7] = data;
+		sections[8] = link_data;
 	}
 	
 	public void dump(){
@@ -23,14 +49,16 @@ public class DEXFile extends ELFSection{
 		System.out.printf("0x%08X\n", offset);
 		System.out.print("|--------Size:\t\t");
 		System.out.printf("0x%08X\n", size);
-		header.dump();
-		maplist.dump();
+		for (int i = 0; i < sections.length; i++){
+			System.out.println();
+			sections[i].dump();
+		}
 		System.out.println("|----Dex File");
 	}
 
 	@Override
 	public byte[] getBytes() {
-		return bytes;
+		return null;
 	}
 
 	@Override

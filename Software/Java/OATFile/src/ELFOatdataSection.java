@@ -1,7 +1,7 @@
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-public class ELFOatdataSection extends ELFSection{
+public class ELFOatdataSection extends Section{
 	public OATHeader header;
 	public int headersize;
 	
@@ -14,8 +14,8 @@ public class ELFOatdataSection extends ELFSection{
 	
 	public OATClassHeader[] oat_class_headers;
 	
-	private int cosize = -1;
-	
+	public int cosize = -1;
+	public int doff;
 
 	private int offset;
 	private int size;
@@ -32,14 +32,14 @@ public class ELFOatdataSection extends ELFSection{
 	public DEXFile dexfile;
 	
 	public ELFOatdataSection (byte[] src, int off, int size){
-		int doff = off;
+		doff = off;
 		header = new OATHeader(src, off);
 		headersize = 84 + header.key_value_store.bSize;
 		int hs = headersize;
 		doff = off + hs;
 		dex_file_location_size = new BData(doff + 0, new byte[]{src[doff + 0],
 				src[doff + 1], src[doff + 2], src[doff + 3]});
-		int lsize = Convertions.bytesToInt(dex_file_location_size.data, 0, dex_file_location_size.bSize);
+		int lsize = dex_file_location_size.getInt();
 		byte[] ldata = new byte[lsize];
 		for (int i = 0; i < lsize; i++){
 			ldata[i] = src[doff + 4 + i];
@@ -51,12 +51,10 @@ public class ELFOatdataSection extends ELFSection{
 		dex_file_pointer = new BData(doff + 4, new byte[]{src[doff +4],
 				src[doff +5], src[doff +6], src[doff + 7]});
 		
-		dexfile = new DEXFile(src, off +
-				Convertions.bytesToInt(dex_file_pointer.data, 0,dex_file_pointer.bSize));
+		dexfile = new DEXFile(src, off + dex_file_pointer.getInt());
 		
 		//class offset size extraction from header
-		cosize = Convertions.bytesToInt(dexfile.header.class_defs_size.data,
-				0, dexfile.header.class_defs_size.bSize);
+		cosize = dexfile.header.class_defs_size.getInt();
 		byte [] codata = new byte[cosize*4];
 		for (int i = 0; i < cosize*4; i++){
 			codata[i] = src[doff + 8 + i];
@@ -89,7 +87,7 @@ public class ELFOatdataSection extends ELFSection{
 		this.bytes = Arrays.copyOfRange(src, off, off + size);
 	}
 	
-	private int getZerosOffset(byte[]src, int chstart){
+	public int getZerosOffset(byte[]src, int chstart){
 		int zerocount = 0;
 		int sp = chstart;
 		int zerostart = 0;
@@ -116,14 +114,13 @@ public class ELFOatdataSection extends ELFSection{
 		header.dump();
 		System.out.println("|----Oat Dex File Header");
 		System.out.println("|--------Dex Path Length:\t" + 
-				Convertions.bytesToInt(dex_file_location_size.data, 0, dex_file_location_size.bSize));
+				dex_file_location_size.getInt());
 		System.out.println("|--------Dex Path:\t\t" + new String(dex_file_location_data.data,
 				StandardCharsets.UTF_8));
 		System.out.print("|--------Dex Checksum:\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(dex_file_location_checksum.data,
-				0, dex_file_location_checksum.bSize));
+		System.out.printf("0x%08X\n", dex_file_location_checksum.getInt());
 		System.out.print("|--------Dex Offset(oatdata):\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(dex_file_pointer.data, 0, dex_file_pointer.bSize));
+		System.out.printf("0x%08X\n", dex_file_pointer.getInt());
 		System.out.println("|--------OatClassHeader Offsets (oatdata):\t");
 		for (int i = 0; i < cosize*4; i+=4){
 			System.out.print("|------------");
@@ -152,6 +149,9 @@ public class ELFOatdataSection extends ELFSection{
 		return this.bytes;
 	}
 
+	public void setSize(int size){
+		this.size = size;
+	}
 	@Override
 	public int getSize() {
 		return size;

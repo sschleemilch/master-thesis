@@ -1,5 +1,5 @@
 
-public class ELFSectionHeaderTable extends ELFSection{
+public class ELFSectionHeaderTable extends Section{
 	ELFSectionHeader [] entries;
 	ELFStringTable strtab;
 	ELFSectionHeader strtabheader;
@@ -13,15 +13,13 @@ public class ELFSectionHeaderTable extends ELFSection{
 		entries = new ELFSectionHeader[nEntries]; //-StringTable
 		
 		strtabheader = new ELFSectionHeader(src, off+(strtabindex*entrySize));
-		strtab = new ELFStringTable(src,
-				Convertions.bytesToInt(strtabheader.boffset.data, 0,strtabheader.boffset.bSize),
-				Convertions.bytesToInt(strtabheader.bsize.data, 0, strtabheader.bsize.bSize));
+		strtab = new ELFStringTable(src, strtabheader.boffset.getInt(),
+				strtabheader.bsize.getInt());
 			
 		size = 0;
 		for (int i = 0; i < nEntries; i++){
 			entries[i] = new ELFSectionHeader(src, off+(i*entrySize));
-			entries[i].sName = strtab.getString(Convertions.bytesToInt(entries[i].name.data,
-					0, entries[i].name.bSize));
+			entries[i].sName = strtab.getString(entries[i].name.getInt());
 			size+=entries[i].getSize();
 		}
 		offset = off;

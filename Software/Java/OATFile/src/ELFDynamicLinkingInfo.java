@@ -1,6 +1,6 @@
 import java.util.Arrays;
 
-public class ELFDynamicLinkingInfo extends ELFSection{
+public class ELFDynamicLinkingInfo extends Section{
 
 	private int size;
 	private int offset;

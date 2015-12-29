@@ -1,5 +1,5 @@
 
-public class ELFSectionHeader extends ELFSection{
+public class ELFSectionHeader extends Section{
 	public BData name; 		//index into string table
 	public BData type; 		//section content and semantics
 	public BData flags;		//1 bit flags
@@ -39,7 +39,7 @@ public class ELFSectionHeader extends ELFSection{
 		System.out.println("|--------Section Name: \t\t\t" + sName);
 		System.out.print("|--------Section Attributes\t\t");
 		
-		switch(Convertions.bytesToInt(flags.data, 0, flags.bSize)){
+		switch(flags.getInt()){
 		case 1:
 			System.out.println("Writeable");
 			break;
@@ -57,7 +57,7 @@ public class ELFSectionHeader extends ELFSection{
 		}
 		
 		System.out.print("|--------Section Content: \t\t");
-		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
+		switch(type.getInt()){
 		case 0:
 			System.out.println("Section Inactive");
 			break;
@@ -108,11 +108,11 @@ public class ELFSectionHeader extends ELFSection{
 			break;
 		}
 		System.out.print("|--------Offset to Section:\t\t");
-		System.out.printf("0x%08X\n",Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
+		System.out.printf("0x%08X\n",boffset.getInt());
 		System.out.print("|--------Section Size:\t\t\t");
-		System.out.printf("0x%08X\n", + Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
+		System.out.printf("0x%08X\n", + bsize.getInt());
 		
-		switch(Convertions.bytesToInt(entsize.data, 0, entsize.bSize)){
+		switch(entsize.getInt()){
 		case 0:
 			System.out.println("|--------Fixed-size Entry Table:\t\tFalse");
 			break;

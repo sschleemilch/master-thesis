@@ -5,7 +5,7 @@ import java.util.List;
 
 import javax.sound.midi.Synthesizer;
 
-public class ELFStringTable extends ELFSection{
+public class ELFStringTable extends Section{
 	private byte[] stringTable;
 	private int size;
 	private int offset;

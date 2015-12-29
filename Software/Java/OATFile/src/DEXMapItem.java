@@ -1,5 +1,5 @@
 
-public class DEXMapItem extends ELFSection{
+public class DEXMapItem extends Section{
 	public static final int TYPE_HEADER_ITEM = 0;
 	public static final int TYPE_STRING_ID_ITEM = 1;
 	public static final int TYPE_TYPE_ID_ITEM = 2;
@@ -44,7 +44,7 @@ public class DEXMapItem extends ELFSection{
 	public void dump(){
 		System.out.println("|------------Dex Map Item");
 		System.out.print("|----------------Type:\t\t");
-		switch(Convertions.bytesToInt(type.data, 0, type.bSize)){
+		switch(type.getInt()){
 		case TYPE_HEADER_ITEM:
 			System.out.println("Header Item");
 			break;
@@ -102,9 +102,9 @@ public class DEXMapItem extends ELFSection{
 		default:
 			System.out.println("Unknown");
 		}
-		System.out.println("|----------------N-Items:\t" + Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
+		System.out.println("|----------------N-Items:\t" + bsize.getInt());
 		System.out.print("|----------------Offset(Dex):\t");
-		System.out.printf("0x%08X\n",Convertions.bytesToInt(boffset.data, 0, boffset.bSize));
+		System.out.printf("0x%08X\n",boffset.getInt());
 		System.out.println("|------------Dex Map Item");
 	}
 

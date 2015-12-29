@@ -16,7 +16,7 @@ public class ELFFile {
 	public ELFSectionHeaderTable shtable;
 	
 	//Container for all Sections
-	public ELFSection[] sections = new ELFSection[12];
+	public Section[] sections = new Section[12];
 	
 	//Raw byte content of ELF file
 	public byte[] bytes;
@@ -49,14 +49,14 @@ public class ELFFile {
 		size = bytes.length;
 		header = new ELFHeader(bytes);
 		phtable = new ELFProgramHeaderTable(bytes,
-				Convertions.bytesToInt(header.phoff.data, 0, header.phoff.bSize),
-				Convertions.bytesToInt(header.phnum.data, 0, header.phnum.bSize),
-				Convertions.bytesToInt(header.phentsize.data, 0, header.phentsize.bSize));
+				header.phoff.getInt(),
+				header.phnum.getInt(),
+				header.phentsize.getInt());
 		shtable = new ELFSectionHeaderTable(bytes,
-				Convertions.bytesToInt(header.shoff.data, 0, header.shoff.bSize),
-				Convertions.bytesToInt(header.shnum.data, 0, header.shnum.bSize),
-				Convertions.bytesToInt(header.shentsize.data, 0, header.shentsize.bSize),
-				Convertions.bytesToInt(header.shstrndx.data, 0, header.shstrndx.bSize));
+				header.shoff.getInt(),
+				header.shnum.getInt(),
+				header.shentsize.getInt(),
+				header.shstrndx.getInt());
 		fillSectionsInfo();
 		sytable = new ELFSymbolTable(bytes, sytab_off, sytab_size, systrtab_off, systrtab_size);
 		systrtable = new ELFStringTable(bytes, systrtab_off, systrtab_size);
@@ -121,7 +121,41 @@ public class ELFFile {
 		}
 		return by;
 	}
+	
+	public void fakeDexCRC(BData crc){
+		oatdata.dex_file_location_checksum = crc;
+		oatdata.bytes = new byte[oatdata.getSize()];
+		int bp=0;
+		for(int i = oatdata.getOffset(); i < oatdata.getOffset() + oatdata.getSize(); i++){
+			oatdata.bytes[bp++] = bytes[i];
+		}
+	}
+	public void fakeDexPath(BData path){
+		oatdata.dex_file_location_data = path;
+		oatdata.bytes = new byte[oatdata.getSize()];
+		int bp=0;
+		for(int i = oatdata.getOffset(); i < oatdata.getOffset() + oatdata.getSize(); i++){
+			oatdata.bytes[bp++] = bytes[i];
+		}
+	}
 
+	//assuming dex path lengh is the same
+	public void deleteDex(byte[] crc, byte[] path){
+		oatdata.dex_file_location_data.data = path;
+		oatdata.dex_file_location_checksum.data = crc;
+		oatdata.bytes = new byte[oatdata.getSize()];
+		
+		for(int i = 0; i < oatdata.getSize(); i++){
+			oatdata.bytes[i] = bytes[oatdata.getOffset()+i];
+		}
+		//delete dex content
+		int dexoff = Convertions.bytesToInt(oatdata.dex_file_pointer.data, 0, oatdata.dex_file_pointer.bSize);
+		int dexend = oatdata.oat_class_headers[0].getOffset() - oatdata.getOffset();
+		for(int i = dexoff; i < dexend; i++){
+			oatdata.bytes[i] = 0x00;
+		}
+	}
+	
 	public void injectExecutable(byte[] exe){
 		oatexec.setNewContent(exe); //setting new exe
 		//adapting offsets of the following sections
@@ -162,10 +196,8 @@ public class ELFFile {
 	public void fillSectionsInfo(){
 		for (int i = 0; i < shtable.entries.length; i++){
 			
-			int of = Convertions.bytesToInt(shtable.entries[i].boffset.data,
-					0, shtable.entries[i].boffset.bSize);
-			int si = Convertions.bytesToInt(shtable.entries[i].bsize.data,
-					0, shtable.entries[i].bsize.bSize);
+			int of = shtable.entries[i].boffset.getInt();
+			int si = shtable.entries[i].bsize.getInt();
 			
 			switch(shtable.entries[i].sName){
 			case ".dynsym":

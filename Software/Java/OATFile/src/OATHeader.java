@@ -2,7 +2,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class OATHeader extends ELFSection{
+public class OATHeader extends Section{
 	
 	public BData magic;
 	public BData version;
@@ -77,7 +77,7 @@ public class OATHeader extends ELFSection{
 		key_value_store_size = new BData(off + 80, new byte[]{src[off+80],src[off+81],
 				src[off+82],src[off+83]});
 		
-		int kssize = Convertions.bytesToInt(key_value_store_size.data, 0, key_value_store_size.bSize);
+		int kssize = key_value_store_size.getInt();
 		byte[] ksbytes = new byte[kssize];
 		for (int i = 0; i < kssize; i++){
 			ksbytes[i] = src[off+84+i];
@@ -97,9 +97,9 @@ public class OATHeader extends ELFSection{
 		System.out.print("|--------Size:\t\t\t");
 		System.out.printf("0x%08X\n", size);
 		System.out.print("|--------Header Checksum:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(adler32_checksum.data, 0, adler32_checksum.bSize));
+		System.out.printf("0x%08X\n", adler32_checksum.getInt());
 		System.out.print("|--------Instruction Set:\t");
-		switch (Convertions.bytesToInt(instruction_set.data, 0, instruction_set.bSize)){
+		switch (instruction_set.getInt()){
 		case 0:
 			System.out.println("Unspecified");
 			break;
@@ -126,31 +126,24 @@ public class OATHeader extends ELFSection{
 			break;
 		}
 		System.out.println("|--------Dex-Files:\t\t" +
-		Convertions.bytesToInt(dex_file_count.data, 0, dex_file_count.bSize));
+		dex_file_count.getInt());
 		System.out.print("|--------Exe Offset(oatdata):\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(executable_offset.data, 0, executable_offset.bSize));
+		System.out.printf("0x%08X\n", executable_offset.getInt());
 		System.out.print("|--------Quick gen jni tr off:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(quick_generic_jni_trampoline_offset.data,
-				0, quick_generic_jni_trampoline_offset.bSize));
+		System.out.printf("0x%08X\n", quick_generic_jni_trampoline_offset.getInt());
 		System.out.print("|--------Quick imt confl tr off:");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(quick_imt_conflict_trampoline_offset.data,
-				0, quick_imt_conflict_trampoline_offset.bSize));
+		System.out.printf("0x%08X\n", quick_imt_conflict_trampoline_offset.getInt());
 		System.out.print("|--------Quick resol tr off:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(quick_resolution_trampoline_offset.data,
-				0, quick_resolution_trampoline_offset.bSize));
+		System.out.printf("0x%08X\n", quick_resolution_trampoline_offset.getInt());
 		System.out.print("|--------Quick to int brge off:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(quick_to_interpreter_bridge_offset.data,
-				0, quick_to_interpreter_bridge_offset.bSize));
+		System.out.printf("0x%08X\n", quick_to_interpreter_bridge_offset.getInt());
 		
 		System.out.print("|--------Portable imt co tr off:");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(portable_imt_conflict_trampoline_offset.data,
-				0, portable_imt_conflict_trampoline_offset.bSize));
+		System.out.printf("0x%08X\n", portable_imt_conflict_trampoline_offset.getInt());
 		System.out.print("|--------Portable res tr off:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(portable_resolution_trampoline_offset.data,
-				0, portable_resolution_trampoline_offset.bSize));
+		System.out.printf("0x%08X\n", portable_resolution_trampoline_offset.getInt());
 		System.out.print("|--------Portable int brg off:\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(portable_to_interpreter_bridge_offset.data,
-				0, portable_to_interpreter_bridge_offset.bSize));
+		System.out.printf("0x%08X\n", portable_to_interpreter_bridge_offset.getInt());
 		
 		System.out.println("|--------Create-Arguments:\t"+creationArguments);
 		System.out.println("|----Oat Header");

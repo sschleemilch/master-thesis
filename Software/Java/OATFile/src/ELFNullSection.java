@@ -1,5 +1,5 @@
 
-public class ELFNullSection extends ELFSection{
+public class ELFNullSection extends Section{
 	private int offset;
 	private int size;
 	

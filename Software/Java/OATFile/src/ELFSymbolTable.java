@@ -1,5 +1,5 @@
 
-public class ELFSymbolTable extends ELFSection{
+public class ELFSymbolTable extends Section{
 	
 	private static final int entrySize = 16;
 	public ELFSymbolTableEntry[] entries;
@@ -13,9 +13,7 @@ public class ELFSymbolTable extends ELFSection{
 		ELFStringTable stringTable = new ELFStringTable(src, stoff, stsize);
 		for (int i = 0; i < entries.length; i++){
 			entries[i] = new ELFSymbolTableEntry(src, off+(i*entrySize));
-			entries[i].sName = stringTable.
-					getString(Convertions.bytesToInt(entries[i].name.data,
-							0, entries[i].name.bSize));
+			entries[i].sName = stringTable.getString(entries[i].name.getInt());
 		}
 		this.size = 0;
 		for (int i = 0; i < entries.length; i++){

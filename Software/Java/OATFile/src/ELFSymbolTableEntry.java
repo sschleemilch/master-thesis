@@ -1,5 +1,5 @@
 
-public class ELFSymbolTableEntry extends ELFSection{
+public class ELFSymbolTableEntry extends Section{
 	public BData name;
 	public BData value;
 	public BData bsize;
@@ -26,13 +26,13 @@ public class ELFSymbolTableEntry extends ELFSection{
 	public void dump(){
 		System.out.println("|----Symbol Table Entry");
 		System.out.println("|--------Name:\t\t\t"+sName);
-		System.out.println("|--------Value:\t\t\t" + Convertions.bytesToInt(value.data, 0, value.bSize));
+		System.out.println("|--------Value:\t\t\t" + value.getInt());
 		System.out.print("|--------Size:\t\t\t");
-		System.out.printf("0x%08X\n", Convertions.bytesToInt(bsize.data, 0, bsize.bSize));
+		System.out.printf("0x%08X\n", bsize.getInt());
 		System.out.println("|--------Section Table Index:\t" + 
-				Convertions.bytesToInt(shndx.data, 0, shndx.bSize));
+				shndx.getInt());
 		
-		int inf = Convertions.bytesToInt(info.data, 0, info.bSize);	
+		int inf = info.getInt();	
 		System.out.print("|--------Symbol Binding:\t");
 		switch(st_bind(inf)){
 		case 0:

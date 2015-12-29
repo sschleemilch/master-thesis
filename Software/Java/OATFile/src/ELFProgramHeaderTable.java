@@ -1,5 +1,5 @@
 
-public class ELFProgramHeaderTable extends ELFSection{
+public class ELFProgramHeaderTable extends Section{
 	
 	public ELFProgramHeader[] entries;
 	
