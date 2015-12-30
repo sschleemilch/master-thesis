@@ -37,8 +37,15 @@ public class DEXStringIDs extends Section{
 
 	@Override
 	public byte[] getBytes() {
-		// TODO Auto-generated method stub
-		return null;
+		byte [] b = new byte[size];
+		int bp = 0;
+		for (int i = 0; i < size; i++){
+			byte[] tmp = string_data_off[i].data;
+			for (int j = 0; j < tmp.length; j++){
+				b[bp++] = tmp[j];
+			}
+		}
+		return b;
 	}
 
 	@Override

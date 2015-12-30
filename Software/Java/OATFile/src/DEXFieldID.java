@@ -37,7 +37,6 @@ public class DEXFieldID extends Section{
 				b[bp++] = bd[i].data[j];
 			}
 		}
-		
 		return b;
 	}
 

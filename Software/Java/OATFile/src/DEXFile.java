@@ -58,7 +58,15 @@ public class DEXFile extends Section{
 
 	@Override
 	public byte[] getBytes() {
-		return null;
+		byte[] b = new byte[size];
+		int bp = 0;
+		for (int i = 0; i < sections.length; i++){
+			byte [] sb = sections[i].getBytes();
+			for (int j = 0; j < sb.length; j++){
+				b[bp++] = sb[j];
+			}
+		}
+		return b;
 	}
 
 	@Override
