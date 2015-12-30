@@ -2,6 +2,8 @@
 public class DEXClassDefItem extends Section{
 	public int offset;
 	public int size;
+	
+	public int dex_file_off;
 
 	public BData class_idx;
 	public BData access_flags;
@@ -12,7 +14,7 @@ public class DEXClassDefItem extends Section{
 	public BData class_data_off;
 	public BData static_values_off;
 	
-	public DEXClassDefItem(byte[] src, int off) {
+	public DEXClassDefItem(byte[] src, int off, int dex_file_off) {
 		this.offset = off;
 		class_idx = new BData(off + 0, new byte[]{src[off+0],
 				src[off+1],src[off+2],src[off+3]});
@@ -34,6 +36,7 @@ public class DEXClassDefItem extends Section{
 				interfaces_off.bSize + source_file_idx.bSize + 
 				annotations_off.bSize + class_data_off.bSize + 
 				static_values_off.bSize;
+		this.dex_file_off = dex_file_off;
 	}
 	
 	@Override
@@ -42,11 +45,15 @@ public class DEXClassDefItem extends Section{
 		System.out.println("|----------------Class Idx:\t\t" + class_idx.getInt());
 		System.out.println("|----------------Access Fl:\t\t" + access_flags.getInt());
 		System.out.println("|----------------Superclass Idx:\t" + superclass_idx.getInt());
-		System.out.println("|----------------Interfaces off:\t" + interfaces_off.getInt());
+		System.out.print("|----------------Interfaces off:\t");
+		System.out.printf("0x%08X\n",dex_file_off + interfaces_off.getInt());
 		System.out.println("|----------------Source File Idx:\t" + source_file_idx.getInt());
-		System.out.println("|----------------Annotations off:\t" + annotations_off.getInt());
-		System.out.println("|----------------Class Data off:\t" + class_data_off.getInt());
-		System.out.println("|----------------Static val off:\t" + static_values_off.getInt());
+		System.out.print("|----------------Annotations off:\t");
+		System.out.printf("0x%08X\n",dex_file_off + annotations_off.getInt());
+		System.out.print("|----------------Class Data off:\t");
+		System.out.printf("0x%08X\n",dex_file_off + class_data_off.getInt());
+		System.out.print("|----------------Static val off:\t");
+		System.out.printf("0x%08X\n",dex_file_off + static_values_off.getInt());
 		System.out.println("|------------Class Def Item:");
 	}
 

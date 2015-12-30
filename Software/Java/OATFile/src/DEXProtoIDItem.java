@@ -1,14 +1,15 @@
 
-public class DEXProtoID extends Section{
+public class DEXProtoIDItem extends Section{
+
 	public int offset;
 	public int size;
 	
-	
-	public BData shorty_idx;
-	public BData return_type_idx;
+	public BData shorty_idx; //entry index in string_ids which are ShortyDescriptors
+	public BData return_type_idx; //They must correspond to return type and parameters
 	public BData parameters_off;
 	
-	public DEXProtoID(byte[] src, int off){
+	public DEXProtoIDItem(byte[]src, int off){
+		this.offset = off;
 		shorty_idx = new BData(off + 0, new byte[]{src[off+0],
 				src[off+1],src[off+2],src[off+3]});
 		return_type_idx = new BData(off + 4, new byte[]{src[off+4],
@@ -19,12 +20,14 @@ public class DEXProtoID extends Section{
 		this.offset = off;
 	}
 	
+	
 	@Override
 	public void dump() {
 		System.out.println("|------------ProtoID:");
 		System.out.println("|----------------Shorty idx:\t" + shorty_idx.getInt());
 		System.out.println("|----------------Ret type idx:\t" + return_type_idx.getInt());
-		System.out.println("|----------------Para off:\t" + parameters_off.getInt());
+		System.out.print("|----------------Para off:\t");
+		System.out.printf("0x%08X\n", parameters_off.getInt());
 		System.out.println("|------------ProtoID:");
 	}
 

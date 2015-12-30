@@ -9,6 +9,44 @@ public class BData {
 		this.data = data;
 		this.bSize = data.length;
 	}
+	
+	public BData(byte[] src, int offset, String type){
+		if(type.equals("uleb128")){
+			int result = 0;
+	        int cur;
+	        int count = 0;
+	        int sp = 0;
+	        do {
+	            cur = src[offset + sp++] & 0xff;
+	            result |= (cur & 0x7f) << (count * 7);
+	            count++;
+	        } while (((cur & 0x80) == 0x80) && count < 5);
+	        
+	        setUleb128(result);
+	        this.bSize = uLeb128Size(result);
+	        
+		}else if(type.equals("sleb128")){
+			int result = 0;
+	        int cur;
+	        int count = 0;
+	        int signBits = -1;
+	        int sp = 0;
+	        do {
+	            cur = src[offset + sp++] & 0xff;
+	            result |= (cur & 0x7f) << (count * 7);
+	            signBits <<= 7;
+	            count++;
+	        } while (((cur & 0x80) == 0x80) && count < 5);
+	
+	        // Sign extend if appropriate
+	        if (((signBits >> 1) & result) != 0 ) {
+	            result |= signBits;
+	        }
+	        setSleb128(result);
+	        this.bSize = sLeb128Size(result);
+		}
+	}
+	
 	public void setInt(int value){
 		byte[] bytes = Convertions.intToBytes(value, bSize);
 		for (int i = 0; i < bytes.length; i++){
@@ -26,7 +64,7 @@ public class BData {
 		return this.data;
 	}
 
-	public static int uLeb128Size(int value) {
+	private int uLeb128Size(int value) {
         int remaining = value >> 7;
         int count = 0;
 
@@ -38,7 +76,7 @@ public class BData {
         return count + 1;
     }
 	
-	public static int sLeb128Size(int value) {
+	private int sLeb128Size(int value) {
         int remaining = value >> 7;
         int count = 0;
         boolean hasMore = true;
@@ -90,6 +128,8 @@ public class BData {
         data = b;
 	}
 	
+
+	
 	public int getUleb128(){
 		int result = 0;
         int cur;
@@ -101,6 +141,7 @@ public class BData {
             count++;
         } while (((cur & 0x80) == 0x80) && count < 5);
 
+        
         return result;
 	}
 	public int getSleb128(){

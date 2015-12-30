@@ -3,14 +3,14 @@ public class DEXMethodIDs extends Section{
 	public int offset;
 	public int size;
 	
-	public DEXMethodID entries[];
+	public DEXMethodIDItem[] method_id_items;
 	
 	public DEXMethodIDs(byte[] src, int off, int size){
 		this.size = size * 8;
 		this.offset = off;
-		entries = new DEXMethodID[size];
-		for(int i = 0; i < entries.length; i++){
-			entries[i] = new DEXMethodID(src, off + i*8);
+		method_id_items = new DEXMethodIDItem[size];
+		for(int i = 0; i < method_id_items.length; i++){
+			method_id_items[i] = new DEXMethodIDItem(src, off + i*8);
 		}
 	}
 	
@@ -21,8 +21,8 @@ public class DEXMethodIDs extends Section{
 		System.out.printf("0x%08X\n", offset);
 		System.out.print("|------------Size:\t");
 		System.out.printf("0x%08X\n", size);
-		for(int i = 0; i < entries.length; i++){
-			entries[i].dump();
+		for(int i = 0; i < method_id_items.length; i++){
+			method_id_items[i].dump();
 		}
 		System.out.println("|--------Method IDs");
 	}
@@ -31,8 +31,8 @@ public class DEXMethodIDs extends Section{
 	public byte[] getBytes() {
 		byte[] b = new byte[this.size];
 		int bp = 0;
-		for (int i = 0; i < entries.length; i++){
-			byte[] t = entries[i].getBytes();
+		for (int i = 0; i < method_id_items.length; i++){
+			byte[] t = method_id_items[i].getBytes();
 			for (int j = 0; j < t.length; j++){
 				b[bp++] = t[j];
 			}

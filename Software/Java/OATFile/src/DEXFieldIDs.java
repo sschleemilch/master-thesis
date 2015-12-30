@@ -3,14 +3,14 @@ public class DEXFieldIDs extends Section{
 	public int offset;
 	public int size;
 	
-	public DEXFieldID entries[];
+	public DEXFieldIDItem[] field_id_items;
 	
 	public DEXFieldIDs(byte[] src, int off, int size){
 		this.size = size * 8;
 		this.offset = off;
-		entries = new DEXFieldID[size];
-		for(int i = 0; i < entries.length; i++){
-			entries[i] = new DEXFieldID(src, off + i*8);
+		field_id_items = new DEXFieldIDItem[size];
+		for(int i = 0; i < field_id_items.length; i++){
+			field_id_items[i] = new DEXFieldIDItem(src, off + i*8);
 		}
 	}
 	
@@ -21,8 +21,8 @@ public class DEXFieldIDs extends Section{
 		System.out.printf("0x%08X\n", offset);
 		System.out.print("|------------Size:\t");
 		System.out.printf("0x%08X\n", size);
-		for(int i = 0; i < entries.length; i++){
-			entries[i].dump();
+		for(int i = 0; i < field_id_items.length; i++){
+			field_id_items[i].dump();
 		}
 		System.out.println("|--------Field IDs:");
 	}
@@ -31,8 +31,8 @@ public class DEXFieldIDs extends Section{
 	public byte[] getBytes() {
 		byte[] b = new byte[this.size];
 		int bp = 0;
-		for (int i = 0; i < entries.length; i++){
-			byte[] t = entries[i].getBytes();
+		for (int i = 0; i < field_id_items.length; i++){
+			byte[] t = field_id_items[i].getBytes();
 			for (int j = 0; j < t.length; j++){
 				b[bp++] = t[j];
 			}

@@ -3,14 +3,14 @@ public class DEXProtoIDs extends Section{
 	public int offset;
 	public int size;
 	
-	public DEXProtoID entries[];
+	public DEXProtoIDItem[] proto_id_items;
 	
 	public DEXProtoIDs(byte[] src, int off, int size){
-		this.size = size * 12;
 		this.offset = off;
-		entries = new DEXProtoID[size];
-		for(int i = 0; i < entries.length; i++){
-			entries[i] = new DEXProtoID(src, off + i*12);
+		proto_id_items = new DEXProtoIDItem[size];
+		this.size = size * 12;
+		for (int i = 0; i < proto_id_items.length; i++){
+			proto_id_items[i] = new DEXProtoIDItem(src, off + i*12);
 		}
 	}
 	
@@ -21,8 +21,8 @@ public class DEXProtoIDs extends Section{
 		System.out.printf("0x%08X\n", offset);
 		System.out.print("|------------Size:\t");
 		System.out.printf("0x%08X\n", size);
-		for(int i = 0; i < entries.length; i++){
-			entries[i].dump();
+		for(int i = 0; i < proto_id_items.length; i++){
+			proto_id_items[i].dump();
 		}
 		System.out.println("|--------Proto IDs");
 	}
@@ -31,8 +31,8 @@ public class DEXProtoIDs extends Section{
 	public byte[] getBytes() {
 		byte[] b = new byte[this.size];
 		int bp = 0;
-		for (int i = 0; i < entries.length; i++){
-			byte[] t = entries[i].getBytes();
+		for (int i = 0; i < proto_id_items.length; i++){
+			byte[] t = proto_id_items[i].getBytes();
 			for (int j = 0; j < t.length; j++){
 				b[bp++] = t[j];
 			}

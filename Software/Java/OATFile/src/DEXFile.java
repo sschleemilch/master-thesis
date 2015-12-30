@@ -3,15 +3,17 @@ import java.util.Arrays;
 public class DEXFile extends Section{
 	
 	public DEXHeader header;
+	// All of these sections are referencing objects in the data section
 	public DEXStringIDs string_ids;
 	public DEXTypeIDs type_ids;
 	public DEXProtoIDs proto_ids;
 	public DEXFieldIDs field_ids;
 	public DEXMethodIDs method_ids;
 	public DEXClassDefs class_defs;
+	
 	public DEXData data;
 	public DEXLinkData link_data;
-	
+
 	private int size;
 	private int offset;
 	
@@ -23,12 +25,13 @@ public class DEXFile extends Section{
 		header = new DEXHeader(src, off);
 		size = header.file_size.getInt();
 		string_ids = new DEXStringIDs(src, off + header.string_ids_off.getInt(), header.string_ids_size.getInt());
-		string_ids = new DEXStringIDs(src, off + header.string_ids_off.getInt(), header.string_ids_size.getInt());
 		type_ids = new DEXTypeIDs(src, off + header.type_ids_off.getInt(), header.type_ids_size.getInt());
-		proto_ids = new DEXProtoIDs(src, off + header.proto_ids_off.getInt(), header.proto_ids_size.getInt());
+		proto_ids = new DEXProtoIDs(src, off + header.proto_ids_off.getInt(),
+				header.proto_ids_size.getInt());
 		field_ids = new DEXFieldIDs(src, off + header.field_ids_off.getInt(), header.field_ids_size.getInt());
 		method_ids = new DEXMethodIDs(src, off + header.method_ids_off.getInt(), header.method_ids_size.getInt());
-		class_defs = new DEXClassDefs(src, off + header.class_defs_off.getInt(), header.class_defs_size.getInt());
+		class_defs = new DEXClassDefs(src, off + header.class_defs_off.getInt(),
+				header.class_defs_size.getInt(), off);
 		data = new DEXData(src, off + header.data_off.getInt(), header.data_size.getInt());
 		link_data = new DEXLinkData(src, off + header.link_off.getInt(), header.link_size.getInt());
 		
