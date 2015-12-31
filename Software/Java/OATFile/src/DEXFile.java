@@ -12,6 +12,9 @@ public class DEXFile extends Section{
 	public DEXClassDefs class_defs;
 	
 	public DEXData data;
+	public DEXStringDataItem[] string_data_items;
+	public DEXClassDataItem[] class_data_items;
+	public DEXCodeItem[] code_items;
 	public DEXLinkData link_data;
 
 	private int size;
@@ -44,6 +47,20 @@ public class DEXFile extends Section{
 		sections[6] = class_defs;
 		sections[7] = data;
 		sections[8] = link_data;
+		
+		string_data_items = new DEXStringDataItem[string_ids.string_id_items.length];
+		for (int i = 0; i < string_data_items.length; i++){
+			string_data_items[i] = new DEXStringDataItem(src,
+					off + string_ids.string_id_items[i].string_data_off.getInt());
+		}
+		
+		class_data_items = new DEXClassDataItem[class_defs.class_def_items.length];
+		for (int i = 0; i < class_data_items.length; i++){
+			class_data_items[i] = new DEXClassDataItem(src,
+					off + class_defs.class_def_items[i].class_data_off.getInt());
+		}
+		//STOPPED HERE
+
 	}
 	
 	public void dump(){
@@ -56,6 +73,21 @@ public class DEXFile extends Section{
 			System.out.println();
 			sections[i].dump();
 		}
+		System.out.println("|--------String Data Items");
+		System.out.print("|--------Offset:\t");
+		System.out.printf("0x%08X\n", string_data_items[0].getOffset());
+		for (int i = 0; i < string_data_items.length; i++){
+			string_data_items[i].dump();
+		}
+		System.out.println("|--------String Data Items");
+		
+		System.out.println("|--------Class Data Items");
+		System.out.print("|--------Offset:\t");
+		System.out.printf("0x%08X\n", class_data_items[0].getOffset());
+		for (int i = 0; i < class_data_items.length; i++){
+			class_data_items[i].dump();
+		}
+		System.out.println("|--------Class Data Items");
 		System.out.println("|----Dex File");
 	}
 
