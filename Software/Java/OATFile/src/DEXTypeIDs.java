@@ -1,4 +1,3 @@
-import java.util.Arrays;
 
 /*
  * gives indexes in string_ids which strings corresponding

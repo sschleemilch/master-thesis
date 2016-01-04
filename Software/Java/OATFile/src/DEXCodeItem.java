@@ -58,41 +58,44 @@ public class DEXCodeItem extends Section{
 	
 	@Override
 	public void dump() {
-		System.out.println("|--------Code Item");
-		System.out.println("|------------Registers used:\t" + registers_size.getInt());
-		System.out.println("|------------n-Arguments In:\t" + ins_size.getInt());
-		System.out.println("|------------n-Arguments Out:\t" + outs_size.getInt());
-		System.out.println("|------------nTry-Items:\t" + tries_size.getInt());
-		System.out.print("|------------Debug Info Off:\t");
+		System.out.println("|--------------------Registers used:\t" + registers_size.getInt());
+		System.out.println("|--------------------n-Arguments In:\t" + ins_size.getInt());
+		System.out.println("|--------------------n-Arguments Out:\t" + outs_size.getInt());
+		System.out.println("|--------------------nTry-Items:\t" + tries_size.getInt());
+		System.out.print("|----------------------Debug Info Off:\t");
 		System.out.printf("0x%08X\n", debug_info_off.getInt());
-		System.out.println("|------------Instr Block Size:\t" + insns_size.getInt());
-		System.out.println("|------------Instructions:");
+		System.out.println("|--------------------Instr Block Size:\t" + insns_size.getInt());
+		System.out.println("|--------------------Instructions:");
 		int c = 0;
 		for (int i = 0; i < insns.length; i++){
-			System.out.printf("%04X\t",insns[i].getInt());
+			if (i == 0){
+				System.out.print("\t\t\t");
+			}
+			System.out.printf("0x%04X\t",insns[i].getInt());
 			c++;
-			if (c==10){
+			if (c==4){
+				c=0;
 				System.out.println();
+				System.out.print("\t\t\t");
 			}
 		}
 		System.out.println();
 		if(padding != null){
-			System.out.println("|------------Padding(2 bytes):\tTrue");
+			System.out.println("|--------------------Padding(2 bytes):\tTrue");
 		}else{
-			System.out.println("|------------Padding(2 bytes):\tFalse");
+			System.out.println("|--------------------Padding(2 bytes):\tFalse");
 		}
 		if (tries_size.getInt() != 0){
-			System.out.println("|------------Try Items there:\tTrue");
+			System.out.println("|--------------------Try Items there:\tTrue");
 			for (int i = 0; i < tries.length; i++){
 				tries[i].dump();
 			}
-			System.out.println("|------------Handlers there:\tTrue");
+			System.out.println("|--------------------Handlers there:\tTrue");
 			handlers.dump();
 		}else{
-			System.out.println("|------------Try Items there:\tFalse");
-			System.out.println("|------------Handlers there:\tFalse");
+			System.out.println("|--------------------Try Items there:\tFalse");
+			System.out.println("|--------------------Handlers there:\tFalse");
 		}
-		System.out.println("|--------Code Item");
 	}
 
 	@Override

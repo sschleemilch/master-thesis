@@ -41,7 +41,7 @@ public class DEXClassDefItem extends Section{
 	
 	@Override
 	public void dump() {
-		System.out.println("|------------Class Def Item:");
+		System.out.println("|------------Class Def Item");
 		System.out.println("|----------------Class Idx:\t\t" + class_idx.getInt());
 		System.out.println("|----------------Access Fl:\t\t" + access_flags.getInt());
 		System.out.println("|----------------Superclass Idx:\t" + superclass_idx.getInt());
@@ -54,7 +54,7 @@ public class DEXClassDefItem extends Section{
 		System.out.printf("0x%08X\n",dex_file_off + class_data_off.getInt());
 		System.out.print("|----------------Static val off:\t");
 		System.out.printf("0x%08X\n",dex_file_off + static_values_off.getInt());
-		System.out.println("|------------Class Def Item:");
+		System.out.println("|------------Class Def Item");
 	}
 
 	@Override

@@ -12,15 +12,22 @@ public class DEXFile extends Section{
 	public DEXClassDefs class_defs;
 	
 	public DEXData data;
+	public DEXLinkData link_data;
+	
+	//The following are referenced from other sections
+	//and to appear in the data section
 	public DEXStringDataItem[] string_data_items;
 	public DEXClassDataItem[] class_data_items;
 	public DEXCodeItem[] code_items;
-	public DEXLinkData link_data;
+
 
 	private int size;
 	private int offset;
 	
 	public Section[] sections = new Section[9];
+	
+	
+	public byte[] bytes;
 	
 	
 	public DEXFile(byte[] src, int off){
@@ -59,35 +66,147 @@ public class DEXFile extends Section{
 			class_data_items[i] = new DEXClassDataItem(src,
 					off + class_defs.class_def_items[i].class_data_off.getInt());
 		}
-		//STOPPED HERE
+		bytes = Arrays.copyOfRange(src, off, off + size);
 
 	}
 	
 	public void dump(){
+		
+		for (int i = 0; i < method_ids.method_id_items.length; i++){
+			System.out.println(string_data_items[method_ids.method_id_items[i].name_idx.getInt()]);
+		}
+		
 		System.out.println("|----Dex File");
 		System.out.print("|--------Offset:\t");
 		System.out.printf("0x%08X\n", offset);
 		System.out.print("|--------Size:\t\t");
 		System.out.printf("0x%08X\n", size);
-		for (int i = 0; i < sections.length; i++){
-			System.out.println();
-			sections[i].dump();
-		}
-		System.out.println("|--------String Data Items");
-		System.out.print("|--------Offset:\t");
-		System.out.printf("0x%08X\n", string_data_items[0].getOffset());
-		for (int i = 0; i < string_data_items.length; i++){
-			string_data_items[i].dump();
-		}
-		System.out.println("|--------String Data Items");
+		header.dump();
 		
-		System.out.println("|--------Class Data Items");
-		System.out.print("|--------Offset:\t");
-		System.out.printf("0x%08X\n", class_data_items[0].getOffset());
-		for (int i = 0; i < class_data_items.length; i++){
-			class_data_items[i].dump();
+		for (int i = 0; i < class_defs.class_def_items.length; i++){
+			System.out.println("\n|--------Class Def");
+			System.out.println("|------------Type:\t\t" + string_data_items
+					[type_ids.type_id_items
+					 [class_defs.class_def_items[i]
+							 .class_idx.getInt()]
+									 .descriptor_idx.getInt()]
+							  .getString());
+			System.out.println("|------------Source File:\t" + string_data_items
+					[class_defs.class_def_items[i].source_file_idx.getInt()].getString());
+			System.out.println("|------------N-Static Fields:\t\t" +
+					class_data_items[i].static_fields_size_uleb.getUleb128());
+			System.out.println("|------------N-Instance Fields:\t\t" +
+					class_data_items[i].instance_fields_size_uleb.getUleb128());
+			System.out.println("|------------N-Direct Methods:\t\t" +
+					class_data_items[i].direct_method_size_uleb.getUleb128());
+			System.out.println("|------------N-Virtual Methods:\t\t" +
+					class_data_items[i].virtual_method_size_uleb.getUleb128());
+			for ( int j = 0; j < class_data_items[i].static_fields_size_uleb.getUleb128(); j++){
+				int fidindex = 0;
+				if (j == 0){
+					 fidindex = class_data_items[i]
+							.static_fields[j]
+							.field_idx_diff_uleb
+							.getUleb128();
+					
+					
+				}else{
+					fidindex += class_data_items[i]
+							.static_fields[j]
+							.field_idx_diff_uleb
+							.getUleb128();
+				}
+				System.out.println("|----------------Static Field");
+				DEXAccessFlags af = new DEXAccessFlags(class_data_items[i]
+						.static_fields[j].access_flags_uleb.getUleb128());
+				System.out.println("|--------------------Access:\t" + af.flag_str );
+				System.out.println("|--------------------Name:\t" + string_data_items[field_ids.field_id_items[fidindex].name_idx.getInt()].getString());
+				System.out.println("|--------------------Type:\t" +
+						string_data_items[
+				                type_ids.type_id_items[field_ids
+				                        .field_id_items[fidindex]
+				                		.type_idx.getInt()]
+				                		.descriptor_idx.getInt()]
+				                		.getString());
+				System.out.println("|----------------Static Field");
+			}
+			for ( int j = 0; j < class_data_items[i].instance_fields_size_uleb.getUleb128(); j++){
+				int fidindex = 0;
+				if (j == 0){
+					 fidindex = class_data_items[i]
+							.instance_fields[j]
+							.field_idx_diff_uleb
+							.getUleb128();
+					
+					
+				}else{
+					fidindex += class_data_items[i]
+							.instance_fields[j]
+							.field_idx_diff_uleb
+							.getUleb128();
+				}
+				System.out.println("|----------------Instance Field");
+				DEXAccessFlags af = new DEXAccessFlags(class_data_items[i]
+						.static_fields[j].access_flags_uleb.getUleb128());
+				System.out.println("|--------------------Access:\t" + af.flag_str );
+				System.out.println("|--------------------Name:\t" + string_data_items[field_ids.field_id_items[fidindex].name_idx.getInt()].getString());
+				System.out.println("|--------------------Type:\t" +
+						string_data_items[
+				                type_ids.type_id_items[field_ids
+				                        .field_id_items[fidindex]
+				                		.type_idx.getInt()]
+				                		.descriptor_idx.getInt()]
+				                		.getString());
+				System.out.println("|----------------Instance Field");
+			}
+			int meindex = 0;
+			
+			for (int j = 0; j < class_data_items[i].direct_method_size_uleb.getUleb128(); j++){
+			
+			
+				 meindex = class_data_items[i]
+						.direct_methods[j]
+						.method_idx_diff_uleb
+						.getUleb128();
+			
+				System.out.println("|----------------Direct Method");
+				DEXAccessFlags af = new DEXAccessFlags(class_data_items[i]
+						.direct_methods[j].access_flags_uleb.getUleb128());
+				System.out.println("|--------------------Access:\t\t" + af.flag_str );
+				DEXCodeItem ci = new DEXCodeItem(bytes, class_data_items[i]
+						.direct_methods[j].code_off_uleb.getUleb128());
+				System.out.println("|--------------------Name:\t\t" + 
+						string_data_items[method_ids.method_id_items[meindex]
+								.name_idx.getInt()]);
+				ci.dump();
+				System.out.println("|----------------Direct Method");
+			}
+			for (int j = 0; j < class_data_items[i].virtual_method_size_uleb.getUleb128(); j++){
+				if (meindex == 0){
+					 meindex = class_data_items[i]
+							.virtual_methods[j]
+							.method_idx_diff_uleb
+							.getUleb128();
+				}else{
+					meindex += class_data_items[i]
+							.virtual_methods[j]
+							.method_idx_diff_uleb
+							.getUleb128();
+				}
+				System.out.println("|----------------Virtual Method");
+				DEXAccessFlags af = new DEXAccessFlags(class_data_items[i]
+						.virtual_methods[j].access_flags_uleb.getUleb128());
+				System.out.println("|--------------------Access:\t\t" + af.flag_str );
+				DEXCodeItem ci = new DEXCodeItem(bytes, class_data_items[i]
+						.virtual_methods[j].code_off_uleb.getUleb128());
+				ci.dump();
+				System.out.println("|----------------Virtual Method");
+			}
+			
+			
+			System.out.println("|--------Class Def");
 		}
-		System.out.println("|--------Class Data Items");
+		
 		System.out.println("|----Dex File");
 	}
 

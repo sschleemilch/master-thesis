@@ -127,7 +127,8 @@ public class DEXHeader extends Section{
 		System.out.println("|------------N-Class Defs\t\t"+ class_defs_size.getInt());
 		System.out.print("|------------Data Section Offset:\t");
 		System.out.printf("0x%08X\n", data_off.getInt());
-		System.out.println("|------------Data Section Size:\t\t" + data_size.getInt());
+		System.out.print("|------------Data Section Size:\t\t"); 
+		System.out.printf("0x%08X\n", data_size.getInt());
 		System.out.println("|--------Dex Header");
 	}
 	@Override

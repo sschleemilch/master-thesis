@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.sound.midi.Synthesizer;
 
 public class ELFStringTable extends Section{
 	private byte[] stringTable;
