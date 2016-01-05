@@ -3,7 +3,12 @@
 public class Playground {
 
 	public static void main(String[] args) {
-		ELFFile f = new ELFFile("old.oat");
-		f.oatdata.dexfile.dump();
+		ELFFile oldf = new ELFFile("heise.oat");
+		
+		oldf.oatdata.dexfile.deleteDEXInsns();
+		oldf.oatdata.updateDEXFileContent();
+		oldf.dump();
+		FileOperations.writeBytesToFile("heiseinsdel.oat", oldf.getBytes());
+		
 	}
 }

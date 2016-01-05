@@ -87,6 +87,15 @@ public class ELFOatdataSection extends Section{
 		this.bytes = Arrays.copyOfRange(src, off, off + size);
 	}
 	
+	public void updateDEXFileContent(){
+		byte[] btw = dexfile.getBytes();
+		int btwp = 0;
+		int startind = dexfile.getOffset() - this.offset;
+		for(int i = startind; i < startind + btw.length; i++){
+			this.bytes[i] = btw[btwp++];
+		}
+	}
+	
 	public int getZerosOffset(byte[]src, int chstart){
 		int zerocount = 0;
 		int sp = chstart;

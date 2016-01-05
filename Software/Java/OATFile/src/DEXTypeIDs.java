@@ -38,7 +38,7 @@ public class DEXTypeIDs extends Section{
 	public byte[] getBytes() {
 		byte [] b = new byte[size];
 		int bp = 0;
-		for (int i = 0; i < size; i++){
+		for (int i = 0; i < type_id_items.length; i++){
 			byte[] tmp = type_id_items[i].getBytes();
 			for (int j = 0; j < tmp.length; j++){
 				b[bp++] = tmp[j];

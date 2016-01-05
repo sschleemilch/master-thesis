@@ -30,7 +30,7 @@ public class DEXStringIDs extends Section{
 
 	@Override
 	public byte[] getBytes() {
-		byte[] b = new byte[string_id_items.length * size];
+		byte[] b = new byte[size];
 		int bp = 0;
 		for (int i = 0; i < string_id_items.length; i++){
 			byte[] t = string_id_items[i].getBytes();

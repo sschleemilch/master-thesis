@@ -40,7 +40,7 @@ public class DEXData extends Section{
 
 	@Override
 	public int getOffset() {
-		return size;
+		return offset;
 	}
 	@Override
 	public void setOffset(int off) {

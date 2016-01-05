@@ -58,6 +58,8 @@ public class DEXCodeItem extends Section{
 	
 	@Override
 	public void dump() {
+		System.out.print("|--------------------Offset:\t\t");
+		System.out.printf("0x%08X\n", this.offset);
 		System.out.println("|--------------------Registers used:\t" + registers_size.getInt());
 		System.out.println("|--------------------n-Arguments In:\t" + ins_size.getInt());
 		System.out.println("|--------------------n-Arguments Out:\t" + outs_size.getInt());
@@ -115,22 +117,28 @@ public class DEXCodeItem extends Section{
 				b[bp++] = tmp[j];
 			}
 		}
-		byte [] tmp = padding.data;
-		for (int i = 0; i < tmp.length; i++){
-			b[bp++] = tmp[i];
-		}
-		for (int i = 0; i < tries.length; i++){
-			tmp = tries[i].getBytes();
-			for (int j = 0; j < tmp.length; j++){
-				b[bp++] = tmp[j];
+		byte [] tmp;
+		if (padding != null){
+			tmp = padding.data;
+			for (int i = 0; i < tmp.length; i++){
+				b[bp++] = tmp[i];
 			}
 		}
-		
-		tmp = handlers.getBytes();
-		for (int i = 0; i < tries.length; i++){
-			tmp = tries[i].getBytes();
-			for (int j = 0; j < tmp.length; j++){
-				b[bp++] = tmp[j];
+		if (tries != null){
+			for (int i = 0; i < tries.length; i++){
+				tmp = tries[i].getBytes();
+				for (int j = 0; j < tmp.length; j++){
+					b[bp++] = tmp[j];
+				}
+			}
+		}
+		if (handlers != null){
+			tmp = handlers.getBytes();
+			for (int i = 0; i < tries.length; i++){
+				tmp = tries[i].getBytes();
+				for (int j = 0; j < tmp.length; j++){
+					b[bp++] = tmp[j];
+				}
 			}
 		}
 		return b;

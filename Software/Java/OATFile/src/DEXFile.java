@@ -15,7 +15,7 @@ public class DEXFile extends Section{
 	public DEXLinkData link_data;
 	
 	//The following are referenced from other sections
-	//and to appear in the data section
+	//and do appear in the data section
 	public DEXStringDataItem[] string_data_items;
 	public DEXClassDataItem[] class_data_items;
 	public DEXCodeItem[] code_items;
@@ -66,16 +66,56 @@ public class DEXFile extends Section{
 			class_data_items[i] = new DEXClassDataItem(src,
 					off + class_defs.class_def_items[i].class_data_off.getInt());
 		}
+		
+		
+		
+		DEXEncodedMethod[] encoded_methods;
+		//count how much methods there are...		
+		int emc = 0;
+		for (int i = 0; i < class_data_items.length; i++){
+			emc += class_data_items[i].direct_methods.length;
+			emc += class_data_items[i].virtual_methods.length;
+		}
+		encoded_methods = new DEXEncodedMethod[emc];
+		//fill method array...
+		int ep=0;
+		for (int i = 0; i < class_data_items.length; i++){
+			for (int j = 0; j < class_data_items[i].direct_methods.length; j++){
+				encoded_methods[ep++] = class_data_items[i].direct_methods[j];
+			}
+			for (int j = 0; j < class_data_items[i].virtual_methods.length; j++){
+				encoded_methods[ep++] = class_data_items[i].virtual_methods[j];
+			}
+		}
+		code_items = new DEXCodeItem[encoded_methods.length];
+		for(int i = 0; i < code_items.length; i++){
+			code_items[i] = new DEXCodeItem(src, off + encoded_methods[i].code_off_uleb.getUleb128());
+		}
 		bytes = Arrays.copyOfRange(src, off, off + size);
 
 	}
 	
-	public void dump(){
-		
-		for (int i = 0; i < method_ids.method_id_items.length; i++){
-			System.out.println(string_data_items[method_ids.method_id_items[i].name_idx.getInt()]);
+	public void deleteDEXInsns(){
+		//delete all insns of every code_item
+		for (int i = 0; i < code_items.length; i++){
+			for(int j = 0; j < code_items[i].insns.length; j++){
+				code_items[i].insns[j].setInt(0); //all instructions are set to 0
+			}
 		}
-		
+		//change actual bytes of data section...
+		for (int i = 0; i < code_items.length; i++){
+			byte[] btw = code_items[i].getBytes();
+			int btwp = 0;
+			//data section index = code_item_off - data_off
+			int startindex = code_items[i].getOffset() - data.getOffset();
+			for (int j = startindex; j < startindex + btw.length; j++){
+				data.bytes[j] = btw[btwp++];
+			}
+		}
+	}
+	
+	public void dump(){
+
 		System.out.println("|----Dex File");
 		System.out.print("|--------Offset:\t");
 		System.out.printf("0x%08X\n", offset);
@@ -159,15 +199,7 @@ public class DEXFile extends Section{
 				                		.getString());
 				System.out.println("|----------------Instance Field");
 			}
-			int meindex = 0;
-			
 			for (int j = 0; j < class_data_items[i].direct_method_size_uleb.getUleb128(); j++){
-			
-			
-				 meindex = class_data_items[i]
-						.direct_methods[j]
-						.method_idx_diff_uleb
-						.getUleb128();
 			
 				System.out.println("|----------------Direct Method");
 				DEXAccessFlags af = new DEXAccessFlags(class_data_items[i]
@@ -175,29 +207,16 @@ public class DEXFile extends Section{
 				System.out.println("|--------------------Access:\t\t" + af.flag_str );
 				DEXCodeItem ci = new DEXCodeItem(bytes, class_data_items[i]
 						.direct_methods[j].code_off_uleb.getUleb128());
-				System.out.println("|--------------------Name:\t\t" + 
-						string_data_items[method_ids.method_id_items[meindex]
-								.name_idx.getInt()]);
 				ci.dump();
 				System.out.println("|----------------Direct Method");
 			}
 			for (int j = 0; j < class_data_items[i].virtual_method_size_uleb.getUleb128(); j++){
-				if (meindex == 0){
-					 meindex = class_data_items[i]
-							.virtual_methods[j]
-							.method_idx_diff_uleb
-							.getUleb128();
-				}else{
-					meindex += class_data_items[i]
-							.virtual_methods[j]
-							.method_idx_diff_uleb
-							.getUleb128();
-				}
+		
 				System.out.println("|----------------Virtual Method");
 				DEXAccessFlags af = new DEXAccessFlags(class_data_items[i]
 						.virtual_methods[j].access_flags_uleb.getUleb128());
 				System.out.println("|--------------------Access:\t\t" + af.flag_str );
-				DEXCodeItem ci = new DEXCodeItem(bytes, class_data_items[i]
+				DEXCodeItem ci = new DEXCodeItem(bytes,class_data_items[i]
 						.virtual_methods[j].code_off_uleb.getUleb128());
 				ci.dump();
 				System.out.println("|----------------Virtual Method");
@@ -216,6 +235,9 @@ public class DEXFile extends Section{
 		int bp = 0;
 		for (int i = 0; i < sections.length; i++){
 			byte [] sb = sections[i].getBytes();
+			if (sb.length != sections[i].getSize()){
+				System.out.println("Index: " + i);
+			}
 			for (int j = 0; j < sb.length; j++){
 				b[bp++] = sb[j];
 			}
