@@ -3,14 +3,49 @@
 \section{Popularity of Android}
 Android is an operating system by Google,
 designed for mobile devices. Version 1.0 was released
-in 2008. With a remarkable market share of 82.8\%
+in 2008 and the most recent version is 6.0 as this thesis
+is written. With a remarkable market share of 82.8\%
 it has grown into the most important mobile operating system
 followed by Apple's iOS with 13.9\% and Microsoft's Windows
-Phone with 2.6\%. See \parencite{Idc15} for a full list
+Phone with 2.6\%. See~\parencite{marketshare} for a full list
 of mobile operating system market shares. While the smartphone
 market is still growing, Android did also attach to new
 rising platforms like wearables, TV's, cars and general
-embedded devices.
+embedded devices. Android is built on a Linux kernel
+and because of that, Android is also open source and freely
+available. Everyone is allowed to adopt it to it's own need
+(except Android Wear) which is another reason for it's
+rising popularity.
+
+The daily use of smartphones and therefore Android is increasing
+rapidly in nearly every scope of application. Right now the usages
+are reaching from simple surfing the web to security sensitive tasks
+like banking transactions, the organization of all kinds of tickets
+and wireless payment methods.
+
+\section{Demand of app protection mechanisms}
+Popularity of operating systems tends to result in a focus of
+malware and virus developers as a reason to the resulting market
+size and therefore the most possible illegal profit.
+Although Google has established it's own app store
+``Google Play Store'' where apps are getting inspected by Google,
+it's possible to install apps from so called ``unknown sources''
+like websites and alternative app stores.
+
+There are different attack vectors attackers are considering.
+The first one is intellectual theft by extracting the source
+code of an app (which is quite simple out of the delivered
+package of an app), adapt and rerelease it with different credentials.
 
 
+Many apps these days are free of charge in their basic version and
+do offer ``In-App Purchases'' for additional content or services.
+An attacker could try to ``patch'' the app which means
+injecting own code to circumvent the purchase mechanism.
+With the same technique the attacker could also inject malicious
+arbitrary code followed by repacking and redistribution of that
+app to potential victims. Hereby, the attacker can sniff
+sensitive user data which can be exploited.
 
+Therefore there is an urgent need of copy protection mechanisms
+for Android apps.
