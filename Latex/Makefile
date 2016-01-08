@@ -3,6 +3,8 @@ OUT  := build
 
 pdf:
 	# Also see .latexmkrc
+	biber $(FILE)
+	makeglossaries $(FILE)
 	latexmk -outdir=$(OUT) -pdf $(FILE)
 
 clean:

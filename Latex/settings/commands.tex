@@ -9,5 +9,16 @@
 \newcommand*{\getAdvisor}{M.Sc. Nils Kannengießer}
 \newcommand*{\getSubmissionDate}{15.03.2016}
 \newcommand*{\getSubmissionLocation}{Munich}
+\renewcommand{\texttt}[1]{%
+  \begingroup
+  \ttfamily
+  \begingroup\lccode`~=`/\lowercase{\endgroup\def~}{/\discretionary{}{}{}}%
+  \begingroup\lccode`~=`[\lowercase{\endgroup\def~}{[\discretionary{}{}{}}%
+  \begingroup\lccode`~=`.\lowercase{\endgroup\def~}{.\discretionary{}{}{}}%
+  \catcode`/=\active\catcode`[=\active\catcode`.=\active
+  \scantokens{#1\noexpand}%
+  \endgroup
+}
+\newcommand{\code}[1]{\texttt{#1}}
 
 % TODO: add custom commands etc.
