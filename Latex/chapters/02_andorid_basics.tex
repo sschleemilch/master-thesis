@@ -9,7 +9,7 @@ only shell binaries (Linux kernel) but also a GUI environment
 as well as predefined frameworks and a complete environment
 for developers to write apps in the Java programming language.
 That's why Android is considered to be a ``full software stack''
-~\parencite{levin}. Although it's built on Linux,
+\parencite{levin}. Although it's built on Linux,
 Google did modify the Linux kernel to their need.
 As a result, the Android kernel differs
 incompatibly with the Linux kernel since version 2.6.27.
@@ -53,7 +53,7 @@ register-based in contrast to JVM'S stack based architecture.
 DVM is optimized for mobile devices
 in terms of efficiency and sharing memory and is using the
 Dalvik Executable format (DEX) as bytecode which is still device
-independent ~\parencite{levin}. These \code{.dex} files are being
+independent \parencite{levin}. These \code{.dex} files are being
 packed into Java libraries (JAR) or into Android Application Packages (APK).
 
 With Android version 5.0, Google did introduce ART.
@@ -63,7 +63,7 @@ ART on the other hand does use Ahead-Of-Time (AOT) compilation
 which compiles an app to machine code at installation time.
 The reason for JIT in the first place were among other things
 storage limitations of mobile devices at the time Android was released
-~\parencite{levin}. As a result, the ART apps installation time
+\parencite{levin}. As a result, the ART apps installation time
 is increased as well as the required storage space as a tradeoff
 to the app startup and runtime performance. As we will see,
 Dalvik is still very much deep-seated in Android even under ART
@@ -86,7 +86,7 @@ Since Android is likely to run on a great variety of devices,
 it has to support a big amount of different hardware versions.
 The HAL addresses this problem and
 standardizes the interface by allowing hardware vendors
-to implement their own drivers ~\parencite{levin}.
+to implement their own drivers \parencite{levin}.
 
 \section{Android Apps}\label{section:android_apps}
 Apps are the most abstract level of the Android software stack.
@@ -159,12 +159,12 @@ layouts and menus. The \code{META-INF/} directory does hold
 the signatures for the specific app similar to a JAR file.
 The heart of every app is the \code{classes.dex} that does
 contain the application code in form of the DEX format
-specified by Google ~\parencite{dex}. The Java Development
+specified by Google \parencite{dex}. The Java Development
 Kit (JDK) tool ``javac'' creates a JAR out of every inputted
  \code{.java} file. The Google build tool ``dx'' takes over
  the transition from \code{.jar} to \code{.dex} ~\parencite{dxtool}.
 
-\section{App installation process}\label{section:app_installation}
+\section{App Installation Process}\label{section:app_installation}
 As in \autoref{section:android_apps} described, apps are distributed
 in form of APK files. This chapter describes what happens next to
 the APK file.
@@ -173,10 +173,12 @@ The APK file gets forwarded to the Android ``Package Manager''(pm)
 which then calls the \code{installPackage()} method for this
 APK. Among other things, the pm copies the original \code{*.apk}
 to the path \code{/data/app/<package>.<appname>-1/base.apk}.
+This location is used and accessed in order to get the
+needed resources for the app to run (layout, drawables, \ldots).
 The \code{lib/} directory is getting extracted and gets also copied
 into that path. \code{classes.dex} gets optimized by either ``dexopt''
 or ``dex2oat'' depending which runtime is present (DVM or ART).
-The outcoming file is in both cases no more device independent
+The outcoming file is in both cases no more device portable
 and lies at \code{/data/dalvik-cache/<arch>/} with the name
 \code{data@app@<packagename>.<appname>-1@base.apk@classes.dex}.
 It does represent the last stored unit of an app that gets
@@ -212,4 +214,45 @@ relevant actions the pm performs.
   \label{fig:app_installation}
 \end{figure}
 
-\section{App execution process}
+\section{App Execution Process}\label{section:app_execution}
+When describing the execution process of an app, again the
+runtime must be considered (Dalvik or ART) since the execution process
+obviously differs. In both cases the entrypoint of the app is the
+file stored at \code{/data/dalvik-cache/...@classes.dex} like in
+\autoref{section:app_installation} described. \code{Zygote} is
+the name of one of the first processes Android starts when booting.
+The process is responsible for loading more services and libraries
+of the Android framework. By starting an app, \code{Zygote} is forked
+or copied for this app due to performance reasons
+\parencite{hackershandbook}.
+
+\subsection{Dalvik}
+As in section \autoref{section:app_installation} described, an
+ODEX file is created at first startup of an app. Even though
+the pure DEX file is runnable in the DVM, it still gets optimized
+into ODEX to get the most performance out of the
+constraints of a VM at the cost of portability (VM and device).
+It then gets processed by the actual Dalvik runtime to produce
+native code that in the end is executable by the CPU (JIT).
+This nativecode additionally must be linked with libraries of the app
+(\code{/data/app/<pkg>.<name>-1/lib/*.so}) implemented via the JNI
+and also with Android framework libraries to result in a complete
+executable that can be sent to the CPU. It does however
+reference resources out of the corresponding base.apk file (layouts,
+drawables, assets, \ldots). The execution process is also painted
+at \autoref{fig:app_execution}.
+
+\subsection{ART}
+The difference of ART in comparison to Dalvik is the missing
+JIT compiling step since ART does that at installation time
+(AOT). Therefore the ELF file does contain the executable that
+only needs to be extracted by the ART followed by the same
+linking steps that Dalvik does after JIT. \autoref{fig:app_execution}
+shows the direct comparison of those two runtimes.
+
+\begin{figure}[htb]
+  \includegraphics[width=\textwidth]{figures/app_execution}
+  \caption[App execution process]{App execution process}
+  \label{fig:app_execution}
+\end{figure}
+
