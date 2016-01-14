@@ -32,8 +32,8 @@ The alternative way is the use of ``smali/baksmali'' tool
 for DEX files rather than taking the Java code detour. There is also
 a tool included that can convert the ODEX back to DEX.
 
-Overall, the dissassembly of DEX is quite easy and is shown as a
-concluding overview in \autoref{fig:dex_disassembly}
+Overall, the dissassembly of unchanged DEX is quite easy and is shown
+as a concluding overview in \autoref{fig:dex_disassembly}
 
 Therefore several countermeasures were established which are
 described in the following sections.
@@ -45,32 +45,80 @@ described in the following sections.
 \end{figure}
 
 
-\section{DEX Obfuscation}
-One of the most direct and effective methods of protecting source
-code is obfuscation. It can be imagined like an tool-automated
-additional step between the readable source code written by a human
-and the compilation to the next unit, thus a transition from source
-code to source code with masked functionality. An obfuscation
-can be achieved with different methods which are described in
-\parencite{lvl_imp}. Among other things they consist of renaming
+\section{Obfuscation Techniques}
+Obfuscation in the context of copy protection for application
+is generally the term for hardening an application against
+reverse code engineering techniques. It can be achieved by different methods
+that can be seperated in two main groups, static and dynamic obfuscation.
+Static means that the obfuscation technique is applied to code units (source
+code, binaries, ...) while the application is not executed. Therefore an
+attacker could possibly successful analyze the application without executing it
+if he manages to break this obfuscation. Applications that are dynamically
+obfuscated on the other hand, are much harder to analyze since the behavior
+of the application is not decided until its execution. An attacker needs to connect to the process of the application followed by a just in time inspection.
+
+It does follow a list of common static and dynamic obfuscation techniques
+for Android applications.
+
+\subsection{Static}
+\subsubsection{Common Source Code Obfuscation}
+The most common way of harden source code is to remove any kind of meta data
+that has been added during the development process. Means destroying/modifying
+information that originally was present in the source code.
+This technique can be applied at different layers, \code{.java}, \code{.class} and the final \code{.dex} in case of Android.
+Among other things they consist of renaming
 classes, variables, functions, irreducable code insertion,
 artificial parallelization, method inlining/outlining, unrolling
-loops, encoding strings and so on.
-The goal is to increase the complexity of code
-massively by keeping its functionality. Popular obfuscation tools
-are Google's ``ProGuard'' \parencite{proguardtool} which is included
-in the Android build system and can be enabled easily as well as
-``DexGuard'' by GuardSquare \parencite{dexguardtool}.
+loops, encoding strings, changing the control flowand so on to confuse code analysts but always keeping its original behavior.
 
-\section{Junk-Byte-Insertion}
+Popular tools for that purpose are Google's ``ProGuard''
+\parencite{proguardtool} which is included in the Android build system and
+can be enabled easily as well as``DexGuard'' by GuardSquare
+\parencite{dexguardtool}. ``ProGuard'' does
+operate on source code level where ``DexGuard'' operates on DEX.
+Since the first unit of Android applications is Java code, classical Java
+obfuscators also can be used.
+
+\subsubsection{Junk-Byte-Insertion}
 Junk-Byte-Insertion's goal is to confuse static analyzing
-disassembling tools. It does work for tools which are
-using the ``linear sweep'' to analyze a file. That means
+disassembling tools. It does work for tools with the
+``linear sweep'' method to analyze a file. That means
 the tools are processing every instruction from the entrypoint
-till the end without interpreting them which means that bytes can
-be inserted that are never reached by executing the code
-(for instance because there is an if-else- construct that is
-always true) but will be processed by the tool and will break the
-resulting disassembled code \parencite{lvl_imp}.
+till the end without interpreting them (e.g. not following jumps).
+That examining technique can be exploited to break the disassembling
+procedure. Let's assume we do have the code snippet of
+\autoref{fig:junk_byte_listening}
+on source code level.
 
-\section{Code Encryption}
+\begin{figure}[htb]
+  \centering
+  \begin{tabular}{c}
+  \begin{lstlisting}[language=Java]
+    if (false) {
+        0x12 0x34 0x56
+    } else {
+        proceedProgram()
+    }
+  \end{lstlisting}
+  \end{tabular}
+  \caption[Junk-Byte-Insertion]{Junk-Byte-Insertion Example}
+  \label{fig:junk_byte_listening}
+\end{figure}
+
+Cause of the if-condition, the \code{insertBreakingBytes()} method is never
+reached. Since ``linear sweep'' does not perform jumps, the analyzing tool
+is trying to revert those bytes into source code. By choosing a specific
+sequence of bytes, the transformation will fail.
+
+Enhanced tools will use the ``recursive traversal'' technique to analyze a
+file which is capable of detecting dead branches like in the example above.
+These tools also may be tricked by choosing a more complicated condition for
+if-conditions that can only be evaluated at runtime and therefore the
+whole conditional branch (including the breaking byte sequence) would also be evaluated.
+\parencite{lvl_imp}.
+
+\subsection{Dynamic}
+\subsubsection{Hidden Methods Invocation}
+\subsubsection{Dynamic Code Loading}
+\subsubsection{Self Modifying Code}
+

@@ -1,16 +1,11 @@
 \RequirePackage[l2tabu,orthodox]{nag}
 
-% TODO: decide if one-sided/two-sided
-%\documentclass[headsepline,footsepline,footinclude=false,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc,BCOR=12mm,DIV=12]{scrbook} % two-sided
-%\documentclass[headsepline,footsepline,footinclude=false,oneside,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc]{scrbook} % one-sided
-
 \documentclass[a4paper,11pt,oneside]{book}
 
 \input{settings/packages}
 \input{settings/settings}
 \input{settings/commands}
 
-% TODO: remove if glossary not needed
 %\input{glossary/terms}
 \input{glossary/acronyms}
 
@@ -36,15 +31,10 @@
 \fancyhead[C]{\slshape \leftmark}
 \fancyfoot[C]{\thepage}
 
-
-%\input{chapters/introduction}
 \input{chapters/01_android_status_quo.tex}
 \input{chapters/02_andorid_basics.tex}
 \input{chapters/03_copy_protection_status_quo.tex}
 
-
-
-% TODO: add more chapters here
 
 \appendix{}
  % TODO: remove if glossary not needed
