@@ -137,13 +137,11 @@ compression tools \parencite{securityinternals}.
 
 \autoref{fig:apk_content} lists the content of an APK container
 after extraction.
-
 \begin{figure}[htb]
   \includegraphics[width=\textwidth]{figures/apk_content}
   \caption[APK Content]{Contents of the APK file}
   \label{fig:apk_content}
 \end{figure}
-
 The \code{AndroidManifest.xml} file holds metadata information
 about the app like the package name, it's version, a list of
 activities and required permissions. \code{resources.arsc}
@@ -154,14 +152,14 @@ fonts and so on. If the app does make use of the JNI,
 the \code{lib/} folder does contain compiled library directories
 for every supported CPU architecture (armeabi, x86, \ldots).
 Every resource which is directly addressed from Android code
-is stored in the \code{res/} folder including xml files for
+is stored in the \code{res/} folder including XML files for
 layouts and menus. The \code{META-INF/} directory does hold
 the signatures for the specific app similar to a JAR file.
 The heart of every app is the \code{classes.dex} that does
 contain the application code in form of the DEX format
 specified by Google \parencite{dex}. The Java Development
 Kit (JDK) tool ``javac'' creates a JAR out of every inputted
- \code{.java} file. The Google build tool ``dx'' takes over
+ \code{.java} file while the Google build tool ``dx'' takes over
  the transition from \code{.jar} to \code{.dex} ~\parencite{dxtool}.
 
 \section{App Installation Process}\label{section:app_installation}

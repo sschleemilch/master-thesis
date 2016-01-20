@@ -148,7 +148,7 @@ followed by reverting the changes and Java reflection to execute it.
   \label{fig:hidden_method_invocation}
 \end{figure}
 
-\subsubsection{Dynamic Code Loading}
+\subsubsection{Dynamic Code Loading}\label{section:dynamic_code_loading}
 The principle of Dynamic Code Loading is to reveal the actual program code
 not before running the application. This behavior can be achieved by
 implementing a stub application that will load the actual application file
@@ -168,7 +168,48 @@ The \code{libdvm.so} library does offer a private method to open DEX files
 that does accept DEX content in form of a byte array.
 By establishing this own JNI implementation of
 \code{openDexFile(byte[]content)} the loaded dex file is only present
-in volatile memory and does not create an ODEX \parencite{code_protection}.
+in volatile memory and does not create an ODEX \parencite{code_protection}
+which does make that method very robust.
 
 \subsubsection{Self Modifying Code}
+Quite similar to dynamic code loading described in
+\autoref{section:dynamic_code_loading} is self modifying code with the goal
+of altering the instructions of an app during runtime.
+Instead of loading additional code snippets, the focus relies on
+manipulating the executing dalvik bytecode stream directly.
+The DVM is limited in terms of instructions for modifying bytecode
+and therefore it has to be bypassed with native code via the JNI.
+To find the position in bytecode that should be changed, a predefined
+value must be set in order to be recognized by the native code function.
+That value is often called ``egg'' and the search process ``egg-hunting''.
+Let's assume we do have the code snippet shown in \autoref{fig:self_modifying_code} that exists in the context of an Android app activity
+\parencite{code_protection}.
 
+\begin{figure}[htb]
+  \centering
+  \begin{tabular}{c}
+  \begin{lstlisting}[language=Java]
+    ...
+    modifyVariable();
+    int egg = 0x12345678;
+    Integer toChange = 5;
+    ...
+    native private void modifyVariable();
+    ...
+  \end{lstlisting}
+  \end{tabular}
+  \caption[Self Modifying Code]{Self Modifying Code Example}
+  \label{fig:self_modifying_code}
+\end{figure}
+
+The \code{modifyVariable()} is a native code method and sweeps
+over the process memory (detectable through \code{/proc/self/maps})
+in order to find the egg value. After skipping the assignment of
+the egg value, the next instruction is responsible for allocating
+the \code{toChange} variable which in this case is ``\code{0x13 0x21}''
+and does stand for the mnemonic ``\code{const/16 vAA, \#+BBBB}''
+\parencite{bytecode_format}. Therefore the next byte specifies the
+register to save followed by two bytes of the signed integer value
+(``\code{0x05 0x00}'' in our case). By changing the ``\code{0x05}'' to
+``\code{0x09}'' the goal of dynamically changing the value at runtime
+is hereby fulfilled.
