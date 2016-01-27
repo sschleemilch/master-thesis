@@ -1,0 +1,67 @@
+\chapter{ART Internals: App Execution}
+\label{chapter:art_internals_app_execution}
+
+A running app can be tracked with linux tools that are capable
+of showing processes like ``\code{ps}''. To investigate the app execution
+we therefore have to open a root shell at the target device
+(device should be rooted) with ``\code{adb shell}''
+followed by an ``\code{su}'' command after getting the
+device prompt (``\code{shell@flounder:/ \$}''). It will then change
+to ``\code{root@flounder:/ \#}''. A ``\code{ps}'' command will display
+useful information like it's ``USER'', the process id ``PID'',
+the process id of its parent ``PPID'' and of course the actual name.
+Interesting entries for further inspection are being displayed in
+\autoref{tab:ps_entries}.
+
+\begin{table}[htb]
+  \caption[Android processes]{Android processes}
+  \label{tab:ps_entries}
+  \centering
+  \begin{tabular}{l l l l l}
+    \toprule
+      USER & PID & PPID & ... & NAME \\
+    \midrule
+      root & 1 & 0 & ... & /init \\
+      root & 211 & 1 & ... & zygote64 \\
+      root & 212 & 1 & ... & zygote \\
+      u0\_a137 & 10072 & 211 & ... & ma.schleemilch.helloandroid \\
+      u0\_a35 & 11017 & 212 & ... & com.android.chrome \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The process ``\code{/init}'' is the first process of Android (although
+it has a parent with PID ``0'' which is the process scheduler at kernel
+level).
+Furthermore, every user and system app has either the process
+``\code{zygote}'' or ``\code{zygote64}'' as its parent depending
+if the app was written for 32 or 64 bit. That makes clear that apps
+are forked from the Zygote process that is in turn forked out of
+``code{/init}''. Even more detailed information about processes can be
+pulled out of the ``\code{/proc}'' directory. It is an interface to the
+kernel and does contain a folder for every process, named after its PID
+\parencite{proc}. The most attractive attribute of that folder is
+``\code{exe}'' which is a symbolic link to the executable that started
+the process. Since apps are a fork of Zygote, they should point
+to the same executable, which they do.
+
+\begin{table}[htb]
+  \caption[Process starting executables]{Process starting executables}
+  \label{tab:process_executables}
+  \centering
+  \begin{tabular}{l l}
+    \toprule
+    \multicolumn{2}{l}{root@flounder:/ \# ls -la /proc/10072/exe} \\
+    ... & exe -> /system/bin/app\_process64\_original\\
+    \midrule
+    \multicolumn{2}{l}{root@flounder:/ \# ls -la /proc/211/exe} \\
+    ... & exe -> /system/bin/app\_process64\_original\\
+    \midrule
+    \multicolumn{2}{l}{root@flounder:/ \# ls -la /proc/11017/exe} \\
+    ... & exe -> /system/bin/app\_process32\\
+    \midrule
+    \multicolumn{2}{l}{root@flounder:/ \# ls -la /proc/212/exe} \\
+    ... & exe -> /system/bin/app\_process32\\
+    \bottomrule
+  \end{tabular}
+\end{table}
