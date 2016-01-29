@@ -95,23 +95,17 @@ the tools are processing every instruction from the entry-point
 till the end without interpreting them (e.g. not following jumps).
 That examining technique can be exploited to break the disassembling
 procedure. Let's assume we do have the code snippet of
-\autoref{fig:junk_byte_listening}
+\autoref{junk_byte_listening}
 on source code level.
 
-\begin{figure}[htb]
-  \centering
-  \begin{tabular}{c}
-  \begin{lstlisting}[language=Java]
+  \begin{lstlisting}[language=Java, caption=Junk-Byte-Insertion, label=junk_byte_listening]
     if (false) {
         insertBytes();
     } else {
         proceedProgram();
     }
   \end{lstlisting}
-  \end{tabular}
-  \caption[Junk-Byte-Insertion]{Junk-Byte-Insertion Example}
-  \label{fig:junk_byte_listening}
-\end{figure}
+
 
 Cause of the if-condition, the \code{insertBytes()} method is never
 reached. Since ``linear sweep'' does not perform jumps, the analyzing tool
@@ -182,13 +176,10 @@ and therefore it has to be bypassed with native code via the JNI.
 To find the position in bytecode that should be changed, a predefined
 value must be set in order to be recognized by the native code function.
 That value is often called ``egg'' and the search process ``egg-hunting''.
-Let's assume we do have the code snippet shown in \autoref{fig:self_modifying_code} that exists in the context of an Android app activity
+Let's assume we do have the code snippet shown in \autoref{self_modifying_code} that exists in the context of an Android app activity
 \parencite{code_protection}.
 
-\begin{figure}[htb]
-  \centering
-  \begin{tabular}{c}
-  \begin{lstlisting}[language=Java]
+ \begin{lstlisting}[language=Java, caption=Self Modifying Code Example, label=self_modifying_code]
     ...
     modifyVariable();
     int egg = 0x12345678;
@@ -197,10 +188,7 @@ Let's assume we do have the code snippet shown in \autoref{fig:self_modifying_co
     native private void modifyVariable();
     ...
   \end{lstlisting}
-  \end{tabular}
-  \caption[Self Modifying Code]{Self Modifying Code Example}
-  \label{fig:self_modifying_code}
-\end{figure}
+
 
 The \code{modifyVariable()} is a native code method and sweeps
 over the process memory (detectable through \code{/proc/self/maps})
