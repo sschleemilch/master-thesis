@@ -99,8 +99,16 @@ are forwarded to the runtime object and an additional parameter (``application''
 into the ``\code{runtime.start()}'' method.
 After all, the initialized runtime does know that it should start an application with its given main class name. Also the actual process name
 has been changed to a ``nice name'' that also has been defined as a command
-line parameter.
+line parameter. \autoref{fig:app_process} visualizes the argument parsing
+of the program.
 The obviously next thing to do to get further to the goal of knowing which parts of the OAT file format out of \autoref{chapter:art_internals_app_executable_format} gets executed when starting an app is to have a look at the ``AndroidRuntime'' class implementation.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[width=\textwidth]{figures/app_process}
+  \caption[App Process Argument Parsing]{App Process Argument Parsing}
+  \label{fig:app_process}
+\end{figure}
 
 
 \section{Functionality of ``\code{AndroidRuntime.cpp}''}
@@ -109,3 +117,8 @@ the class name and all arguments and finally a call of the ``\code{start()}''
 method. So a good start should be the constructor. It is quite short and
 does reserve some space for options and is initializing a pointer to the object
 itself.
+The ``\code{start()}'' method does expect a class name (``.../ZygoteInit'') and a vector or args which is only one in this case. It follow
+special log events in case of a system server start and a check if the root
+dir ``\code{/system}'' does exist in the environment of linux.
+
+
