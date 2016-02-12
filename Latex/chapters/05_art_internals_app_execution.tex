@@ -208,16 +208,32 @@ The current child process state discussed is right after the main loop
 breakout of \code{ZygoteInit} induced by the exception. The exception
 is actual defined as a class that extends \code{Exception} and implements
 \code{Runnable}. Therefore it is viable to call the exception callers
-\code{run()} method (see \autoref{child_breakout}).
+\code{run()} method (see \autoref{child_breakout}, taken out of the main
+method of Zygote).
 
-\lstinputlisting[language=Java, caption=Zygote Child Loop Breakout Exception, label=child_breakout,firstline=697, lastline=699]{"code/ZygoteInit.java"}
-
-
-\section{Class Loading and Method Invocation}\label{cl_loading}
+\lstinputlisting[language=Java, caption=Zygote Child Loop Breakout Exception, label=child_breakout,firstline=697, lastline=703]{"code/ZygoteInit.java"}
 
 
+\section{Method Invocation}\label{cl_loading}
 %ClassLoader??
-%Method m.invoke()???
+\code{ZygoteConnection} creates the \code{ClassLoader} instance and commits it to
+\code{ZygoteInit} via the \code{invokeStaticMain()} method. If the class specified
+in \code{className} can be loaded successfully, the class loader tries to initialize a
+\code{Method} instance of the defined classes main method.
+That instance \code{m} gets finally transfered to the explained exception that gets thrown
+at this point and finally the method instance \code{m} does call
+\code{invoke(null, new Object[] {mArgs})} where \code{mArgs} represents a string array of
+arguments.
+
+This is where it gets interesting. The most recent state of the app starting process
+right now is the forked and adapted process to the specific application. Now, the actual main
+method gets invoked and executed. Therefore the next step will reveal how ART will handle the
+created OAT files for apps with embedded dex and native code with its structure explained in \autoref{chapter:art_internals_app_executable_format}. The invoke method in the \code{Method.Java}
+file and \code{Method} class defines a native method as its implementation (see \autoref{method_invoke}).
+\lstinputlisting[language=Java, caption=Method Invoke Native Signature, label=method_invoke,firstline=370, lastline=376]{"code/Method.java"}
+The \code{receiver} parameter represents the object the method gets called on. Therefore
+in case of a static main method, it can be \code{null}. 
+
 
 
 When a user clicks on an app icon, the ``onClick()'' method
