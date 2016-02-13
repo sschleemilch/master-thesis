@@ -75,7 +75,9 @@ However, apps cannot be started directly through that program but
 only through Zygote which will fork itself into that new app. Zygote
 itself will get started through the ``\code{/init}'' process that starts
 native daemons and among other things calls ``\code{app\_process}''
-in order to init Zygote.
+in order to init Zygote. However \code{app\_process} does provide the possibility
+to start applications directly without Zygote (\code{-{}-application argument}) 
+it is not the standard android way when a user clicks on an app icon.
 
 The best thing to do when analyzing source code is to start at the
 ``\code{main()}'' method. One of the first things the program does is
@@ -184,15 +186,17 @@ changed to another name than ``app\_process''.
 
 Back in the Java world \code{ZygoteConnection} checks the returned PID and either calls \code{handleChildProc()} in case of the child or
 \code{handleParentProc()} in case of the parent (Zygote itself).
-These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level and remaining arguments are being evaluated. When forking an app, a class name will be defined at that time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters.
+These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level (since the child should not listen on sockets like the parent Zygote) and remaining arguments are being evaluated. When forking an app, a class name will be defined at that time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters. The class loader \code{cloader} is defined as
+either with \code{PathClassLoader()} or \code{ClassLoader()} constructor whether a classpath is
+given (path to APK or raw *.dex) where \code{PathClassLoader} is a specialized version of \code{ClassLoader}. 
+However when looking into the class loading code at this point, it becomes clear that the DEX file
+of an app is used to represent a class and later finding its main method within, so that
+it can be said for sure that an app's DEX file is needed at least as an entry point under ART.
 
-The \code{invokeStaticMain()} loads the corresponding class and furthermore
-searches for the main function and finally throwing an
-\code{MethodAnd\allowbreak ArgsCaller()} exception which gets caught of the main method of \code{Zygote\allowbreak Init}. Remember that the Zygote itself is ``trapped'' in a loop whereas the child process can escape from by throwing that exception.
-So as a result, Zygote will remain in the loop offering a socket to fork
-itself again while the child process escapes from that loop and
-invoking the main method of the class specified over the socket
-connection.
+The \code{invokeStaticMain()} loads the specified class via the \code{className} string and furthermore searches for the main method within, storing it as a Java \code{Method} object and finally throwing an
+\code{MethodAnd\allowbreak ArgsCaller()} exception. This exception gets caught by the main method of \code{Zygote\allowbreak Init}.
+Remember that the Zygote itself is ``trapped'' in a loop whereas the child process can escape from by throwing that exception. So as a result, Zygote will remain in the loop offering a socket to fork itself again (= starting a new app) while the child process (= the app to start) escapes from that loop invoking the main method of the class specified over the socket
+connection in the next step.
 To clearify the program flow, \autoref{fig:zygote_forking} displays
 the object and therefore file interaction during the forking process.
 
@@ -215,7 +219,12 @@ method of Zygote).
 
 
 \section{Method Invocation}\label{cl_loading}
-%ClassLoader??
+Invocation means basically injecting the code of a method in the current process.
+In case of Android there exists the Java world as well as the Linux/native world.
+Zygote does exist in both worlds (Java: \code{Zygote.java, ZygoteConnection.java, \ldots}
+and native: \code{app\_process call with -{}-zygote}). The runtime is responsible for 
+executing Java layered code. 
+
 \code{ZygoteConnection} creates the \code{ClassLoader} instance and commits it to
 \code{ZygoteInit} via the \code{invokeStaticMain()} method. If the class specified
 in \code{className} can be loaded successfully, the class loader tries to initialize a
@@ -223,17 +232,23 @@ in \code{className} can be loaded successfully, the class loader tries to initia
 That instance \code{m} gets finally transfered to the explained exception that gets thrown
 at this point and finally the method instance \code{m} does call
 \code{invoke(null, new Object[] {mArgs})} where \code{mArgs} represents a string array of
-arguments.
+arguments. That method is defined in the official Java Documentation \parencite{java_method} since
+\code{m} represents the common \code{Method} class but is adapted for Android's needs.
 
 This is where it gets interesting. The most recent state of the app starting process
 right now is the forked and adapted process to the specific application. Now, the actual main
-method gets invoked and executed. Therefore the next step will reveal how ART will handle the
-created OAT files for apps with embedded dex and native code with its structure explained in \autoref{chapter:art_internals_app_executable_format}. The invoke method in the \code{Method} class defines a native method as its implementation (see \autoref{method_invoke}).
+method gets invoked and later executed. Therefore the next step will reveal how ART will handle the
+created OAT files for apps with embedded dex and native code with its structure explained in \autoref{chapter:art_internals_app_executable_format}. The invoke method in the \code{Method} class dis implemented as native code, means C++ (see \autoref{method_invoke}).
 \lstinputlisting[language=Java, caption=Method Invoke Native Signature, label=method_invoke,firstline=370, lastline=376]{"code/Method.java"}
 The \code{receiver} parameter represents the object the method gets called on. Therefore
 in case of a static main method, it is \code{null}. The native implementation of \code{invoke}
-however is quite and forwards the invoke call to the \code{InvokeMethod} implementation in
-``\code{reflection.cc}''. 
+is quite short and forwards the call to \code{InvokeMethod()} located in
+``\code{reflection.cc}''. Those files are located at ``\code{/art/runtime/native}''.
+
+
+After the size of the stack has been checked, an \code{ArtMethod* m} pointer gets initialized with
+its Java method (\code{Method} class) and through ``\code{art\_method.cc}''s static \code{FromReflecetdMethod()}. It does follow a few checks about the receiver (if \code{m} is static or
+not) 
 
 
 
