@@ -1,206 +1,9 @@
 \chapter{Status Quo}
 \label{chapter:copy_protection_status_quo}
 
-Like introduced in \autoref{chapter:android_status_quo} there
-are different goals of copy protection mechanisms starting from
-preventing reverse code engineering to protect intellectual property
-and reaching to hinder patching to get prohibited access.
-The common denominator of those goals is the protection of
-the DEX file of every app. A variety of tools do exist that
-are able to transform DEX into different readable formats,
-modify it and repack it again since the DEX contains
-a lot of meta data for its contents (classes, methods, \ldots)
-\parencite{dex}.
-
-
-\section{DEX Dissassembly and Repackaging}
-Generally there do exist two possible outcomes of DEX disassembling
-- Java code (\code{*.java}) and Smali code (\code{*.smali}).
-Since the DEX format is more or less just a different mapping of a
-JAR and its containing \code{.class} files, the transition to JAR
-is quite simple \parencite{dvminternals}. A tool that is able to
-perform this step is ``dex2jar'' \parencite{dex2jartool}.
-Along with this JAR, standard Java decompiler like ``JD-GUI''
-\parencite{jdtool} can be used to produce the \code{*.java} source code.
-If the \code{*.java} is supposed to change and repacked, it can
-be again compiled into JAR with Oracle's ``javac'' \parencite{javactool}
-followed by Googles ``dx'' tool \parencite{dxtool}
-to produce the manipulated DEX.
-
-The alternative way is the use of ``smali/baksmali'' tool
-\parencite{smalitool} which is a direct assembler and disassembler
-for DEX files rather than taking the Java code detour. There is also
-a tool included that can convert the ODEX back to DEX.
-
-Overall, the dissassembly of unchanged DEX is quite easy and is shown
-as a concluding overview in \autoref{fig:dex_disassembly}
-
-Therefore several countermeasures were established which are
-described in the following sections.
-
-\begin{figure}[htb]
-  \includegraphics[width=\textwidth]{figures/dex_disassembly}
-  \caption[DEX Assembly/Disassembly]{DEX Assembly/Disassembly}
-  \label{fig:dex_disassembly}
-\end{figure}
-
-
-\section{Obfuscation Techniques}\label{section:obfuscation_techniques}
-Obfuscation in the context of copy protection for application
-is generally the term for hardening an application against
-reverse code engineering techniques. It can be achieved by different methods
-that can be separated in two main groups, static and dynamic obfuscation.
-Static means that the obfuscation technique is applied to code units (source
-code, binaries, ...) while the application is not executed. Therefore an
-attacker could possibly successful analyze the application without executing it
-if he manages to break this obfuscation. Applications that are dynamically
-obfuscated on the other hand, are much harder to analyze. The behavior
-of the application is not decided until its execution. An attacker needs to connect to the process of the running application followed by a just in time inspection.
-
-It does follow a list of common static and dynamic obfuscation techniques
-for Android applications. However, this list is mainly focussed on
-the Dalvik runtime since ART has been released quite recently.
-Where static obfuscation techniques do show the same behavior in both
-runtimes, the dynamic solutions do possibly not since the exeuction process
-of apps in ART does differ (described in \autoref{section:app_execution}).
-The impact of those techniques to ART will get analyzed in a later chapter.
-Therefore, the techniques given below are supposed to be an outline to
-the topic of copy protection mechanisms.
-
-
-\subsection{Static}
-\subsubsection{Common Source Code Obfuscation}
-The most common and simple way of harden source code is to remove any kind of meta data
-that has been added during the development process. Means destroying/modifying
-information that originally was present in the source code.
-Possible prospects to do this are the renaming of string identifiers of
-classes, variables, methods and functions, to artificially insert
-irreducible code, create artificial parallelization, perform method inlining/outlining, to unroll loops, encoding strings or changing the control flow in
-order to confuse code analysts by keeping the original behavior
-\parencite{lvl_imp}.
-
-Popular tools for that purpose are Google's ``ProGuard''
-\parencite{proguardtool} which is included in the Android build system and
-can be enabled easily as well as``DexGuard'' by GuardSquare
-\parencite{dexguardtool}. ``ProGuard'' does
-operate on source code level where ``DexGuard'' operates on DEX.
-Since the first ``layer'' of Android applications is Java code, classical Java
-obfuscators also can be used.
-
-\subsubsection{Junk-Byte-Insertion}
-Junk-Byte-Insertion's goal is to prohibit the use of static analyzing
-disassembling tools. It does work for tools using the
-``linear sweep'' method to analyze a file. That means
-the tools are processing every instruction from the entry-point
-till the end without interpreting them (e.g. not following jumps).
-That examining technique can be exploited to break the disassembling
-procedure. Let's assume we do have the code snippet of
-\autoref{junk_byte_listening}
-on source code level.
-
-  \begin{lstlisting}[language=Java, caption=Junk-Byte-Insertion, label=junk_byte_listening]
-    if (false) {
-        insertBytes();
-    } else {
-        proceedProgram();
-    }
-  \end{lstlisting}
-
-
-Cause of the if-condition, the \code{insertBytes()} method is never
-reached. Since ``linear sweep'' does not perform jumps, the analyzing tool
-is trying to also revert the following instructions into source code. By choosing a specific sequence of bytes, the transformation will fail.
-
-Enhanced tools will use the ``recursive traversal'' technique to analyze a
-file which is capable of detecting dead branches and conditional jumps like in the example above.
-These tools also may be tricked by choosing a more complicated condition for
-if-conditions that can only be evaluated at runtime and therefore the
-whole conditional branch (including the breaking byte sequence) would also tried to be evaluated (Actually this technique does already count to dynamic obfuscation).
-\parencite{lvl_imp}.
-
-\subsection{Dynamic}
-\subsubsection{Hidden Methods Invocation}
-In \parencite{lvl_imp} a technique is described to hide a whole method
-in \code{.dex} files. This hiding method is highly dependent on the DEX specification from Google \parencite{dex} that will be analyzed in detail
-later in this thesis.
-It does base on the fact that the actual instructions of methods residing
-in the \code{data} section of a DEX are referenced from another section.
-These references (which are offsets into the data section) can be faked
-to hide specific methods when the DEX gets parsed
-(showed in \autoref{fig:hidden_method_invocation}) In order to achieve
-this effect, a few bytes obviously need to be changed.
-Since the DEX format also does include a checksum to be resistant
-against transmission errors, a revaluation is also necessary.
-After that hiding step, the method is invisible for static analyzing tools
-as well as for the DVM itself. Thats why the changes to the DEX need to
-be reversed at runtime. The own DEX file must be loaded into a byte array
-followed by reverting the changes and Java reflection to execute it.
-
-\begin{figure}[htb]
-  \includegraphics[width=\textwidth]{figures/hidden_method_invocation}
-  \caption[Hidden Methods Invocation]{Hidden Methods Invocation Principle}
-  \label{fig:hidden_method_invocation}
-\end{figure}
-
-\subsubsection{Dynamic Code Loading}\label{section:dynamic_code_loading}
-The principle of Dynamic Code Loading is to reveal the actual program code
-not before running the application. This behavior can be achieved by
-implementing a stub application that will load the actual application file
-(in case of Android that would be the DEX) followed by execution.
-That file can either can be distributed encrypted within the app stored
-in the \code{assets} folder or it can be fetched from a server.
-Android does provide a public method within
-the \code{DexFile} class to dynamically load DEX files
-(\code{openDexFile(String sourceName, String outputName, int flags)})
-and loading included classes \parencite{dexfileclass}. The side effect
-of the \code{openDexFile()} call is the created ODEX that gets saved and
-can't be deleted afterwards because of missing app permissions.
-That file persists after closing the application and therefore
-it can be analyzed again with static methods. In \parencite{code_protection},
-a circumvention to that problem is described by using the JNI.
-The \code{libdvm.so} library does offer a private method to open DEX files
-that does accept DEX content in form of a byte array.
-By establishing this own JNI implementation of
-\code{openDexFile(byte[]content)} the loaded dex file is only present
-in volatile memory and does not create an ODEX \parencite{code_protection}
-which does make that method very robust.
-
-\subsubsection{Self Modifying Code}
-Quite similar to dynamic code loading described in
-\autoref{section:dynamic_code_loading} is self modifying code with the goal
-of altering the instructions of an app during runtime.
-Instead of loading additional code snippets, the focus relies on
-manipulating the executing dalvik bytecode stream directly.
-The DVM is limited in terms of instructions for modifying bytecode
-and therefore it has to be bypassed with native code via the JNI.
-To find the position in bytecode that should be changed, a predefined
-value must be set in order to be recognized by the native code function.
-That value is often called ``egg'' and the search process ``egg-hunting''.
-Let's assume we do have the code snippet shown in \autoref{self_modifying_code} that exists in the context of an Android app activity
-\parencite{code_protection}.
-
- \begin{lstlisting}[language=Java, caption=Self Modifying Code Example, label=self_modifying_code]
-    ...
-    modifyVariable();
-    int egg = 0x12345678;
-    Integer toChange = 5;
-    ...
-    native private void modifyVariable();
-    ...
-  \end{lstlisting}
-
-
-The \code{modifyVariable()} is a native code method and sweeps
-over the process memory (detectable through \code{/proc/self/maps})
-in order to find the egg value. After skipping the assignment of
-the egg value, the next instruction is responsible for allocating
-the \code{toChange} variable which in this case is ``\code{0x13 0x21}''
-and does stand for the mnemonic ``\code{const/16 vAA, \#+BBBB}''
-\parencite{bytecode_format}. Therefore the next byte specifies the
-register to save followed by two bytes of the signed integer value
-(``\code{0x05 0x00}'' in our case). By changing the ``\code{0x05}'' to
-``\code{0x09}'' the goal of dynamically changing the value at runtime
-is hereby fulfilled.
+This chapter will first provide some detailed information about the ART runtime since the internal mechanics are a precondition to understand the more complex copy protection mechanisms and obfuscation techniques. The existing ones will be explained afterwards. Most of them are based on the Dalvik runtime. It will however be determined whether a specific method is also
+applicable to ART. A great focus will of course rely on the DEX format since
+it is still the distribution format of every app (inside of an APK).
 
 \section{ART Internals}
 \label{section:art_internals}
@@ -363,19 +166,21 @@ are compiled to native code (``all'', ``some'' or ``none'' but
 should be ``all'' in almost every case) and secondly
 the offsets to the native code begin of every compiled method.
 The actual code is located in a superordinated section
-(\code{.text}) which is seperated but referenced from this one.
+(\code{.text}) which is separated but referenced from this one.
 
 \subsubsection{DEX File Format}
 \label{section:dex_file_format}
 To be complete, we will also have a quick look into the DEX format,
 which is officially documented by Google \parencite{dex}.
 Before the introduction of ART, DEX was the last unit before
-execution of an app (besides ODEX). However, the DVM does accept
-both formats thats why it is possible to dynamically execute
-DEX without the transformation step. DEX does not only contain
-the VM instructions but some meta data to locate
-higher abstaction level information like classes and within that
-methods, fields, \ldots.
+execution of an app (besides ODEX which can be easily converted back to DEX). The DVM does however accept
+both formats and therefore it's possible to dynamically load and execute
+DEX files without the transformation step. As a consequence,
+DEX files can be loaded dynamically at runtime which are not a part
+of the distributed app. DEX does not only contain
+the pure VM instructions but some meta data around that to locate
+higher abstraction level sections of the file like classes,
+methods and fields.
 
 \autoref{fig:dex_format} does show the file layout.
 \begin{figure}[htb]
@@ -384,7 +189,7 @@ methods, fields, \ldots.
   \caption[DEX format]{DEX format}
   \label{fig:dex_format}
 \end{figure}
-The header again includes a checksum of the whole file (checksum
+The header includes a checksum of the whole file (checksum
 field excluded), the overall size as well as the offsets and sizes
 of every section. Sections with ``ids'' ending are arrays of
 id items of their type and do reference
@@ -393,19 +198,23 @@ an index into another ``ids'' section. A ``string\_id'' item for
 instance does just contain an offset from file beginning
 that should be located in ``data'' whereas the ``type\_id'' item
 includes an index into the ``string\_ids'' field. The principle
-of the file structure is therefore a nesting architecture of
-sections. The ``class\_def'' section does contain methods that
-in turn include strings, fields and so on. Content is being
-stored exclusively in the data section. In the end,
-executable VM instructions are referenced from methods.
+of the file structure is therefore a architecture of referencing
+sections. A part that puts everything together is the ``class\_defs''
+section. Classes defined here are including methods which
+in turn include strings, fields and so on. Content like
+strings or  the actual VM instructions, is being stored exclusively in the data section.
+In the end, executable instructions are referenced from encoded methods,
+defined in ``class\_data\_items'' which in turn are referenced from
+``class\_defs''.
 
+%TODO: dex2oat nochmal gönnen!
 
 \subsubsection{Conclusion}\label{section:andelf_format_conclusion}
 The runtime transition from DVM to ART of course had to result
-in a new file that gets intepreted/executed when an app starts.
+in a new file that gets interpreted/executed when an app starts.
 However, the change is not as smooth as expected since
 the new file format is not pure executable code but, as
-discovered in this chapter, a combination of native code
+discovered , a combination of compiled native code
 and embedded DEX code as well as a new OAT file format
 which references parts of the native code. Also, there is some
 confusion for what part the name ``OAT file'' stands. On the
@@ -421,7 +230,7 @@ is controlled via the greater ELF format. Therefore
 Android app specific and minimalistic implementation of the ELF
 as well as the combination of the ``oatdata'' and ``oatexec''
 section to a file alike entity. \autoref{fig:andelf_format} does
-provide an overall view of the fileformat of ART app executables.
+provide an overall view of the file format of ART app executables.
 
 \begin{figure}[htb]
   \centering
@@ -444,15 +253,15 @@ can be missed out by distributing a minimal stub application
 followed by a dynamic native code injection at runtime?
 It is also interesting if and how the known dynamic obfuscation
 techniques, described in \autoref{section:obfuscation_techniques},
-can be applied to ART apps since there is no VM bytecode that can
+can be applied to ART apps since there is no VM byte code that can
 be manipulated at runtime but only native code.
 Therefore a deep understanding for the app init and execution
 process under ART is a precondition to answer these
 questions and has to be way more detailed than described in
-\autoref{section:app_execution}.
+\autoref{section:app_execution_simple}.
 
-\subsection{App Execution}\label{section:app_execution}
-A running app can be tracked with linux tools that are capable
+\subsection{App Execution}\label{section:app_execution_detail}
+A running app can be tracked with Linux tools that are capable
 of showing processes like ``\code{ps}''. To investigate the app execution
 we therefore have to open a root shell at the target device
 (device should be rooted) with ``\code{adb shell}''
@@ -526,7 +335,7 @@ However, apps cannot be started directly through that program but
 only through Zygote which will fork itself into that new app. Zygote
 itself will get started through the ``\code{/init}'' process that starts
 native daemons and among other things calls ``\code{app\_process}''
-in order to init Zygote. However \code{app\_process} does provide the possibility
+in order to initialize Zygote. However \code{app\_process} does provide the possibility
 to start applications directly without Zygote (\code{-{}-application argument})
 it is not the standard android way when a user clicks on an app icon.
 
@@ -546,10 +355,10 @@ program in case of a Zygote start.
 \code{ZygoteInit's} main starts with parsing arguments such as if a system
 server should get started, the ABI list and the socket name that Zygote will
 create. That defined socket (\code{LocalServerSocket sServerSocket}) is a core functionality of Zygote whose purpose
-is to listen on that socket and  finally fork Zygote and specialize it afterwards. After registering that socket a preload method loads classes
+is to listen on that socket and  finally fork Zygote and specialize it afterwards. After registering that socket a preloaded method loads classes
 resources, OpenGL and shared libraries and a explicit garbage collection
 \code{gc()} will be performed to clean up after startup. After the optional start of the system server, the program will enter its main loop
-\code{runSelectLoop(abiList)}. Garbace collection gets explicity called
+\code{runSelectLoop(abiList)}. Garbage collection gets explicitly called
 after \code{GC\_LOOP\_COUNT} iterations. Right before the loop an array list for file descriptors (\code{ArrayList<FileDescriptor> fds}) as well as for socket connections (\code{ArrayList<ZyogteConnection> peers}) is being
 created and \code{fds} gets filled with the server socket file descriptor.
 \autoref{zygote_init_loop} displays the logic of the main loop.
@@ -572,7 +381,7 @@ the last \code{else} branch of \autoref{zygote_init_loop} is executed within
 a \code{ZygoteConnection} object of \code{peers} at that index calls
 the \code{runOnce()} method and gets removed out of the array lists afterwards.
 Finally the \code{runOnce()} method will call \code{Zygote.forkAndSpecialize()}
-that forks a child within an exception is being called to invoke the childs
+that forks a child within an exception is being called to invoke the child's
 \code{main()}.
 But first the given arguments from the command socket must be parsed with the
 aid of an \code{Arguments} class. Attributes that are needed for the later \code{fork()} call are shown in \autoref{tab:argument_class_attributes}.
@@ -648,7 +457,7 @@ The \code{invokeStaticMain()} loads the specified class via the \code{className}
 \code{MethodAnd\allowbreak ArgsCaller()} exception. This exception gets caught by the main method of \code{Zygote\allowbreak Init}.
 Remember that the Zygote itself is ``trapped'' in a loop whereas the child process can escape from by throwing that exception. So as a result, Zygote will remain in the loop offering a socket to fork itself again (= starting a new app) while the child process (= the app to start) escapes from that loop invoking the main method of the class specified over the socket
 connection in the next step.
-To clearify the program flow, \autoref{fig:zygote_forking} displays
+To clarify the program flow, \autoref{fig:zygote_forking} displays
 the object and therefore file interaction during the forking process.
 
 \begin{figure}[htb]
@@ -707,4 +516,215 @@ not)
 
 When a user clicks on an app icon, the ``onClick()'' method
 of the ``Launcher'' application gets called.
+
+
+\section{DEX Disassembly and Repackaging}
+Like introduced in \autoref{chapter:android_status_quo} there
+are different goals of copy protection mechanisms starting from
+preventing reverse code engineering to protect intellectual property
+and reaching to hinder patching to get prohibited access.
+The common denominator of those goals is the protection of
+the DEX file of every app since every distributed app does include
+it. A variety of tools do exist that
+are able to transform DEX into different readable formats,
+modify it and repack it again since the DEX contains
+a lot of meta data for its contents (classes, methods, \ldots)
+\parencite{dex}.
+Generally there do exist two possible outcomes of DEX disassembling
+- Java code (\code{*.java}) and Smali code (\code{*.smali}).
+Since the DEX format is more or less just a different mapping of a
+JAR and its containing \code{.class} files, the transition to JAR
+is quite simple \parencite{dvminternals}. A tool that is able to
+perform this step is ``dex2jar'' \parencite{dex2jartool}.
+Along with this JAR, standard Java decompilers like ``JD-GUI''
+\parencite{jdtool} can be used to produce the \code{*.java} source code.
+If the \code{*.java} is supposed to change and repacked, it can
+again be compiled into JAR with Oracle's ``javac'' \parencite{javactool}
+followed by Google's ``dx'' tool \parencite{dxtool}
+to produce the new manipulated DEX.
+
+An alternative way is the use of the ``smali/baksmali'' tool
+\parencite{smalitool} which is a direct assembler and disassembler
+for DEX files rather than taking the Java code detour. There is also
+a tool included that can convert the ODEX back to DEX (which was interesting
+for Dalvik Runtime systems).
+
+Overall, the disassembly of unchanged DEX is quite easy and is shown
+as a concluding overview in \autoref{fig:dex_disassembly}
+
+Therefore several countermeasures were established which are
+described in the following sections.
+
+\begin{figure}[htb]
+  \includegraphics[width=\textwidth]{figures/dex_disassembly}
+  \caption[DEX Assembly/Disassembly]{DEX Assembly/Disassembly}
+  \label{fig:dex_disassembly}
+\end{figure}
+
+
+\section{Obfuscation Techniques}\label{section:obfuscation_techniques}
+Obfuscation in the context of copy protection for application
+is generally the term for hardening an application against
+reverse code engineering techniques. It can be achieved by different methods
+that can be separated in two main groups, static and dynamic obfuscation.
+Static means that the obfuscation technique is applied to code units (source
+code, binaries, ...) while the application is not executed. Therefore an
+attacker could possibly successful analyze the application without executing it
+if he manages to break this obfuscation. An upside of static techniques in general is that they are independent of the following runtime if two compared runtimes are using the same input files (which they do in case of Android, DEX).
+Applications that are dynamically obfuscated on the other hand, are much harder to analyze. The behavior
+of the application is not decided until its execution. An attacker needs to connect to the process of the running application followed by a just in time inspection. Dynamical methods do have the downside that they are highly dependent on the runtime.
+
+It does follow a list of common static and dynamic obfuscation techniques
+for Android applications. However, this list is mainly focused on
+the Dalvik runtime since ART has been released quite recently.
+Where static obfuscation techniques do show the same behavior in both
+runtimes, the dynamic solutions do possibly not since the execution process
+of apps in ART differs (described in \autoref{section:app_execution_detail}).
+The impact of those techniques to ART will get analyzed at every specific case.
+
+
+\subsection{Static}
+\subsubsection{Common Source Code Obfuscation}
+The most common and simple way of harden source code is to remove any kind of meta data
+that has been added during the development process. Means destroying/modifying
+information that originally was present in the source code.
+Possible prospects to do this are the renaming of string identifiers of
+classes, variables, methods and functions, to artificially insert
+irreducible code, create artificial parallelization, perform method inlining/outlining, to unroll loops, encoding strings or changing the control flow in
+order to confuse code analysts by keeping the original behavior
+\parencite{lvl_imp}.
+
+Popular tools for that purpose are Google's ``ProGuard''
+\parencite{proguardtool} which is included in the Android build system and
+can be enabled easily as well as``DexGuard'' by GuardSquare
+\parencite{dexguardtool}. ``ProGuard'' does
+operate on source code level where ``DexGuard'' operates on DEX.
+Since the first ``layer'' of Android applications is Java code, classical Java
+obfuscators also can be used.
+Since those tools do operate on the DEX file layer, they can be applied at ART without restrictions.
+
+\subsubsection{Junk-Byte-Insertion}
+Junk-Byte-Insertion's goal is to prohibit the use of program analyzing
+disassembling tools. It does work for tools using the
+``linear sweep'' method to analyze a program. That means
+the tools are processing every instruction from the entry-point
+till the end without interpreting them (e.g. not following jumps).
+That examining technique can be exploited to break the disassembling
+procedure. Let's assume we do have the following DVM instructions (Example taken out of \parencite{lvl_imp}).
+\autoref{junk_byte_listening}
+
+  \begin{lstlisting}[language={[x64]Assembler}, caption=Junk-Byte-Insertion, label=junk_byte_listening, numbers=left]
+    if "true" goto line 4
+    load_array_into v1, line_3
+    array_size 10
+    set v2, 1
+    set v3, 1
+    add v1, v2, v4
+    return v4
+  \end{lstlisting}
+
+
+Because of the if statement that performs a jump to line four, the \code{array\_size 10} command will never be reached.
+Since ``linear sweep'' does not perform jumps, the analyzing tool
+will interpret the ten following bytes of that array initialization instruction as payload and will therefore not be able to disassemble the actual instructions.
+
+Enhanced tools will use the ``recursive traversal'' technique to analyze a
+program which is capable of detecting dead branches and conditional jumps like in the example above.
+These tools also may be tricked by choosing a more complicated condition for
+if-conditions that can only be evaluated at runtime and therefore the
+whole conditional branch (including the breaking byte sequence) would also tried to be evaluated (Actually this technique could already be counted to dynamic obfuscation) \parencite{lvl_imp}.
+
+%TODO:: ART vs Dalvik conclusion? -> Can be applied to both, but at different
+%       levels: DVM instructions vs Native instructions!
+
+\subsection{Dynamic}
+\subsubsection{Hidden Methods Invocation}
+In \parencite{lvl_imp} a technique is described to hide a whole method
+in \code{.dex} files. This hiding method is highly dependent on the DEX specification from Google \parencite{dex} that has been described in
+\autoref{section:dex_file_format}.
+It does base on the fact that the actual instructions of methods residing
+in the \code{data} section of a DEX are referenced from another section.
+These references (which are offsets into the data section) can be faked
+to hide specific methods when the DEX gets parsed
+(showed in \autoref{fig:hidden_method_invocation}) In order to achieve
+this effect, a few bytes obviously need to be changed.
+Since the DEX format also does include a checksum to be resistant
+against transmission errors, a revaluation is also necessary.
+After that hiding step, the method is invisible for static analyzing tools
+as well as for the DVM itself. Thats why the changes to the DEX need to
+be reversed at runtime. The own DEX file must be loaded into a byte array
+followed by reverting the changes and a Java reflection to execute it.
+
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.5]{figures/hidden_method_invocation}
+  \caption[Hidden Methods Invocation]{Hidden Methods Invocation Principle}
+  \label{fig:hidden_method_invocation}
+\end{figure}
+
+A precondition for the Hidden Methods Invocation technique is the
+possibility to load DEX files dynamically at runtime in order to revert
+the changes.
+
+\subsubsection{Dynamic Code Loading}\label{section:dynamic_code_loading}
+The principle of Dynamic Code Loading is to reveal the actual program code
+not before running the application. This behavior can be achieved by
+implementing a stub application that will load the actual application file
+(in case of Android that would be the DEX) followed by execution.
+That file can either can be distributed encrypted within the app stored
+in the \code{assets} folder or it can be fetched from a server.
+Android does provide a public method within
+the \code{DexFile} class to dynamically load DEX files
+(\code{openDexFile(String sourceName, String outputName, int flags)})
+and loading included classes \parencite{dexfileclass}. The side effect
+of the \code{openDexFile()} call is the created ODEX that gets saved and
+can't be deleted afterwards because of missing app permissions.
+That file persists after closing the application and therefore
+it can be analyzed again with static methods. In \parencite{code_protection},
+a circumvention to that problem is described by using the JNI.
+The \code{libdvm.so} library does offer a private method to open DEX files
+that does accept DEX content in form of a byte array.
+By establishing this own JNI implementation of
+\code{openDexFile(byte[]content)} the loaded dex file is only present
+in volatile memory and does not create an ODEX \parencite{code_protection}
+which does make that method very robust.
+
+\subsubsection{Self Modifying Code}
+Quite similar to dynamic code loading described in
+\autoref{section:dynamic_code_loading} is self modifying code with the goal
+of altering the instructions of an app during runtime.
+Instead of loading additional code snippets, the focus relies on
+manipulating the executing Dalvik byte code stream directly.
+The DVM is limited in terms of instructions for modifying byte code
+and therefore it has to be bypassed with native code via the JNI.
+To find the position in byte code that should be changed, a predefined
+value must be set in order to be recognized by the native code function.
+That value is often called ``egg'' and the search process ``egg-hunting''.
+Let's assume we do have the code snippet shown in \autoref{self_modifying_code} that exists in the context of an Android app activity
+\parencite{code_protection}.
+
+ \begin{lstlisting}[language=Java, caption=Self Modifying Code Example, label=self_modifying_code]
+    ...
+    modifyVariable();
+    int egg = 0x12345678;
+    Integer toChange = 5;
+    ...
+    native private void modifyVariable();
+    ...
+  \end{lstlisting}
+
+
+The \code{modifyVariable()} is a native code method and sweeps
+over the process memory (detectable through \code{/proc/self/maps})
+in order to find the egg value. After skipping the assignment of
+the egg value, the next instruction is responsible for allocating
+the \code{toChange} variable which in this case is ``\code{0x13 0x21}''
+and does stand for the mnemonic ``\code{const/16 vAA, \#+BBBB}''
+\parencite{bytecode_format}. Therefore the next byte specifies the
+register to save followed by two bytes of the signed integer value
+(``\code{0x05 0x00}'' in our case). By changing the ``\code{0x05}'' to
+``\code{0x09}'' the goal of dynamically changing the value at runtime
+is hereby fulfilled.
+
+
 

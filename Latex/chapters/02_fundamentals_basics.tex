@@ -217,11 +217,11 @@ relevant actions the pm performs.
   \label{fig:app_installation}
 \end{figure}
 
-\section{App Execution Process}\label{section:app_execution}
+\section{App Execution Process}\label{section:app_execution_simple}
 This chapter is supposed to give a short introduction about the
 main concept of the app execution process without going into
 great detail about it. However, the detailed inspection will
-be performed in \autoref{section:app_execution}.
+be performed in \autoref{section:app_execution_detail}.
 When describing the execution process of an app, again the
 runtime must be considered (Dalvik or ART) since the execution process
 obviously differs. In both cases the entrypoint of the app is the
@@ -233,7 +233,8 @@ of the Android framework and does hold precompiled resources that
 nearly every app instance will need.
 By starting an app, it's therefore much more efficient to fork
 Zygote and then including the app specific part rather than
-creating a whole new process for every app.
+creating a whole new process for every app but will also be introduced
+in greater detail.
 \parencite{hackershandbook}.
 
 \subsection{Dalvik}
