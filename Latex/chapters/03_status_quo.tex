@@ -1,7 +1,7 @@
 \chapter{Status Quo}
 \label{chapter:copy_protection_status_quo}
 
-This chapter will first provide some detailed information about the ART runtime since the internal mechanics are a precondition to understand the more complex copy protection mechanisms and obfuscation techniques. The existing ones will be explained afterwards. Most of them are based on the Dalvik runtime. It will however be determined whether a specific method is also
+This chapter will first provide some detailed information about the ART runtime since the internal mechanics are a precondition to understand the more complex copy protection mechanisms and obfuscation techniques. The existing ones will be explained afterwards. Most of them are based on the Dalvik runtime. It will then be determined whether a specific method is also
 applicable to ART. A great focus will of course rely on the DEX format since
 it is still the distribution format of every app (inside of an APK).
 
@@ -154,34 +154,36 @@ in \autoref{fig:oat_format} that shows the content of ``oatdata''.
 Important attributes that the ``OAT Header'' contains are the
 checksum over itself,
 the instruction set (ARM, ARM64, MIPS, \ldots), the executable
-offset from start of ``oatdata'' and the quantity of embedded
-DEX files (that should be one and does exist for flexibility
-reasons). It does follow the ``OAT Dex Header'', containing
-the absolute path of the original DEX file, the checksum, the
-offset to the copy of the DEX file that is embedded as well as
+offset (actually it is not standalone executable but just contains
+native code instructions)
+relative to the begin of ``oatdata'' and the quantity of embedded
+DEX files (in case of apps it's always one, other system files like
+``boot.oat'' may contain several DEX files). It does follow the
+``OAT Dex Header'', containing
+the absolute path of the ``source'' file (=DEX), the checksum, the
+embedded DEX file's offset as well as
 an offset to the ``OAT Class Headers''. ``OAT Class Headers''
-do offer information about defined classes. First, the type
-of class which contains how many methods in the class
+do offer information about defined classes. It does include the type
+of class, means how many methods in the class
 are compiled to native code (``all'', ``some'' or ``none'' but
 should be ``all'' in almost every case) and secondly
 the offsets to the native code begin of every compiled method.
 The actual code is located in a superordinated section
-(\code{.text}) which is separated but referenced from this one.
+\code{.text} which is separated but referenced from this one.
 
 \subsubsection{DEX File Format}
 \label{section:dex_file_format}
-To be complete, we will also have a quick look into the DEX format,
+To be complete, a description and explanation to the DEX format is also given,
 which is officially documented by Google \parencite{dex}.
 Before the introduction of ART, DEX was the last unit before
 execution of an app (besides ODEX which can be easily converted back to DEX). The DVM does however accept
-both formats and therefore it's possible to dynamically load and execute
+both formats and therefore it's possible to execute
 DEX files without the transformation step. As a consequence,
-DEX files can be loaded dynamically at runtime which are not a part
-of the distributed app. DEX does not only contain
-the pure VM instructions but some meta data around that to locate
+DEX files can also be loaded dynamically at runtime which are not a part
+of the distributed app. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}. DEX as it is does not only contain
+VM instructions but some meta data around that to locate
 higher abstraction level sections of the file like classes,
 methods and fields.
-
 \autoref{fig:dex_format} does show the file layout.
 \begin{figure}[htb]
   \centering
@@ -189,7 +191,7 @@ methods and fields.
   \caption[DEX format]{DEX format}
   \label{fig:dex_format}
 \end{figure}
-The header includes a checksum of the whole file (checksum
+The header again includes a checksum of the whole file (checksum
 field excluded), the overall size as well as the offsets and sizes
 of every section. Sections with ``ids'' ending are arrays of
 id items of their type and do reference
@@ -197,24 +199,20 @@ a data item in the ``data'' section or are specifying
 an index into another ``ids'' section. A ``string\_id'' item for
 instance does just contain an offset from file beginning
 that should be located in ``data'' whereas the ``type\_id'' item
-includes an index into the ``string\_ids'' field. The principle
-of the file structure is therefore a architecture of referencing
+includes an index into the ``string\_ids'' field. So every
+attribute that can be described as a string is concentrated in ``string\_ids'' The principle of the file structure is therefore a architecture of referencing
 sections. A part that puts everything together is the ``class\_defs''
-section. Classes defined here are including methods which
-in turn include strings, fields and so on. Content like
-strings or  the actual VM instructions, is being stored exclusively in the data section.
-In the end, executable instructions are referenced from encoded methods,
-defined in ``class\_data\_items'' which in turn are referenced from
-``class\_defs''.
+section. Classes in this context stands for programming classes. They include methods which in turn include strings, fields and so on. Actual content like
+strings, VM instructions or arbitrary programming data, is being stored exclusively in the data section. In the end, executable instructions are referenced from encoded methods, defined in ``class\_data\_items'' which in turn are referenced from ``class\_defs''.
 
-%TODO: dex2oat nochmal gönnen!
+%TODO: dex2oat nochmal gönnen!??
 
 \subsubsection{Conclusion}\label{section:andelf_format_conclusion}
 The runtime transition from DVM to ART of course had to result
 in a new file that gets interpreted/executed when an app starts.
 However, the change is not as smooth as expected since
 the new file format is not pure executable code but, as
-discovered , a combination of compiled native code
+discovered, a combination of compiled native code
 and embedded DEX code as well as a new OAT file format
 which references parts of the native code. Also, there is some
 confusion for what part the name ``OAT file'' stands. On the
@@ -240,38 +238,42 @@ provide an overall view of the file format of ART app executables.
 \end{figure}
 
 The awareness of the detailed executable file format does pop
-new questions about the ART Android internals.
+new questions about the ART internal functionality.
 Since the file is marked as an shared object, it won't get
 executed as a standalone program but most likely will be also
-included in a forked Zygote process like in the Dalvik runtime.
+invoked in a forked Zygote process like in the Dalvik runtime.
 However it is not clear which parts of the OAT file are
 needed to run an app adequately. Is the embedded DEX for instance
-mandatory for the app to work correctly? As we have seen in
-\autoref{chapter:copy_protection_status_quo}, DEX files are
+mandatory for the app to work correctly? As it will be described
+in a following chapter, DEX files are
 a crucial part of applications to protect. What if that part
 can be missed out by distributing a minimal stub application
 followed by a dynamic native code injection at runtime?
-It is also interesting if and how the known dynamic obfuscation
-techniques, described in \autoref{section:obfuscation_techniques},
-can be applied to ART apps since there is no VM byte code that can
-be manipulated at runtime but only native code.
+It is also interesting if and how commong obfuscation
+techniques designed for Dalvik, described in \autoref{section:obfuscation_techniques}, can be applied to ART.
 Therefore a deep understanding for the app init and execution
-process under ART is a precondition to answer these
-questions and has to be way more detailed than described in
+process under ART is a precondition to answer those
+questions and has to be more detailed than previously described in
 \autoref{section:app_execution_simple}.
 
 \subsection{App Execution}\label{section:app_execution_detail}
-A running app can be tracked with Linux tools that are capable
-of showing processes like ``\code{ps}''. To investigate the app execution
-we therefore have to open a root shell at the target device
-(device should be rooted) with ``\code{adb shell}''
+To get behind the scenes of the app execution, one can start at
+the resulting Linux process that exists for every running app at
+the end of the day.
+The Linux tool ``\code{ps}'' can be used to display
+running processes and therefore running apps.
+To investigate the app execution a root shell at the target device
+has to be opened (device should be rooted) with ``\code{adb shell}''
 followed by an ``\code{su}'' command after getting the
-device prompt (``\code{shell@flounder:/ \$}''). It will then change
-to ``\code{root@flounder:/ \#}''. A ``\code{ps}'' command will display
-useful information like it's ``USER'', the process id ``PID'',
-the process id of its parent ``PPID'' and of course the actual name.
+device prompt (``\code{shell@flounder:/ \$}''), where \code{adb}
+is the Android Debug Bridge to interact with connected devices.
+The prompt will change to ``\code{root@flounder:/ \#}'' signaling
+that it's a root shell. A ``\code{ps}'' command displays
+process information like its owning``USER'', the numerical process id ``PID'',
+the process id of its parent ``PPID'' and of course the process name.
 Interesting entries for further inspection are being displayed in
-\autoref{tab:ps_entries}.
+\autoref{tab:ps_entries}, showing the init, zygote, the chrome and
+a sample hello world application.
 
 \begin{table}[htb]
   \caption[Android Processes]{Android processes}
@@ -291,18 +293,18 @@ Interesting entries for further inspection are being displayed in
 \end{table}
 
 The process ``\code{/init}'' is the first process of Android (although
-it has a parent with PID ``0'' which is the process scheduler at kernel
+it has a parent with PPID ``0'' but which is the process scheduler at kernel
 level).
-Furthermore, every user and system app has either the process
-``\code{zygote}'' or ``\code{zygote64}'' as its parent depending
-if the app was written for 32 or 64 bit. That makes clear that apps
-are forked from the Zygote process that is in turn forked out of
-``\code{/init}''. Even more detailed information about processes can be
-pulled out of the ``\code{/proc}'' directory. It is an interface to the
-kernel and does contain a folder for every process, named after its PID
-\parencite{proc}. The most attractive attribute of that folder is
-``\code{exe}'' which is a symbolic link to the executable that started
-the process. Since apps are a fork of Zygote, they should point
+It can be derived that every user and system app has either the process
+``\code{zygote}'' or ``\code{zygote64}'' as its parent process depending
+if the app can be converted at the dexopt step to 32 or 64 bit.
+That makes clear that apps are forked from the Zygote process which in turn
+is a  fork of ``\code{/init}''.
+Even more detailed information about processes can be
+pulled out of the ``\code{/proc}'' directory (obviously an abbreviation for
+``process'').
+The directory offers an interface to the kernel space and does contain a folder for every process, named after its PID \parencite{proc}. The most attractive attribute for this investigation purpose of that folder is the
+``\code{exe}'' attribute which is a symbolic link to the executable that started the process. Since apps are a fork of Zygote, they should also point
 to the same executable, which they do (see \autoref{tab:process_executables}).
 
 \begin{table}[htb]
@@ -326,29 +328,34 @@ to the same executable, which they do (see \autoref{tab:process_executables}).
   \end{tabular}
 \end{table}
 
-An executable named ``\code{app\_process32/64}'' seems like to be the entry-point for apps to be started. The responsible program of that executable
+An executable named ``\code{app\_process32/64}'' seems like to be the entry-point for apps (or at least Zygote) to get started.
+The responsible program of that executable
 can be found in the Android Open Source Project (AOSP) where
 ``\code{app\_main.cpp}'' is the name of the source code file that gets
 compiled into the 32 or 64 bit version
 and can be found at ``\code{/frameworks/base/cmds/app\_process/}''.
-However, apps cannot be started directly through that program but
-only through Zygote which will fork itself into that new app. Zygote
-itself will get started through the ``\code{/init}'' process that starts
-native daemons and among other things calls ``\code{app\_process}''
-in order to initialize Zygote. However \code{app\_process} does provide the possibility
-to start applications directly without Zygote (\code{-{}-application argument})
-it is not the standard android way when a user clicks on an app icon.
+Although its implementation allows apps to get started directly without
+Zygote, they are not supposed to, means it's not the common way
+when a user clicks on an app icon. Instead, it will get clear that Zygote
+is capable of forking and specializing itself into a new app.
+The app process is therefore responsible for starting Zygote and other system
+related app like processes.
+The ``\code{/init}'' process arranges the start of Zygote via an
+``\code{app\_process}'' call with specific parameters for a Zygote start.
+(init is responsible for far more, like starting native daemons and system services)
 
-The best thing to do when analyzing source code is to start at the
-``\code{main()}'' method. One of the first things the program does is
+A comman way to analyze source code is to start at its
+``\code{main()}'' method.
+One of the first things the program does is
 creating a new ``\code{AppRuntime runtime}'' object that inherits from the
 \code{AndroidRuntime} class but does override a few functions. As parameters it will expect the \code{argv[0]}
 which is the program name itself as well as the total length of arguments.
-In the end the program transfers the flow control to this object by calling
-\code{runtime.start(com.android.internal.os.ZygoteInit, args)}.
-``\code{args}'' does contain whether to start the system server and an ABI
+Finally, the program will transfer the flow control to this object by calling
+\code{runtime.start(com.android.internal.os.ZygoteInit, args)} in case of a
+Zygote start.
+``\code{args}'' contains whether to start the system server and an ABI
 list as well as remaining arguments that were not used for the \code{app\_process} program. The runtime \code{start()} method does initialize
-a VM and finally does call the main method of the \code{ZygoteInit.java}
+a VM and finally calls the main method of the \code{ZygoteInit.java}
 program in case of a Zygote start.
 
 \subsubsection{Zygote}\label{section:zygote}
@@ -725,6 +732,3 @@ register to save followed by two bytes of the signed integer value
 (``\code{0x05 0x00}'' in our case). By changing the ``\code{0x05}'' to
 ``\code{0x09}'' the goal of dynamically changing the value at runtime
 is hereby fulfilled.
-
-
-
