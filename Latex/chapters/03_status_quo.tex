@@ -633,13 +633,25 @@ procedure. Let's assume we do have the following DVM instructions (Example taken
 
 Because of the if statement that performs a jump to line four, the \code{array\_size 10} command will never be reached.
 Since ``linear sweep'' does not perform jumps, the analyzing tool
-will interpret the ten following bytes of that array initialization instruction as payload and will therefore not be able to disassemble the actual instructions.
+will interpret the ten following bytes of that array initialization as payload and will therefore not be able to disassemble the actual instructions.
 
 Enhanced tools will use the ``recursive traversal'' technique to analyze a
 program which is capable of detecting dead branches and conditional jumps like in the example above.
 These tools also may be tricked by choosing a more complicated condition for
 if-conditions that can only be evaluated at runtime and therefore the
 whole conditional branch (including the breaking byte sequence) would also tried to be evaluated (Actually this technique could already be counted to dynamic obfuscation) \parencite{lvl_imp}.
+
+Although this example is written for Dalvik since it consists of DVM
+instructions, it can be applied to ART apps as well but at native code level
+in the OAT file.
+However one would need to have an eye on the overall fileformat when changing
+the size and content of bytes since methods are referenced with offsets that
+might change after inserting additional bytes. Same applies to checksums and
+section size specifications. Another way would be to include Junky-Byte-Insertion by design in source code already by creating dead branches on
+purpose. As a result, one would not have to deal with file format details
+but instead with compiler optimization levels to make sure that branch doesnt
+get blanked and of course with the actual compiling step and being able
+to detect the area again in native code.
 
 %TODO:: ART vs Dalvik conclusion? -> Can be applied to both, but at different
 %       levels: DVM instructions vs Native instructions!
@@ -650,17 +662,18 @@ In \parencite{lvl_imp} a technique is described to hide a whole method
 in \code{.dex} files. This hiding method is highly dependent on the DEX specification from Google \parencite{dex} that has been described in
 \autoref{section:dex_file_format}.
 It does base on the fact that the actual instructions of methods residing
-in the \code{data} section of a DEX are referenced from another section.
-These references (which are offsets into the data section) can be faked
+in the \code{data} section of a DEX are referenced but not parsed directly
+by sweeping over that file area.
+These references (which are offsets into the data section) can be manipulated
 to hide specific methods when the DEX gets parsed
 (showed in \autoref{fig:hidden_method_invocation}) In order to achieve
-this effect, a few bytes obviously need to be changed.
-Since the DEX format also does include a checksum to be resistant
-against transmission errors, a revaluation is also necessary.
+this effect, a few bytes obviously need to be changed (at least the offset
+to a method).
+Since the DEX format includes a checksum to be resistant
+against transmission errors, a revaluation is necessary.
 After that hiding step, the method is invisible for static analyzing tools
-as well as for the DVM itself. Thats why the changes to the DEX need to
-be reversed at runtime. The own DEX file must be loaded into a byte array
-followed by reverting the changes and a Java reflection to execute it.
+but of course also for the DVM itself, means it is no more runnable.
+Thats why the changes to the DEX need to be reversed at runtime.
 
 \begin{figure}[htb]
   \centering
@@ -671,30 +684,68 @@ followed by reverting the changes and a Java reflection to execute it.
 
 A precondition for the Hidden Methods Invocation technique is the
 possibility to load DEX files dynamically at runtime in order to revert
-the changes.
+those changes. Otherwise a manipulation of the DVM bytes in a running app in RAM would be necessary to revert them. The next section deals with dynamic
+code loading in general and will therefore cover the feasibility for Dalvik
+and ART.
 
 \subsubsection{Dynamic Code Loading}\label{section:dynamic_code_loading}
 The principle of Dynamic Code Loading is to reveal the actual program code
 not before running the application. This behavior can be achieved by
-implementing a stub application that will load the actual application file
-(in case of Android that would be the DEX) followed by execution.
-That file can either can be distributed encrypted within the app stored
-in the \code{assets} folder or it can be fetched from a server.
+implementing a stub code that will then load the actual application
+followed by execution. The format of that distributed application is
+obviously the DEX, at least in Dalvik. If DEX still can be used
+for ART has to be determined. In \parencite{dexfileclass} a practical
+sample implementation for Dalvik is given.
+To provide a copy protection benefit, an additional application file can either be distributed encrypted within the app stored in the \code{assets} folder or it can be fetched from a server.
 Android does provide a public method within
 the \code{DexFile} class to dynamically load DEX files
-(\code{openDexFile(String sourceName, String outputName, int flags)})
-and loading included classes \parencite{dexfileclass}. The side effect
-of the \code{openDexFile()} call is the created ODEX that gets saved and
-can't be deleted afterwards because of missing app permissions.
-That file persists after closing the application and therefore
-it can be analyzed again with static methods. In \parencite{code_protection},
+(\code{loadDex(String sourceName, String outputName, int flags)})
+and loading included classes. The \code{sourceName} parameter accepts
+a path to a JAR or an APK and \code{outputPathName} specifies
+the file in which the optimized DEX version will get saved (ODEX in Dalvik).
+That behavior however is a problem because the created ODEX will persist
+also after closing the app and therefore can be analyzed after a one time
+execution. Unfortunately it also can't be deleted cause of missing permissions.
+In \parencite{code_protection},
 a circumvention to that problem is described by using the JNI.
 The \code{libdvm.so} library does offer a private method to open DEX files
 that does accept DEX content in form of a byte array.
 By establishing this own JNI implementation of
 \code{openDexFile(byte[]content)} the loaded dex file is only present
 in volatile memory and does not create an ODEX \parencite{code_protection}
-which does make that method very robust.
+which does make that method very robust. So the big question here is if
+that method also can be applied to ART since \code{libdvm} has been replaced
+with \code{libart}.
+
+First it will be tried to load a DEX in ART with given Java APIs.
+Like mentioned, \code{loadDex()} is a possible method but should be called
+through a \code{DexClassLoader()}. It does expect a \code{dexPath} String where to look for Dex files, an \code{optimizedDirectory} String specifying a path to store the optimized version as well as a \code{parent} ClassLoader.
+Like mentioned, the Dex to load can be shipped within the assets folder.
+So at first a Dex is needed. For simplicity reasons a simple Java class will be used, showed in \autoref{java_class_to_load}.
+\begin{lstlisting}[language=Java, caption=Java Class to load, label=java_class_to_load, numbers=left]
+public class ToLoad{
+    public int exampleMulMethod(int a, int b){
+        return a * b;
+    }
+}
+\end{lstlisting}
+A Dex can be created with a ``\code{javac ToLoad.java}'' call followed by
+using the \code{dx} tool with ``\code{dx --dex --output="toload.dex" ToLoad.class}''. The \code{dexPath} has to be readable by the app itself. Therefore
+the Dex should be stored in the app data directory where dexPath should then
+search for, same for the optimized directory.
+\code{getDir()} can create a private folder with a given name
+and privileges. With \code{getAssets().open()}, the Dex can be
+copied out of assets to the new data location by using buffered Java streams (see \autoref{dex_internal_storage}).
+\lstinputlisting[language=Java, caption=Dex Internal Storage, label=dex_internal_storage,firstline=27, lastline=41]{"code/DexLoading.java"}
+Now the \code{DexClassLoader()} constructor can be called with the recently
+created paths and the context class loader. After that, the class can be loaded
+by its name as well as getting the method with defining its argument classes.
+Finally, \code{invoke()} can be called with a reference of the object to call
+on (\code{null} if method is static, \code{newInstance()} if not) and its
+arguments (\autoref{dex_method_invocation}).
+\lstinputlisting[language=Java, caption=Dex Method Invocation, label=dex_method_invocation,firstline=45, lastline=54]{"code/DexLoading.java"}
+The optimized output file is given in OAT format.
+So the dynamic DEX loading is generally possible in ART.
 
 \subsubsection{Self Modifying Code}
 Quite similar to dynamic code loading described in
