@@ -1,4 +1,4 @@
-\chapter{Status Quo}
+\chapter{Copy Protection and ART}
 \label{chapter:copy_protection_status_quo}
 
 This chapter will first provide some detailed information about the ART runtime since the internal mechanics are a precondition to understand the more complex copy protection mechanisms and obfuscation techniques. The existing ones will be explained afterwards. Most of them are based on the Dalvik runtime. It will then be determined whether a specific method is also
@@ -663,12 +663,15 @@ in \code{.dex} files. This hiding method is highly dependent on the DEX specific
 \autoref{section:dex_file_format}.
 It does base on the fact that the actual instructions of methods residing
 in the \code{data} section of a DEX are referenced but not parsed directly
-by sweeping over that file area.
+by sweeping over that file area so that the metadata section of methods
+includes an offset to its actual instructions.
 These references (which are offsets into the data section) can be manipulated
-to hide specific methods when the DEX gets parsed
-(showed in \autoref{fig:hidden_method_invocation}) In order to achieve
-this effect, a few bytes obviously need to be changed (at least the offset
-to a method).
+to hide specific methods when the DEX gets parsed. Like shown in
+ \autoref{fig:hidden_method_invocation} one could manipulate
+ an offset pointer (in this example the offset from method one)
+to hide its implementation.
+In order to achieve this effect, a few bytes obviously need to be changed
+(the offset value).
 Since the DEX format includes a checksum to be resistant
 against transmission errors, a revaluation is necessary.
 After that hiding step, the method is invisible for static analyzing tools
@@ -677,7 +680,7 @@ Thats why the changes to the DEX need to be reversed at runtime.
 
 \begin{figure}[htb]
   \centering
-  \includegraphics[scale=0.5]{figures/hidden_method_invocation}
+  \includegraphics[scale=0.4]{figures/hidden_method_invocation}
   \caption[Hidden Methods Invocation]{Hidden Methods Invocation Principle}
   \label{fig:hidden_method_invocation}
 \end{figure}
@@ -730,7 +733,8 @@ public class ToLoad{
 }
 \end{lstlisting}
 A Dex can be created with a ``\code{javac ToLoad.java}'' call followed by
-using the \code{dx} tool with ``\code{dx --dex --output="toload.dex" ToLoad.class}''. The \code{dexPath} has to be readable by the app itself. Therefore
+using the \code{dx} tool with ``\code{dx -{}-dex -{}-output="toload.dex"
+ToLoad.class}''. The \code{dexPath} has to be readable by the app itself. Therefore
 the Dex should be stored in the app data directory where dexPath should then
 search for, same for the optimized directory.
 \code{getDir()} can create a private folder with a given name
@@ -745,7 +749,16 @@ on (\code{null} if method is static, \code{newInstance()} if not) and its
 arguments (\autoref{dex_method_invocation}).
 \lstinputlisting[language=Java, caption=Dex Method Invocation, label=dex_method_invocation,firstline=45, lastline=54]{"code/DexLoading.java"}
 The optimized output file is given in OAT format.
-So the dynamic DEX loading is generally possible in ART.
+So the dynamic DEX loading is generally possible in ART with purely official
+Android Java methods. However, the execution of code loaded that way should
+be very slow since the Dex file gets optimized in an ART way (=compilation
+into native code) and it doesn't really fit into the ART AOT compilation
+philosophy. With that in mind, it should be clear that it is not possible
+to load a Dex file into a byte array and execute it directly like it was
+possible at Dalvik using the libdvm library via JNI since ART cannot execute
+DVM instructions by design. So in the scope of copy protection mechanisms
+with ART, dynamic code loading is not that useful since the optimized file
+does persist after the first dynamic load and can be analyzed afterwards.
 
 \subsubsection{Self Modifying Code}
 Quite similar to dynamic code loading described in
