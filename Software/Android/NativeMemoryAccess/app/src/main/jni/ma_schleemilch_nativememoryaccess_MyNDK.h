@@ -15,6 +15,14 @@ extern "C" {
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_showProcSpace
   (JNIEnv *, jobject);
 
+/*
+ * Class:     ma_schleemilch_nativememoryaccess_MyNDK
+ * Method:    libExe
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_libExe
+  (JNIEnv *, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif

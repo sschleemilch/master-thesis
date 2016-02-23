@@ -8,4 +8,5 @@ public class MyNDK {
         System.loadLibrary("MyLib");
     }
     public native void showProcSpace();
+    public native void libExe(String libpath);
 }

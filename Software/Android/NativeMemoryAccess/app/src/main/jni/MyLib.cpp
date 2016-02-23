@@ -9,6 +9,7 @@
 #include <android/log.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <dlfcn.h>
 
 #define LOG_TAG "NDK-logging"
 
@@ -50,8 +51,35 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_showProcSpac
         unsigned long int start = strtoul(startchar, NULL, 16);
         unsigned long int end = strtoul(endchar, NULL, 16);
 
-        LOGD("Start: %lu", start);
-        LOGD("END: %lu", end);
+        LOGD("Last Stack Start: %lu", start);
+        LOGD("Last Stack END: %lu", end);
 
-        mprotect((void *)start , (end-start), PROT_READ|PROT_WRITE);
+        //mprotect((void *)start , (end-start), PROT_READ|PROT_WRITE);
 }
+
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_libExe
+        (JNIEnv * env, jobject jobj, jstring path){
+
+        const char *libpath = env->GetStringUTFChars(path, NULL);
+        LOGD("Received Path: %s", libpath);
+
+        void* handle;
+        char* error;
+        long (*mul)(int, int);
+
+        handle = dlopen(libpath, RTLD_LAZY);
+        if (!handle) {
+                LOGE("DL Open failed: %s", dlerror());
+                return;
+        }
+        dlerror();
+        *(void**)(&mul) = dlsym(handle, "mul");
+
+        if (dlerror() != NULL) {
+                LOGE("DL Error after DLSYM");
+                return;
+        }
+        LOGD("# 9*5 = %ld", (*mul)(9,5));
+        dlclose(handle);
+}
+
