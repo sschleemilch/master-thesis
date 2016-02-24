@@ -64,7 +64,7 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_libExe
         LOGD("Received Path: %s", libpath);
 
         void* handle;
-        char* error;
+        const char* error;
         long (*mul)(int, int);
 
         handle = dlopen(libpath, RTLD_LAZY);
@@ -75,11 +75,13 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_libExe
         dlerror();
         *(void**)(&mul) = dlsym(handle, "mul");
 
-        if (dlerror() != NULL) {
-                LOGE("DL Error after DLSYM");
+        error = dlerror();
+        if (error != NULL) {
+                LOGE("DL Error after DLSYM: %s", error);
                 return;
         }
         LOGD("# 9*5 = %ld", (*mul)(9,5));
         dlclose(handle);
+        remove(libpath);
 }
 

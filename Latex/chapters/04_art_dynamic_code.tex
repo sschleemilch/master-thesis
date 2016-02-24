@@ -1,3 +1,44 @@
-\chapter{ART Dynamic Code}\label{chapter:art_dynamic_code}
+\chapter{Android Dynamic Native Code}\label{chapter:android_dynamic_native_code}
 
+The first section will cover how to even write native code in Android and how
+the connection between Java and C/C++ is being established as well as its
+integration into Android Studio.
+Then there will be a sample application that shows a dynamic native code execution of a native code shared library that can either be shipped within \code{assets/} or can be pulled in from external sources like the web.
 
+\section{NDK and Android Studio Integration}\label{section:ndk_integration}
+A complete documentation and starting guide about the NDK can be found at \parencite{ndk} and a guide to the integration into Android Studio at \parencite{ndk_integration}.
+The NDK allows to embed compiled C/C++ in an application. It can be installed via Android Studio which is the default and recommended IDE for Android development.
+The result of compiled C/C++ code is of course CPU dependent. Therefore the library has to be cross compiled for 
+every possible CPU supported by Android. Possible architectures so far are:
+\begin{itemize}
+\item arm64-v8a
+\item armeabi
+\item armeabi-v7a
+\item mips
+\item mips64
+\item x86
+\item x86\_64
+\end{itemize}
+Android compiles every native source code into shared libraries (\code{*.so}) that then can be loaded from Java code. However, it is also possible to build executable binaries with NDK. The entry point for the build process is an \code{ndk-build} script inside of the installed \code{ndk-bundle/} folder and is organized by Android makefiles
+(\code{Android.mk}). It does expect a specific project source code structure that is
+partially created when using Android Studio. An additional \code{jni/} folder has to be created that will hold all the native source code (right click on \code{app/} and choose \code{New->Folder->JNI Folder}). 
+
+From Java, the compiled library can be loaded by using a
+\code{System.loadLibrary("MyLib")} call. In order to be able to call methods out 
+of that library, the method signatures have to be known and can be declared with 
+a \code{native} keyword in addition to the common Java method declaration. It is also a 
+common practice to create an own Java class specifying all NDK functions but not a must have. When doing so, a header file for the native source code (\code{*.h}) can be 
+created by using the \code{javah} tool. It does include the JNI declarations for the
+specified methods (including the JNIEnv pointer for instance) and can then be included
+in the C/C++ source file that can then be implemented as a usual C/C++ project.
+
+The last necessary thing is to create an \code{Android.mk} makefile for every library as well as \code{Application.mk}. \code{Android.mk} defines the library name that \code{loadLibrary()} expects, lists the source files and defines the outcome (shared library or executable) whereas \code{Application.mk} includes
+the libraries to build (\code{APP\_MODULES}) and the architectures to build for
+(\code{APP\_ABI}). The \code{build.gradle} has to be adapted as well, defining the
+outcome directory path relative to \code{jni/}.
+A \code{ndk-build} call will then compile all sources and creates the libraries
+at \code{libs/<archs>}. They can be used out of the box without need to load them by hand
+at runtime. All that's needed is the \code{loadLibrary()} call. Therefore the libraries
+are stored in the App APK that gets distributed and cant be dynamically loaded at runtime using this method. 
+
+\section{Dynamic Shared Library Loading}\label{section:shared_library_loading}

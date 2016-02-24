@@ -757,8 +757,8 @@ philosophy. With that in mind, it should be clear that it is not possible
 to load a Dex file into a byte array and execute it directly like it was
 possible at Dalvik using the libdvm library via JNI since ART cannot execute
 DVM instructions by design. So in the scope of copy protection mechanisms
-with ART, dynamic code loading is not that useful since the optimized file
-does persist after the first dynamic load and can be analyzed afterwards.
+with ART, dynamic code loading at Java layer is not that useful since the optimized
+file does persist after the first dynamic load and can be analyzed afterwards.
 
 \subsubsection{Self Modifying Code}
 Quite similar to dynamic code loading described in
@@ -782,7 +782,7 @@ Let's assume we do have the code snippet shown in \autoref{self_modifying_code} 
     ...
     native private void modifyVariable();
     ...
-  \end{lstlisting}
+\end{lstlisting}
 
 
 The \code{modifyVariable()} is a native code method and sweeps
@@ -799,3 +799,6 @@ is hereby fulfilled.
 
 This example was again for DVM instructions and is described in \parencite{code_protection}. So an interesting question is if code manipulation on the fly
 is still possible at ART and will get analyzed in great detail in the next chapter.
+What should be clear by now is that the dynamic code loading or manipulation on the
+fly can only be done in native code so that there might also be a way to dynamically
+load whole code snippets.

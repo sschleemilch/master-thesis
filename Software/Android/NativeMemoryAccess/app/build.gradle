@@ -15,7 +15,7 @@ android {
             moduleName "schleemilch"
         }
         sourceSets.main {
-            jni.srcDirs = []
+            jni.srcDirs = ["mylib","toload"]
             jniLibs.srcDir "src/main/libs"
         }
 

@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         final int BUF_SIZE = 8 * 1024;
 
         try {
-            bis = new BufferedInputStream(getAssets().open("mul.so"));
+            bis = new BufferedInputStream(getAssets().open("mul64.so"));
             soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
             byte [] buf = new byte[BUF_SIZE];
 
