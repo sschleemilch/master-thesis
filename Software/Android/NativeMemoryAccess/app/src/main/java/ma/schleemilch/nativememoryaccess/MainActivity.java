@@ -23,13 +23,12 @@ public class MainActivity extends AppCompatActivity {
         MyNDK ndk = new MyNDK();
         ndk.showProcSpace();
 
-        File internalStoragePath = new File(getDir("nat", Context.MODE_PRIVATE), "mul.so");
+        File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "mul.so");
         Log.d(TAG, internalStoragePath.getAbsolutePath());
 
         BufferedInputStream bis = null;
         OutputStream soWriter = null;
         final int BUF_SIZE = 8 * 1024;
-
         try {
             bis = new BufferedInputStream(getAssets().open("mul64.so"));
             soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
@@ -41,10 +40,10 @@ public class MainActivity extends AppCompatActivity {
             }
             soWriter.close();
             bis.close();
-
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         ndk.libExe(internalStoragePath.getAbsolutePath());
     }
 }

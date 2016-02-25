@@ -1,6 +1,11 @@
 \RequirePackage[l2tabu,orthodox]{nag}
 
-\documentclass[a4paper,11pt,oneside]{book}
+\documentclass[a4paper,
+				11pt,
+				oneside,
+				numbers=noenddot,
+				headsepline,
+				]{scrreprt}
 
 \input{settings/packages}
 \input{settings/settings}
@@ -10,33 +15,30 @@
 \input{glossary/acronyms}
 
 \begin{document}
-
+\pagenumbering{Roman}
+\setcounter{page}{1}
 \input{pages/cover}
-
-\frontmatter{}
 \input{pages/title}
 \input{pages/disclaimer}
-%\input{pages/acknowledgements}
 \input{pages/abstract}
 \microtypesetup{protrusion=false}
 \tableofcontents{}
 \microtypesetup{protrusion=true}
-
 \printglossaries{}
+\clearpage
 
-
-\mainmatter{}
-\pagestyle{fancy}
-\fancyhead{}
-\fancyhead[C]{\slshape \leftmark}
-\fancyfoot[C]{\thepage}
-
+\pagenumbering{arabic}
 \input{chapters/01_introduction.tex}
 \input{chapters/02_fundamentals_basics.tex}
 \input{chapters/03_status_quo.tex}
 \input{chapters/04_art_dynamic_code.tex}
 
-\appendix{}
+\clearpage
+
+\pagenumbering{roman}
+\setcounter{page}{1}
+\input{chapters/appendix.tex}
+
  % TODO: remove if glossary not needed
 \glsaddall{} % add all defined terms to glossary, even if not referenced in text
 \microtypesetup{protrusion=false}

@@ -39,6 +39,63 @@ outcome directory path relative to \code{jni/}.
 A \code{ndk-build} call will then compile all sources and creates the libraries
 at \code{libs/<archs>}. They can be used out of the box without need to load them by hand
 at runtime. All that's needed is the \code{loadLibrary()} call. Therefore the libraries
-are stored in the App APK that gets distributed and cant be dynamically loaded at runtime using this method. 
+are stored in the app APK that gets distributed and cant be dynamically loaded at runtime using this method. 
 
 \section{Dynamic Shared Library Loading}\label{section:shared_library_loading}
+The process demonstrated in \autoref{section:ndk_integration} is common practice to 
+integrate native code into an app but is not really dynamically loaded. Instead
+the main idea of dynamical code loading is the distribution of code for instance
+after licensing the app or to apply some sort of copy protection mechanisms by hiding
+the true functionality.
+C/C++ has the ability to load library (\code{*.so}) files with a method called
+\code{dlopen()}. Its signature is shown in \autoref{dlopen_sig}.
+\begin{lstlisting}[language=C++, caption=dlopen() Signature, label=dlopen_sig]
+void *dlopen(const char *path, int flag)
+\end{lstlisting}
+Obviously, a path to the library file is needed as well as a flag that defines the binding of variables and methods (lazy, global, \ldots see dlopen()-reference for more information).
+But what path should and can be used in the context of apps? A path inside of the APK
+for instance is not reference able as a path string. So generally apps can use different storage options that are listed and shortly described and can also be looked up in
+\parencite{storage_options}.
+\begin{itemize}
+\item \textbf{Shared Preferences} can store data in form of key-value pairs
+\item \textbf{Internal Storage} stores private arbitrary data on the device memory at the path
+ \code{/data/data/<appPackage>/} that is only accessible by the app itself.
+\item \textbf{External Storage} can also store arbitrary data on \code{/sdcard/} but it is not exclusively readable by the initializing app and needs a permission declaration in
+the manifest file.
+\item \textbf{SQLite Database} provides support for powerful private databases
+\item \textbf{Network Connection} can store data on the web 
+\end{itemize}
+The most suitable option should be the internal storage since the app has unlimited read
+write rights and the content is safe from other sources rather then itself. For simplicity and demonstration reasons, the library to load will be stored in the
+\code{assets/} folder of the app that also only exists in the APK but is not 
+reference-able through a path. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal app storage and a file container for the library to load gets created. 
+\begin{lstlisting}[language=Java, caption=Internal Storage Initialization, label=internal_init]
+File internalStoragePath = new File(getDir("dynamic", Context.MODE_PRIVATE), "mul.so");
+\end{lstlisting}
+At a next step, the library has to be copied out of the assets folder and into that 
+recently created file container for it. Any file within the assets can be opened with an
+\code{getAssets().open("file")} call. For the read/write process one can use
+\code{BufferedInputStream} and \code{BufferedOutputStream}, shown in 
+\autoref{buff_in_out}.
+\begin{lstlisting}[language=Java, caption=Buffered Input/Output, label=buff_in_out]
+BufferedInputStream bis = null;
+OutputStream soWriter = null;
+final int BUF_SIZE = 8 * 1024;
+try {
+    bis = new BufferedInputStream(getAssets().open("mul64.so"));
+    sWrite = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
+    byte [] buf = new byte[BUF_SIZE];
+    int len;
+    while ((len = bis.read(buf, 0, BUF_SIZE)) > 0){
+        sWrite.write(buf, 0, len);
+    }
+    sWrite.close();
+    bis.close();
+} catch (IOException e) {
+    e.printStackTrace();
+}
+\end{lstlisting}
+Now the program is ready to transform the transition into the native (C/C++) world.
+The signature of the native method to call does contain at least the path as a string to
+the internal stored file that can be printed with a \code{getAbsolutePath()} call of the
+\code{internalStoragePath} object.  

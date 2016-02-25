@@ -1,6 +1,6 @@
 \PassOptionsToPackage{table,svgnames,dvipsnames}{xcolor}
 
-\usepackage[a4paper,left=25mm,right=15mm,top=25mm,bottom=25mm]{geometry}
+\usepackage[a4paper,left=25mm,right=15mm,top=10mm,bottom=15mm,includeheadfoot]{geometry}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[sc]{mathpazo}
@@ -16,6 +16,7 @@
   firstinits=true,
   uniquename=init]{biblatex} % TODO: adapt bibliography style
 \usepackage{graphicx}
+\usepackage{scrpage2}
 \usepackage{scrhack} % necessary for listings package
 \usepackage{listings}
 \usepackage{lstautogobble}
@@ -28,5 +29,5 @@
 \usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
 \usepackage[toc,nonumberlist,acronym]{glossaries} % TODO: remove if glossary not needed
 %\usepackage{showframe}
-\usepackage{fancyhdr}
 \usepackage{dirtree}
+\usepackage[toc, page]{appendix}
