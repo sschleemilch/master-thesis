@@ -3,7 +3,7 @@
 // Created by basti on 22.02.2016.
 //
 
-#include "ma_schleemilch_nativememoryaccess_MyNDK.h"
+#include "ma_schleemilch_nativestuff_MyNDK.h"
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
@@ -18,7 +18,7 @@
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
 
-JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_showProcSpace
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_showProcSpace
         (JNIEnv *env, jobject obj){
         FILE* fp;
         char line[2048];
@@ -58,7 +58,7 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_showProcSpac
         //mprotect((void *)start , (end-start), PROT_READ|PROT_WRITE);
 }
 
-JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_libExe
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
         (JNIEnv * env, jobject jobj, jstring path){
 
         const char *libpath = env->GetStringUTFChars(path, NULL);
@@ -76,8 +76,7 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativememoryaccess_MyNDK_libExe
         dlerror();
         *(void**)(&mul) = dlsym(handle, "mul");
 
-        error = dlerror();
-        if (error != NULL) {
+        if ((error = dlerror())!= NULL) {
                 LOGE("DL Error after DLSYM: %s", error);
                 return;
         }

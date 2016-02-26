@@ -1,4 +1,4 @@
-package ma.schleemilch.nativememoryaccess;
+package ma.schleemilch.nativestuff;
 
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;

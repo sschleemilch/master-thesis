@@ -1,4 +1,4 @@
-package ma.schleemilch.nativememoryaccess;
+package ma.schleemilch.nativestuff;
 
 import org.junit.Test;
 

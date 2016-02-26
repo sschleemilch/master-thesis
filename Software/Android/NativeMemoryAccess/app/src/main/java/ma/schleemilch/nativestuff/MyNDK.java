@@ -1,4 +1,4 @@
-package ma.schleemilch.nativememoryaccess;
+package ma.schleemilch.nativestuff;
 
 /**
  * Created by basti on 22.02.2016.

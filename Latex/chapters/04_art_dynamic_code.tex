@@ -82,7 +82,7 @@ BufferedInputStream bis = null;
 OutputStream soWriter = null;
 final int BUF_SIZE = 8 * 1024;
 try {
-    bis = new BufferedInputStream(getAssets().open("mul64.so"));
+    bis = new BufferedInputStream(getAssets().open("mul.so"));
     sWrite = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
     byte [] buf = new byte[BUF_SIZE];
     int len;
@@ -98,4 +98,52 @@ try {
 Now the program is ready to transform the transition into the native (C/C++) world.
 The signature of the native method to call does contain at least the path as a string to
 the internal stored file that can be printed with a \code{getAbsolutePath()} call of the
-\code{internalStoragePath} object.  
+\code{internalStoragePath} object. Remember that \code{dlopen()} needs that path.
+A class ``\code{MyNDK}'' gets created and contains the native declaration of the
+``\code{libExe(String path)}'' method as well as a static call of 
+\code{System.loadLibrary(``MyLib'')} that takes care of the binding. 
+The implementation of \code{libExe()} is shown in \autoref{libexe}. 
+\begin{lstlisting}[language=C++, caption=Native libExe(), label=libexe, numbers=left]
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
+        (JNIEnv * env, jobject jobj, jstring path){
+        const char *libpath = env->GetStringUTFChars(path, NULL);
+        LOGD("Received Path: %s", libpath);
+        void* handle;
+        const char* error;
+        long (*mul)(int, int);
+
+        handle = dlopen(libpath, RTLD_LAZY);
+        if (!handle) {
+                LOGE("DL Open failed: %s", dlerror());
+                return;
+        }
+        dlerror();
+        *(void**)(&mul) = dlsym(handle, "mul");
+        if ((error = dlerror())!= NULL) {
+                LOGE("DL Error after DLSYM: %s", error);
+                return;
+        }
+        LOGD("# 9*5 = %ld", (*mul)(9,5));
+        dlclose(handle);
+        remove(libpath);
+}
+\end{lstlisting}
+One short word about logging/debugging: The common \code{printf()} writes to the standard output. A better way of viewing C++ outputs is to use the ADB logging mechanism. Google does include a \code{\_\_android\_log\_print()} function that
+has the same behavior as \code{printf()} but writes to the logcat output and 
+\code{LOGD()} is a defined makro calling that function. 
+
+The library that will get loaded is a simple multiplication function and a pointer
+for it gets initialized at line seven. \code{dlopen()} returns a void pointer and
+\code{dlsym()} searches the symbol table of the handle pointed file for the function
+given as a string. That call is interesting when comparing C to C++. In 
+\parencite{dlopen_howto}, the problem of name mangling in C++ and the combined usage of
+\code{dlopen()} is being described in detail.
+In short, one will need an ``\code{extern "C" }'' at the \code{mul()} definition in order to make the \code{dlsym()} function to find the method
+because C++ does not use only the method name as its symbol but a unique created ID.
+So without that extern keyword, \code{dlsym()} fails.
+Finally, the \code{mul()} function can be called out of the library.
+After that call, \code{dlclose()} has to be executed. It is also possible to remove
+the library file after that process that might be useful for copy protection usage.
+From the Java perspective, a \code{MyNDK} object needs to be created followed by 
+a call of its \code{libExe()}.
+
