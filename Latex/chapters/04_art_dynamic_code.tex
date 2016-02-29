@@ -1,36 +1,37 @@
 \chapter{Android Dynamic Native Code}\label{chapter:android_dynamic_native_code}
 
-The first section will cover how to even write native code in Android and how
+This chapter will cover shortly how to write native code in Android and how
 the connection between Java and C/C++ is being established as well as its
 integration into Android Studio.
-Then there will be a sample application that shows a dynamic native code execution of a native code shared library that can either be shipped within \code{assets/} or can be pulled in from external sources like the web.
+Then there will be a sample application that shows a dynamic native code execution of a native code shared library that can either be shipped within \code{assets/} or can be pulled in from external sources like the web, secure elements and so on.
 
 \section{NDK and Android Studio Integration}\label{section:ndk_integration}
 A complete documentation and starting guide about the NDK can be found at \parencite{ndk} and a guide to the integration into Android Studio at \parencite{ndk_integration}.
 The NDK allows to embed compiled C/C++ in an application. It can be installed via Android Studio which is the default and recommended IDE for Android development.
 The result of compiled C/C++ code is of course CPU dependent. Therefore the library has to be cross compiled for 
-every possible CPU supported by Android. Possible architectures so far are:
+every possible CPU supported by Android. Possible architectures supported by the NDK are so far:
 \begin{itemize}
-\item arm64-v8a
-\item armeabi
-\item armeabi-v7a
-\item mips
-\item mips64
-\item x86
-\item x86\_64
+\item \textbf{arm64-v8a}
+\item \textbf{armeabi}
+\item \textbf{armeabi-v7a}
+\item \textbf{mips}
+\item \textbf{mips64}
+\item \textbf{x86}
+\item \textbf{x86\_64}
 \end{itemize}
-Android compiles every native source code into shared libraries (\code{*.so}) that then can be loaded from Java code. However, it is also possible to build executable binaries with NDK. The entry point for the build process is an \code{ndk-build} script inside of the installed \code{ndk-bundle/} folder and is organized by Android makefiles
-(\code{Android.mk}). It does expect a specific project source code structure that is
-partially created when using Android Studio. An additional \code{jni/} folder has to be created that will hold all the native source code (right click on \code{app/} and choose \code{New->Folder->JNI Folder}). 
+The common way is that Android compiles every native source code into shared libraries
+(\code{*.so}) that can then be loaded from Java code. However, it is also possible to build executable binaries with NDK in theory. Entry point for the build process is an \code{ndk-build} script inside of the installed \code{ndk-bundle/} folder that takes care of calling the cross-compiling toolchains. It can be controlled by Android makefiles (\code{Android.mk}) and does 
+expect a specific folder structure to work which is partially created when using Android Studio. An additional \code{jni/} folder has to be created that will hold all the native source code (right click on \code{app/} and choose \code{New->Folder->JNI Folder}). 
 
 From Java, the compiled library can be loaded by using a
 \code{System.loadLibrary("MyLib")} call. In order to be able to call methods out 
 of that library, the method signatures have to be known and can be declared with 
 a \code{native} keyword in addition to the common Java method declaration. It is also a 
-common practice to create an own Java class specifying all NDK functions but not a must have. When doing so, a header file for the native source code (\code{*.h}) can be 
-created by using the \code{javah} tool. It does include the JNI declarations for the
-specified methods (including the JNIEnv pointer for instance) and can then be included
-in the C/C++ source file that can then be implemented as a usual C/C++ project.
+common practice to create a new Java class specifying all NDK functions but not a must have. When doing so, a header file for the native source code (\code{*.h}) can be automatically
+created by using the \code{javah} command line tool. It includes the necessary JNI
+declarations for the specified methods (including the JNIEnv pointer for instance)
+and can then be included in the C/C++ source file that can then be implemented as a
+usual C/C++ project.
 
 The last necessary thing is to create an \code{Android.mk} makefile for every library as well as \code{Application.mk}. \code{Android.mk} defines the library name that \code{loadLibrary()} expects, lists the source files and defines the outcome (shared library or executable) whereas \code{Application.mk} includes
 the libraries to build (\code{APP\_MODULES}) and the architectures to build for
@@ -38,8 +39,10 @@ the libraries to build (\code{APP\_MODULES}) and the architectures to build for
 outcome directory path relative to \code{jni/}.
 A \code{ndk-build} call will then compile all sources and creates the libraries
 at \code{libs/<archs>}. They can be used out of the box without need to load them by hand
-at runtime. All that's needed is the \code{loadLibrary()} call. Therefore the libraries
-are stored in the app APK that gets distributed and cant be dynamically loaded at runtime using this method. 
+at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries
+are stored at the same path as the app APK file like introduced earlier. By applying this 
+method, those native libs are shipped together within the application that might not be the 
+indended behavior.
 
 \section{Dynamic Shared Library Loading}\label{section:shared_library_loading}
 The process demonstrated in \autoref{section:ndk_integration} is common practice to 
@@ -54,7 +57,7 @@ void *dlopen(const char *path, int flag)
 \end{lstlisting}
 Obviously, a path to the library file is needed as well as a flag that defines the binding of variables and methods (lazy, global, \ldots see dlopen()-reference for more information).
 But what path should and can be used in the context of apps? A path inside of the APK
-for instance is not reference able as a path string. So generally apps can use different storage options that are listed and shortly described and can also be looked up in
+for instance is not reference-able as a path string. So generally apps can use different storage options that are listed and shortly described and can also be looked up in
 \parencite{storage_options}.
 \begin{itemize}
 \item \textbf{Shared Preferences} can store data in form of key-value pairs
@@ -98,7 +101,7 @@ try {
 Now the program is ready to transform the transition into the native (C/C++) world.
 The signature of the native method to call does contain at least the path as a string to
 the internal stored file that can be printed with a \code{getAbsolutePath()} call of the
-\code{internalStoragePath} object. Remember that \code{dlopen()} needs that path.
+\code{internalStoragePath} file object. Remember that \code{dlopen()} needs that path.
 A class ``\code{MyNDK}'' gets created and contains the native declaration of the
 ``\code{libExe(String path)}'' method as well as a static call of 
 \code{System.loadLibrary(``MyLib'')} that takes care of the binding. 
@@ -145,5 +148,23 @@ Finally, the \code{mul()} function can be called out of the library.
 After that call, \code{dlclose()} has to be executed. It is also possible to remove
 the library file after that process that might be useful for copy protection usage.
 From the Java perspective, a \code{MyNDK} object needs to be created followed by 
-a call of its \code{libExe()}.
+a call of its \code{libExe()} to call and execute the library.
 
+To be able to load a shared object library like this, it obviously needs to be
+generated first. One could use an own cross compiler for that or just also use 
+the NDK since it includes all necessary tool-chains. 
+However some project structure changes have to be made to be able to compile two independent libraries. Each library to compile should have its own folder inside
+of \code{jni/} with an \code{Android.mk} each. The greater \code{Android.mk} in
+\code{jni/} has to be changed to call all subsequent make files with 
+``\code{include \$(call all-subdir-makefiles)}'' and each module to build has to be
+added to \code{Application.mk} as well. Gradle needs to know the names of the sub 
+directories of \code{jni/} so that ``\code{jni.srcDirs=[]}'' has to be
+filled with those folder name strings. As a result of that structure, the compiled
+library that will get loaded afterwards also will be saved in the \code{libs/} folder
+and shipped within the app when not deleting it. In a scenario where an app requests new
+parts and gets them from a server for instance, these libraries should then only be
+present server sided. In order to receive the right compiled shared object for every
+device, it should add CPU information with its request (e.g. by sending the output
+of ``\code{System.getProperty("os.arch")}'').
+
+\section{Dynamic Binary Execution}\label{section:dyn_bin_exec}

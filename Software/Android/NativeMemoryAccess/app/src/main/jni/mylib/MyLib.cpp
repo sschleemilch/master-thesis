@@ -10,7 +10,10 @@
 #include <android/log.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+#include <sys/wait.h>
 #include <dlfcn.h>
+#include <unistd.h>
+
 
 #define LOG_TAG "NDK-logging"
 
@@ -85,3 +88,11 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
         remove(libpath);
 }
 
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env, jobject obj, jstring path)
+{
+        const char *exepath = env->GetStringUTFChars(path, NULL);
+        LOGD("Received Path: %s", exepath);
+        const char* programPath = "/system/bin/sush";
+
+        execl(programPath, programPath, exepath);
+}

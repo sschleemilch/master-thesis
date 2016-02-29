@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         MyNDK ndk = new MyNDK();
-        ndk.showProcSpace();
+        //ndk.showProcSpace();
 
         File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "mul.so");
         Log.d(TAG, internalStoragePath.getAbsolutePath());
@@ -44,6 +44,33 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        ndk.libExe(internalStoragePath.getAbsolutePath());
+        //ndk.libExe(internalStoragePath.getAbsolutePath());
+
+        internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "toExec");
+        Log.d(TAG, internalStoragePath.getAbsolutePath());
+
+        bis = null;
+        soWriter = null;
+        try {
+            bis = new BufferedInputStream(getAssets().open("toExec64"));
+            soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
+            byte [] buf = new byte[BUF_SIZE];
+
+            int len;
+            while ((len = bis.read(buf, 0, BUF_SIZE)) > 0){
+                soWriter.write(buf, 0, len);
+            }
+            soWriter.close();
+            bis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        /*try {
+            Runtime.getRuntime().exec(internalStoragePath.getAbsolutePath());
+        } catch (IOException e){
+            e.printStackTrace();
+        }
+        */
+        ndk.binExe(internalStoragePath.getAbsolutePath());
     }
 }
