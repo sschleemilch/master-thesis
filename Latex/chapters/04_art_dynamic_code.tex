@@ -44,13 +44,13 @@ are stored at the same path as the app APK file like introduced earlier. By appl
 method, those native libs are shipped together within the application that might not be the 
 indended behavior.
 
-\section{Dynamic Shared Library Loading}\label{section:shared_library_loading}
+\section{Native Dynamic Shared Library Loading}\label{section:shared_library_loading}
 The process demonstrated in \autoref{section:ndk_integration} is common practice to 
 integrate native code into an app but is not really dynamically loaded. Instead
 the main idea of dynamical code loading is the distribution of code for instance
 after licensing the app or to apply some sort of copy protection mechanisms by hiding
-the true functionality.
-C/C++ has the ability to load library (\code{*.so}) files with a method called
+the true functionality. One approach is to use native code as a loading mechanism.
+C/C++ has the ability to load shared objects (\code{*.so}) with a method called
 \code{dlopen()}. Its signature is shown in \autoref{dlopen_sig}.
 \begin{lstlisting}[language=C++, caption=dlopen() Signature, label=dlopen_sig]
 void *dlopen(const char *path, int flag)
@@ -166,5 +166,7 @@ parts and gets them from a server for instance, these libraries should then only
 present server sided. In order to receive the right compiled shared object for every
 device, it should add CPU information with its request (e.g. by sending the output
 of ``\code{System.getProperty("os.arch")}'').
+
+
 
 \section{Dynamic Binary Execution}\label{section:dyn_bin_exec}

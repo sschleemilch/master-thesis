@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        System.load(internalStoragePath.getAbsolutePath());
         //ndk.libExe(internalStoragePath.getAbsolutePath());
 
         internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "toExec");
@@ -71,6 +71,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         */
-        ndk.binExe(internalStoragePath.getAbsolutePath());
+        //ndk.binExe(internalStoragePath.getAbsolutePath());
     }
 }
