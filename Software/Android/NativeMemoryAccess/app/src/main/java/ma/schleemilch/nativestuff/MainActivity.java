@@ -20,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Log.d(TAG, System.getProperty("os.arch"));
+
         MyNDK ndk = new MyNDK();
         //ndk.showProcSpace();
 
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         System.load(internalStoragePath.getAbsolutePath());
+
         //ndk.libExe(internalStoragePath.getAbsolutePath());
 
         internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "toExec");
@@ -65,12 +68,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        /*try {
+        try {
             Runtime.getRuntime().exec(internalStoragePath.getAbsolutePath());
         } catch (IOException e){
             e.printStackTrace();
         }
-        */
+
         //ndk.binExe(internalStoragePath.getAbsolutePath());
     }
 }

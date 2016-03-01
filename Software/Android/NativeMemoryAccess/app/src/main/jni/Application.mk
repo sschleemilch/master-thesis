@@ -1,2 +1,2 @@
 APP_MODULES := MyLib ToLoad toExec
-              APP_ABI := all
+APP_ABI := all

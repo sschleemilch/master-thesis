@@ -36,15 +36,13 @@ usual C/C++ project.
 The last necessary thing is to create an \code{Android.mk} makefile for every library as well as \code{Application.mk}. \code{Android.mk} defines the library name that \code{loadLibrary()} expects, lists the source files and defines the outcome (shared library or executable) whereas \code{Application.mk} includes
 the libraries to build (\code{APP\_MODULES}) and the architectures to build for
 (\code{APP\_ABI}). The \code{build.gradle} has to be adapted as well, defining the
-outcome directory path relative to \code{jni/}.
+outcome directory path relative to \code{jni/} and \code{android.useDeprecatedNdk = true} needs to be added to \code{gradle.properties} to suppress an error message. 
 A \code{ndk-build} call will then compile all sources and creates the libraries
 at \code{libs/<archs>}. They can be used out of the box without need to load them by hand
-at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries
-are stored at the same path as the app APK file like introduced earlier. By applying this 
-method, those native libs are shipped together within the application that might not be the 
-indended behavior.
+at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the app APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with necessary 
+pointed out adaption is shown in \autoref{chapter:ndk_sample_project}.
 
-\section{Native Dynamic Shared Library Loading}\label{section:shared_library_loading}
+\section{Dynamic Shared Library Loading}\label{section:shared_library_loading}
 The process demonstrated in \autoref{section:ndk_integration} is common practice to 
 integrate native code into an app but is not really dynamically loaded. Instead
 the main idea of dynamical code loading is the distribution of code for instance
@@ -167,6 +165,28 @@ present server sided. In order to receive the right compiled shared object for e
 device, it should add CPU information with its request (e.g. by sending the output
 of ``\code{System.getProperty("os.arch")}'').
 
+It is also possible to do that kind of shared object loading directly out of Java
+code. Like shown in \autoref{section:ndk_integration}, a static call of 
+\code{System.loadLibrary("MyLib")} does the heavy lifting of invoking the library. 
+The \code{loadLibrary()} function however does only check specific paths for the given
+library name which are specified in \code{java.library.path}, containing 
+\code{/vendor/lib} and \code{/system/lib} as well as the path of the app's APK lib
+folder. So for dynamic loading, this loading method is not suitable since these
+locations can't be accessed unless with root rights. Fortunately there is another
+loading function \code{System.load(String s)} that accepts an absolute path to 
+the shared object file like the C++ equivalent \code{dlopen()}. Attention must be
+paid to naming conventions in \code{loadLibrary()} in comparison to \code{load()}.
+Libraries compiled by the NDK are getting a \code{lib} prefix to its actual module
+name automatically. It means that \code{System.loadLibrary("MyLib")} invokes a file
+that's called \code{libMyLib.so} while the \code{load()} needs directly the physical
+stored path name.
+
+Even if Java is also capable of loading shared object libraries at runtime, the 
+signatures of the library to load has to be implemented before to be able to call
+its methods unlike the C/C++ implementation where symbols can be resolved itself.
 
 
 \section{Dynamic Binary Execution}\label{section:dyn_bin_exec}
+
+It could be also interesting if it is possible of executing binaries directly
+instead of loading shared objects. 

@@ -1,5 +1,125 @@
 \begin{appendices}
-\chapter{Appendix}
-\section{ASF}
+\chapter{NDK Project}\label{chapter:ndk_sample_project}
+
+\autoref{fig:ndk_proj_tree} shows the interesting part of the Android Studio project tree
+with parts that has to be changed in order to make it work.
+
+\begin{figure}[htb]
+  \dirtree{%
+.1 /.
+.2 app/.
+.3 src/.
+.4 main/.
+.5 assets/.
+.5 java/.
+.6 package.name/.
+.7 MainActivity.java.
+.7 MyNDK.java.
+.5 jni/.
+.6 Android.mk.
+.6 Application.mk.
+.6 mylib.cpp.
+.5 libs/.
+.6 arm64-v8a/.
+.7 libmylib.so.
+.6 armeabi/.
+.7 libmylib.so.
+.6 armeabi-v7a/.
+.7 libmylib.so.
+.6 mips/.
+.7 libmylib.so.
+.6 mips64/.
+.7 libmylib.so.
+.6 x86/.
+.7 libmylib.so.
+.6 x86\_64/.
+.7 libmylib.so.
+.3 build.gradle.
+.2 gradle.properties.
+}
+\caption[NDK Project Tree Cutout]{NDK Project Tree Cutout}
+\label{fig:ndk_proj_tree}
+\end{figure}
+
+\begin{lstlisting}[language=Java, caption=MainActivity.java, label=nkd_sample_main, numbers=left]
+
+package ma.schleemilch.nativestuff;
+
+import android.content.Context;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.util.Log;
+
+public class MainActivity extends AppCompatActivity {
+
+    public static String TAG = "MYLOG";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        MyNDK ndk = new MyNDK();
+        ndk.showNativeMessage("Success");
+    }
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=Java, caption=MyNDK.java, label=nkd_sample_interface, numbers=left]
+package ma.schleemilch.nativestuff;
+
+public class MyNDK {
+    static {
+        System.loadLibrary("MyLib");
+    }
+    public native void showNativeMessage(String msg);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=Java, caption=Nmylib.cpp, label=nkd_sample_cpp, numbers=left]
+#include "ma_schleemilch_nativestuff_MyNDK.h"
+#include <string.h>
+
+#include <android/log.h>
+
+#define LOG_TAG "MYLOG"
+
+#define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
+        (JNIEnv * env, jobject jobj, jstring msg){
+        	const char *msg = env->GetStringUTFChars(msg, NULL);
+        LOGD("My native message: %s", msg);
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=make, caption=Android.mk, label=nkd_sample_make, numbers=left]
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+
+LOCAL_MODULE := mylib
+LOCAL_SRC_FILES := mylib.cpp
+LOCAL_LDLIBS := -llog
+include $(BUILD_SHARED_LIBRARY)
+\end{lstlisting}
+
+\begin{lstlisting}[language=make, caption=Application.mk, label=nkd_sample_app_make, numbers=left]
+APP_MODULES := mylib
+APP_ABI := all
+\end{lstlisting}
+
+Just showing the adapted part inside of \code{defaultConfig{\ldots}}:
+\begin{lstlisting}[language=xml, caption=build.gradle, label=nkd_sample_gradle]
+ndk {
+	moduleName "schleemilch"
+}
+sourceSets.main {
+	jni.srcDirs = []
+	jniLibs.srcDir "src/main/libs"
+}
+\end{lstlisting}
+
 \end{appendices}
 
