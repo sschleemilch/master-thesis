@@ -11,7 +11,6 @@
 
 
 int main(int argc, char** argv){
-    LOGD("Exe: Android logging");
-    printf("Exe: Stdout");
-    return 0;
+    printf("Test123");
+    return 5;
 }

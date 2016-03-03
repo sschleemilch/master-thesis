@@ -7,9 +7,11 @@ import android.util.Log;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity {
@@ -45,17 +47,19 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.load(internalStoragePath.getAbsolutePath());
+        //System.load(internalStoragePath.getAbsolutePath());
 
         //ndk.libExe(internalStoragePath.getAbsolutePath());
 
-        internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "toExec");
+        internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "native-activity");
+
+
         Log.d(TAG, internalStoragePath.getAbsolutePath());
 
         bis = null;
         soWriter = null;
         try {
-            bis = new BufferedInputStream(getAssets().open("toExec64"));
+            bis = new BufferedInputStream(getAssets().open("native-activity"));
             soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
             byte [] buf = new byte[BUF_SIZE];
 
@@ -68,9 +72,29 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        internalStoragePath.setExecutable(true);
         try {
-            Runtime.getRuntime().exec(internalStoragePath.getAbsolutePath());
+            Process nativeExe = Runtime.getRuntime().exec(internalStoragePath.getAbsolutePath());
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(nativeExe.getInputStream()));
+            int read;
+            char[] buffer = new char[4096];
+            StringBuffer output = new StringBuffer();
+            while ((read = reader.read(buffer)) > 0) {
+                output.append(buffer, 0, read);
+            }
+            reader.close();
+
+            // Waits for the command to finish.
+            nativeExe.waitFor();
+
+            String nativeOutput =  output.toString();
+
+            Log.d(TAG, "nativeOut: " + nativeOutput);
+
         } catch (IOException e){
+            e.printStackTrace();
+        } catch (InterruptedException e){
             e.printStackTrace();
         }
 

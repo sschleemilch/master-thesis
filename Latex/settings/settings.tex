@@ -43,3 +43,19 @@
 \automark{chapter}
 \pagestyle{scrheadings}
 \setlength{\headheight}{1cm}
+\clearscrheadfoot
+\setheadsepline{0pt}
+\automark{chapter}
+\ohead{\headmark}
+\ofoot[\pagemark]{\pagemark}
+
+\clubpenalty = 10000
+\widowpenalty = 10000
+\displaywidowpenalty = 10000
+
+%big chapter numbers on the right...
+\renewcommand*{\chapterformat}{fontsize{80}{88}\selectfont\thechapter\autodot\enskip}
+\addtokomafont{chapterprefix}{\raggedleft}
+\renewcommand*{\chapterformat}{%
+\mbox{\chapappifchapterprefix{\nobreakspace}%
+\scalebox{3}{\color{gray}\thechapter\autodot}\enskip}}
