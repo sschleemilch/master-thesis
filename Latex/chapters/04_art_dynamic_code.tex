@@ -205,5 +205,10 @@ that will execute them.
 
 Again, binary execution can be implemented in Java as well as in native C/C++ code.
 Java will be used in both cases to fetch the binary file from an arbitrary location that can be determined at runtime or statically (\code{assets/} for demonstration) and
-writing it into the internal private storage. By checking the outcome file of that process via \code{adb shell} and \code{ls -l}, the file is of course not marked as executable by default but at least the owner and the group is set right.
+writing it into the internal private storage path. By checking the outcome file of that process via \code{adb shell} and \code{ls -l}, the file is of course not marked as executable by default but at least the owner and the group is set right so there
+should not be any permission issue.
+If the file is not marked as an executable, it will result in a ``can't execute: Permission denied'' message in case of a C++ implementation and ``IOException'' in case of Java. Fortunately, it can be fixed easily by calling \code{setExecutable(true)}
+of the Java \code{File} object representing the binary. 
+
+
 

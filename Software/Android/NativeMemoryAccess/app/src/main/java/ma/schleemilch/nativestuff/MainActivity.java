@@ -72,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        internalStoragePath.setExecutable(true);
+        //internalStoragePath.setExecutable(true);
         /*
         try {
             Process nativeExe = Runtime.getRuntime().exec(internalStoragePath.getAbsolutePath());

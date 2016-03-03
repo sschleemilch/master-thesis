@@ -96,12 +96,9 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env
 
         const char *exepath = env->GetStringUTFChars(path, NULL);
         LOGD("Received Path: %s", exepath);
-        /*
-        const char* programPath = "/system/bin/sush";
-        execl(programPath, programPath, exepath);
-        */
+
         FILE* fpipe;
-        char* command = new char[strlen(exepath) + strlen(" 2>&1")+1];
+        char* command = new char[strlen(exepath) + strlen(" 2>&1") + 1];
 
         int ind = 0;
         for (int i = 0; i < strlen(exepath); i++){
