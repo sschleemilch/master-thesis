@@ -13,12 +13,15 @@
 #include <sys/wait.h>
 #include <dlfcn.h>
 #include <unistd.h>
+//#include <android_native_app_glue.h>
 
 
 #define LOG_TAG "NDK-logging"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+
+struct android_app* app;
 
 
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_showProcSpace
@@ -90,8 +93,63 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
 
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env, jobject obj, jstring path)
 {
+
         const char *exepath = env->GetStringUTFChars(path, NULL);
         LOGD("Received Path: %s", exepath);
+        /*
         const char* programPath = "/system/bin/sush";
         execl(programPath, programPath, exepath);
+        */
+        FILE* fpipe;
+        char* command = new char[strlen(exepath) + strlen(" 2>&1")+1];
+
+        int ind = 0;
+        for (int i = 0; i < strlen(exepath); i++){
+                command[ind] = exepath[i];
+                ind++;
+        }
+        command[ind++] = ' ';
+        command[ind++] = '2';
+        command[ind++] = '>';
+        command[ind++] = '&';
+        command[ind++] = '1';
+        command[ind++] = '\0';
+        LOGD("Command %s", command);
+
+        char line[256];
+
+        if (!(fpipe = (FILE*)popen(command, "r"))) return;
+
+        while(fgets(line, sizeof(line), fpipe)){
+                LOGD("%s", line);
+        }
 }
+
+/*
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_callNativeActivity
+        (JNIEnv *env, jobject obj, jstring actpath){
+
+        const char *actPath = env->GetStringUTFChars(actpath, NULL);
+        LOGD("Received Path: %s", actPath);
+
+        void* handle;
+        const char* error;
+        long (*nativeAppMain)(struct android_app*);
+
+        handle = dlopen(actPath, RTLD_LAZY);
+        if (!handle) {
+                LOGE("DL Open failed: %s", dlerror());
+                return;
+        }
+        dlerror();
+        *(void**)(&nativeAppMain) = dlsym(handle, "android_main");
+
+        if ((error = dlerror())!= NULL) {
+                LOGE("DL Error after DLSYM: %s", error);
+                return;
+        }
+        (*nativeAppMain)(app);
+        dlclose(handle);
+        remove(actPath);
+}
+ */

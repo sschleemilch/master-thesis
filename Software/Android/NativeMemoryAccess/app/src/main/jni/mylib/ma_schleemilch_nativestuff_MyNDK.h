@@ -31,6 +31,14 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe
   (JNIEnv *, jobject, jstring);
 
+/*
+ * Class:     ma_schleemilch_nativestuff_MyNDK
+ * Method:    callNativeActivity
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_callNativeActivity
+  (JNIEnv *, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif

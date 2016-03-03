@@ -11,6 +11,7 @@
 
 
 int main(int argc, char** argv){
-    printf("Test123");
+    printf("I am running and showing you a printf\n");
+    LOGD("I am running and showing you a LOGD");
     return 5;
 }

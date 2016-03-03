@@ -185,8 +185,25 @@ Even if Java is also capable of loading shared object libraries at runtime, the
 signatures of the library to load has to be implemented before to be able to call
 its methods unlike the C/C++ implementation where symbols can be resolved itself.
 
+It can also be tried to call a whole native activity with the C/C++ method since
+a native activity project can be also compiled into an shared object (see NDK
+examples ``native-activity''). To invoke the activity, one need to call the
+\code{android\_main()} method but when doing so, it turns out that it will cause
+a segmentation fault (SIGSEV).
+
 
 \section{Dynamic Binary Execution}\label{section:dyn_bin_exec}
 
-It could be also interesting if it is possible of executing binaries directly
-instead of loading shared objects. 
+It could be also interesting to execute binaries directly instead of loading shared objects. To compile them, again the NDK can be used with changing the module's
+\code{Android.mk} file by replacing \code{include \$(BUILD\_SHARED\_LIBRARY)} with 
+\code{include \$(BUILD\_EXECUTABLE)}. When doing so, there is to mention 
+that all modules compiled for 32 Bit systems are executables directly while modules
+compiled for 64 Bit are again shared objects (by checking the output of the Linux
+\code{file} command line program).
+In the field, that should not be much of an impact since they both are linked to its equivalent interpreters (\code{/system/bin/linker} and \code{/system/bin/linker64})
+that will execute them.
+
+Again, binary execution can be implemented in Java as well as in native C/C++ code.
+Java will be used in both cases to fetch the binary file from an arbitrary location that can be determined at runtime or statically (\code{assets/} for demonstration) and
+writing it into the internal private storage. By checking the outcome file of that process via \code{adb shell} and \code{ls -l}, the file is of course not marked as executable by default but at least the owner and the group is set right.
+
