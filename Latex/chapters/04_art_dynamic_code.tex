@@ -139,7 +139,7 @@ for it gets initialized at line seven. \code{dlopen()} returns a void pointer an
 given as a string. That call is interesting when comparing C to C++. In 
 \parencite{dlopen_howto}, the problem of name mangling in C++ and the combined usage of
 \code{dlopen()} is being described in detail.
-In short, one will need an ``\code{extern "C" }'' at the \code{mul()} definition in order to make the \code{dlsym()} function to find the method
+In short, one will need an ``\code{extern "C"}'' at the \code{mul()} definition in order to make the \code{dlsym()} function to find the method
 because C++ does not use only the method name as its symbol but a unique created ID.
 So without that extern keyword, \code{dlsym()} fails.
 Finally, the \code{mul()} function can be called out of the library.
@@ -200,15 +200,95 @@ It could be also interesting to execute binaries directly instead of loading sha
 that all modules compiled for 32 Bit systems are executables directly while modules
 compiled for 64 Bit are again shared objects (by checking the output of the Linux
 \code{file} command line program).
-In the field, that should not be much of an impact since they both are linked to its equivalent interpreters (\code{/system/bin/linker} and \code{/system/bin/linker64})
-that will execute them.
+They are dedicated to their interpreters (\code{/system/bin/linker} and \code{/system/bin/linker64}) that will execute them. It does however make a difference since
+Android seems like to support only position independent executables (PIE).
+PIE's purpose is to be able to execute its code regardless of its absolute address. Shared objects do count as PIEs. So in case of 32 Bit systems, there will be an
+error message 
+``\code{error: only position independent executables (PIE) are supported.}'' when
+compiled as executable without any additions. There is of course a solution for that
+by adding a \code{LOCAL\_CFLAGS} entry \code{-fPIE} as well as the \code{LOCAL\_LDFLAGS}
+entries \code{-fPIE} and \code{-pie} to its Android makefile. In fact, after adding
+those attributes, there is no more difference between that compiled executable 
+compared to the shared library counterpart other than it has to contain a
+\code{main()} in order to be executed. 
 
 Again, binary execution can be implemented in Java as well as in native C/C++ code.
-Java will be used in both cases to fetch the binary file from an arbitrary location that can be determined at runtime or statically (\code{assets/} for demonstration) and
-writing it into the internal private storage path. By checking the outcome file of that process via \code{adb shell} and \code{ls -l}, the file is of course not marked as executable by default but at least the owner and the group is set right so there
+Java will be used in both cases to fetch the binary file from an arbitrary location that can be determined at runtime or statically (again \code{assets/} 
+for demonstration) and writing it into the internal private storage path. By checking the outcome file of that process via \code{adb shell} and ``\code{ls -l}'', the file is of course not marked as executable by default but at least the owner and the group is set right so there
 should not be any permission issue.
-If the file is not marked as an executable, it will result in a ``can't execute: Permission denied'' message in case of a C++ implementation and ``IOException'' in case of Java. Fortunately, it can be fixed easily by calling \code{setExecutable(true)}
+If the file is not marked as an executable, it will result in a ``can't execute: Permission denied'' message in case of a C++ implementation or an ``IOException'' in case of Java. Fortunately, it can be fixed simply by calling \code{setExecutable(true)}
 of the Java \code{File} object representing the binary. 
 
+\subsection{Java Implementation}\label{dyn_bin_java}
+The preparation procedure for executing is the same like in the shared object loading
+case, means saving the file in its internal storage and delivering a \code{File} object
+to work with. A Java \code{Runtime} object has an \code{exec(String s)} function that is capable of execution code given at its absolute path. It does return a \code{Process}
+object. At Android, the current runtime can be accessed with a static access of the 
+\code{Runtime}'s \code{getRuntime()} function.
+That's basically everything needed to make it work. However one will not see any
+outputs (like \code{printf()}) of that separately started process.
+The documentation of \code{Process} reveals that the subprocess output can be 
+fetched with \code{getInputStream()} and its error output with \code{getErrorStream()}.
+It can also be checked and waited for the subprocess to finish via \code{waitFor()} 
+which should be the normal case when calling a native binary. The final very
+compact implementation is shown in \autoref{java_bin_exec}.
+\begin{lstlisting}[language=Java, caption=Java Native Exec(), label=java_bin_exec]
+Process nativeExe = Runtime.getRuntime().exec(internalPath);
+BufferedReader reader = new BufferedReader(new InputStreamReader(nativeExe.getInputStream()));
+int read;
+char[] buffer = new char[4096];
+StringBuffer output = new StringBuffer();
+while ((read = reader.read(buffer)) > 0) {
+    output.append(buffer, 0, read);
+}
+reader.close();
+// Waits for the command to finish.
+nativeExe.waitFor();
+String nativeOutput =  output.toString();
+Log.d(TAG, "nativeOut: " + nativeOutput);
+\end{lstlisting}
 
 
+\subsection{C/C++ Implementation}\label{dyn_bin_c}
+As for C/C++, the implementation is not much more complicated compared to Java.
+The main part of execution is a call of \code{popen()} 
+(man printed at \parencite{popen}) which expects a command 
+given as a char array to execute and the type of its created pipe (read ``r'' or write ``w''). Internally, it uses \code{fork()} and \code{pipe()} for creating the new 
+process and executing the given program at its path. It returns a \code{FILE} pointer
+whose stream can be read out by \code{fgets()}. The complete C++ implementation
+of the behavior is shown in \autoref{cpp_bin_exec}. In order to catch \code{stderr}
+the program path string can be extended with the string ``2>\&1'' to detour the error
+channel (2) to the common output channel (1).
+\begin{lstlisting}[language=Java, caption=C++ Native Exec(), label=cpp_bin_exec]
+JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env, object obj, jstring path)
+{
+	const char *exepath = env->GetStringUTFChars(path, NULL);
+	FILE* fpipe;
+	char* command = new char[strlen(exepath) + strlen(" 2>&1") + 1];
+	int ind = 0;
+	for (int i = 0; i < strlen(exepath); i++){
+		command[ind] = exepath[i];
+		ind++;
+	}
+	command[ind++] = ' ';
+	command[ind++] = '2';
+	command[ind++] = '>';
+	command[ind++] = '&';
+	command[ind++] = '1';
+	command[ind++] = '\0';
+	char line[256];
+	if (!(fpipe = (FILE*)popen(command, "r"))) return;
+	while(fgets(line, sizeof(line), fpipe)){
+		LOGD("%s", line);
+	}
+}
+\end{lstlisting}
+
+\section{Dynamic Code Execution from Memory}\label{dyn_code_memory}
+
+Until now, dynamic code execution or loading via shared libraries was done
+by downloading/copying a file into the internal storage of the app followed
+by invoking it which is kind of like caching it. Instead,
+it would be also interesting if program code can be invoked directly in and out
+of memory. So there need to be inspected if an Android app process has access
+to memory and how to read/execute program code out of it.   

@@ -93,7 +93,6 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
 
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env, jobject obj, jstring path)
 {
-
         const char *exepath = env->GetStringUTFChars(path, NULL);
         LOGD("Received Path: %s", exepath);
 
@@ -114,9 +113,7 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env
         LOGD("Command %s", command);
 
         char line[256];
-
         if (!(fpipe = (FILE*)popen(command, "r"))) return;
-
         while(fgets(line, sizeof(line), fpipe)){
                 LOGD("%s", line);
         }

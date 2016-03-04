@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
 
         //ndk.libExe(internalStoragePath.getAbsolutePath());
 
-        internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "toExec64");
+        internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "toExec");
 
 
         Log.d(TAG, internalStoragePath.getAbsolutePath());
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         bis = null;
         soWriter = null;
         try {
-            bis = new BufferedInputStream(getAssets().open("toExec64"));
+            bis = new BufferedInputStream(getAssets().open("toExec"));
             soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
             byte [] buf = new byte[BUF_SIZE];
 
@@ -72,7 +72,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //internalStoragePath.setExecutable(true);
+        internalStoragePath.setExecutable(true);
+
         /*
         try {
             Process nativeExe = Runtime.getRuntime().exec(internalStoragePath.getAbsolutePath());
