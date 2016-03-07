@@ -262,7 +262,7 @@ process and executing the given program at its path. It returns a \code{FILE} po
 whose stream can be read out by \code{fgets()}. The complete C++ implementation
 of the behavior is shown in \autoref{cpp_bin_exec}. In order to catch \code{stderr}
 the program path string can be extended with the string ``2>\&1'' to detour the error
-channel (2) to the common output channel (1).
+channel (2) to the common output channel, \code{stdout} (1).
 \begin{lstlisting}[language=Java, caption=C++ Native Exec(), label=cpp_bin_exec]
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env, object obj, jstring path)
 {
