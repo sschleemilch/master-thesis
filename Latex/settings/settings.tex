@@ -2,8 +2,8 @@
 
 
 %scrbook
-%%%%\setkomafont{disposition}{\normalfont\bfseries} % use serif font for headings
-\linespread{1.3} % adjust line spread for mathpazo font
+%\setkomafont{disposition}{\normalfont\bfseries} % use serif font for headings
+\linespread{1.5} % adjust line spread for mathpazo font
 
 % Settings for glossaries TODO: remove the following block if glossary not needed
 \renewcommand{\glsnamefont}[1]{\normalfont\bfseries #1} % use serif font for glossary entry titles
@@ -17,6 +17,8 @@
   cycle list={CornflowerBlue\\Dandelion\\ForestGreen\\BrickRed\\},
 }
 
+%bold Figure, Listing, ...
+\captionsetup{labelfont=bf}
 % Settings for lstlistings
 \lstset{%
   basicstyle=\ttfamily,

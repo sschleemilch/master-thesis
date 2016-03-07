@@ -7,6 +7,9 @@ Then there will be a sample application that shows a dynamic native code executi
 
 \section{NDK and Android Studio Integration}\label{section:ndk_integration}
 A complete documentation and starting guide about the NDK can be found at \parencite{ndk} and a guide to the integration into Android Studio at \parencite{ndk_integration}.
+There is more than one way to integrate the NDK into Android Studio. The one described
+in this thesis uses the platform build tools script \code{ndk-build}. Another possible
+integration is the use of the gradle experimental plugin and is described in \parencite{gradle_experimental}.
 The NDK allows to embed compiled C/C++ in an application. It can be installed via Android Studio which is the default and recommended IDE for Android development.
 The result of compiled C/C++ code is of course CPU dependent. Therefore the library has to be cross compiled for 
 every possible CPU supported by Android. Possible architectures supported by the NDK are so far:
@@ -202,8 +205,9 @@ compiled for 64 Bit are again shared objects (by checking the output of the Linu
 \code{file} command line program).
 They are dedicated to their interpreters (\code{/system/bin/linker} and \code{/system/bin/linker64}) that will execute them. It does however make a difference since
 Android seems like to support only position independent executables (PIE).
-PIE's purpose is to be able to execute its code regardless of its absolute address. Shared objects do count as PIEs. So in case of 32 Bit systems, there will be an
-error message 
+PIE's purpose is to be able to execute its code regardless of its absolute address
+and \parencite{pie} is an interesting article about the impact of PIEs.
+Shared objects are a specific implementation of PIEs. So in case of 32 Bit systems, there will be an error message 
 ``\code{error: only position independent executables (PIE) are supported.}'' when
 compiled as executable without any additions. There is of course a solution for that
 by adding a \code{LOCAL\_CFLAGS} entry \code{-fPIE} as well as the \code{LOCAL\_LDFLAGS}

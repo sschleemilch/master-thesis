@@ -490,7 +490,7 @@ If necessary, a native bridge will be initialized and scheduler policies
 are being set. SELinux properties are applied and the thread name gets
 changed to a name other than ``app\_process'', mostly the package name of the app.
 
-Back in the Java world \code{ZygoteConnection} checks the returned PID and either calls \code{handleChildProc()} in case of the child or
+Back in the Java world \code{Zygote\allowbreak Connection} checks the returned PID and either calls \code{handleChildProc()} in case of the child or
 \code{handleParentProc()} in case of the parent (Zygote itself).
 These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level (since the child should not listen on sockets like the parent Zygote) and remaining arguments are being evaluated. When forking an app, a class name will be defined at that time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters. The class loader \code{cloader} is defined as
 either with \code{PathClassLoader()} or \code{ClassLoader()} constructor whether a classpath is
@@ -663,7 +663,6 @@ procedure. Let's assume we do have the following DVM instructions (Example taken
     return v4
   \end{lstlisting}
 
-
 Because of the if statement that performs a jump to line four, the \code{array\_size 10} command will never be reached.
 Since ``linear sweep'' does not perform jumps, the analyzing tool
 will interpret the ten following bytes of that array initialization as payload and will therefore not be able to disassemble the actual instructions.
@@ -674,20 +673,17 @@ These tools also may be tricked by choosing a more complicated condition for
 if-conditions that can only be evaluated at runtime and therefore the
 whole conditional branch (including the breaking byte sequence) would also tried to be evaluated (Actually this technique could already be counted to dynamic obfuscation) \parencite[p.68]{lvl_imp}.
 
-Although this example is written for Dalvik since it consists of DVM
-instructions, it can be applied to ART apps as well but at native code level
-in the OAT file.
-However one would need to have an eye on the overall fileformat when changing
-the size and content of bytes since methods are referenced with offsets that
-might change after inserting additional bytes. Same applies to checksums and
-section size specifications. Another way would be to include Junky-Byte-Insertion by design in source code already by creating dead branches on
-purpose. As a result, one would not have to deal with file format details
-but instead with compiler optimization levels to make sure that branch doesnt
-get blanked and of course with the actual compiling step and being able
-to detect the area again in native code.
 
-TODO:: ART vs Dalvik conclusion? -> Can be applied to both, but at different
-       levels: DVM instructions vs Native instructions!
+This example is based on DVM instructions and was therefore designed for Dalvik and
+Android prior version five. 
+The Junk-Byte Insertion will no more be possible in ART. Why? 
+Even if one would insert Junk-Bytes into the DEX file, there is still a conversion
+step into the new OAT format introduced in ART, which compiles into native code so 
+that any form of inserted bytes wont be adopted. So Junk-Bytes can of course still
+be inserted into DEX to prevent an attacker to perform disassembling of DEX but those
+Junk-Bytes will not apply to the compiled code. However, since the compiled code
+is native code and therefore not that easy to disassemble, Junk-Bytes might still be
+usefull at DEX layer.
 
 \subsection{Dynamic}
 \subsubsection{Hidden Methods Invocation}
@@ -714,7 +710,7 @@ Thats why the changes to the DEX need to be reversed at runtime.
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.4]{figures/hidden_method_invocation}
-  \caption[Hidden Methods Invocation]{Hidden Methods Invocation Principle}
+  \caption[Hidden Methods Invocation]{Hidden Methods Invocation Principle (Method1 gets hidden)}
   \label{fig:hidden_method_invocation}
 \end{figure}
 
@@ -767,7 +763,10 @@ public class ToLoad{
 \end{lstlisting}
 A Dex can be created with a ``\code{javac ToLoad.java}'' call followed by
 using the \code{dx} tool with ``\code{dx -{}-dex -{}-output="toload.dex"
-ToLoad.class}''. The \code{dexPath} has to be readable by the app itself. Therefore
+ToLoad.class}'' (Be sure to use a Java version < 1.8, otherwise the \code{dx}
+command will fail since Java 1.8 ist not yet officially supported by Android at the time
+of writing this thesis).
+The \code{dexPath} has to be readable by the app itself. Therefore
 the Dex should be stored in the app data directory where dexPath should then
 search for, same for the optimized directory.
 \code{getDir()} can create a private folder with a given name
@@ -790,8 +789,9 @@ philosophy. With that in mind, it should be clear that it is not possible
 to load a Dex file into a byte array and execute it directly like it was
 possible at Dalvik using the libdvm library via JNI since ART cannot execute
 DVM instructions by design. So in the scope of copy protection mechanisms
-with ART, dynamic code loading at Java layer is not that useful since the optimized
-file does persist after the first dynamic load and can be analyzed afterwards.
+with ART, dynamic code loading at Java layer is not that useful anymore. 
+Instead it needs to get analyzed how code can be loaded dynamically in ART which 
+will be determined in \autoref{chapter:android_dynamic_native_code}.
 
 \subsubsection{Self Modifying Code}
 Quite similar to dynamic code loading described in
