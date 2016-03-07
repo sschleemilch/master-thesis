@@ -252,7 +252,6 @@ String nativeOutput =  output.toString();
 Log.d(TAG, "nativeOut: " + nativeOutput);
 \end{lstlisting}
 
-
 \subsection{C/C++ Implementation}\label{dyn_bin_c}
 As for C/C++, the implementation is not much more complicated compared to Java.
 The main part of execution is a call of \code{popen()} 
@@ -263,7 +262,7 @@ whose stream can be read out by \code{fgets()}. The complete C++ implementation
 of the behavior is shown in \autoref{cpp_bin_exec}. In order to catch \code{stderr}
 the program path string can be extended with the string ``2>\&1'' to detour the error
 channel (2) to the common output channel, \code{stdout} (1).
-\begin{lstlisting}[language=Java, caption=C++ Native Exec(), label=cpp_bin_exec]
+\begin{lstlisting}[language=C++, caption=C++ Native Exec(), label=cpp_bin_exec]
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env, object obj, jstring path)
 {
 	const char *exepath = env->GetStringUTFChars(path, NULL);
@@ -288,7 +287,7 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env
 }
 \end{lstlisting}
 
-\section{Dynamic Code Execution from Memory}\label{dyn_code_memory}
+\section{Dynamic Code Execution from Memory}\label{section:dyn_code_memory}
 
 Until now, dynamic code execution or loading via shared libraries was done
 by downloading/copying a file into the internal storage of the app followed
@@ -296,3 +295,66 @@ by invoking it which is kind of like caching it. Instead,
 it would be also interesting if program code can be invoked directly in and out
 of memory. So there need to be inspected if an Android app process has access
 to memory and how to read/execute program code out of it.   
+
+\section{Android Virtual Memory Mapping}\label{section:virtual_memory}
+When printing the content of \code{/proc/<PID>/maps} of a Linux process, one
+can see virtual memory locations that are assigned to its process. Also,
+``\code{self}'' is a specific PID that can be used as a path in a process
+to access its own \code{proc/} directory.
+An example output of one map entry is shown in \autoref{tab:proc_maps_out} and its explanations are pulled out of a stackoverflow answer to the question at \parencite{proc_maps}.
+\begin{table}[htb]
+  \caption[Content of /proc/<PID>/maps]{Content of /proc/<PID>/maps}
+  \label{tab:proc_maps_out}
+  \centering
+  \begin{tabular}{l l l l l l}
+    \toprule
+    address & perms & offset & dev & inode & pathname \\
+    \midrule
+    6feed000-708ca000 & rw-p & 00000000 & b3:1c & 105876 & /data/.../framework@boot.art \\
+    \bottomrule
+  \end{tabular}
+\end{table}  
+The address shows the physical start and end of its mapped section. Permissions
+shows how this region can be accessed (common Linux ``\code{rwx}'' permission triple)
+and can be marked as private \code{p} or shared \code{s}. If the section
+was mapped out of a file, offset describes the offset inside of that file to
+the specific region. Device also only applies if mapped from a file and includes
+the device number and inode holds its file number. Pathname obviously holds the
+path to the file. 
+
+It is also a good way to start to have a look at an Android process as well.
+When doing so, it reveals all kind of mapped libraries (which are a lot even 
+with a blank activity app and emphasizes that forking of Zygote is efficient), fonts, its own APK and regions that don't have a pathname or just a pseudo name like
+``\code{[anon:linker\_alloc]}'' or ``\code{[stack]}''. Generally, a stack holds
+data that only persists inside of a function call like initialized arrays and
+variables and its content gets automatically released after leaving that function.
+The heap however can be used by the programmer to allocate memory
+(e.g. with \code{malloc()}) by hand but has to be freed explicitly.
+Let's evaluate which sections are used to store heap as well as common stack
+elements by creating a native function with a buffer using \code{malloc()}
+and a common local integer variable.
+\autoref{r_maps} shows how to read and print the maps content from C++ on logcat.
+\begin{lstlisting}[language=C++, caption=Reading /proc/self/maps, label=r_maps]
+FILE* fp;
+char line[2048];
+fp = fopen("/proc/self/maps", "r");
+if (fp == NULL){
+    LOGE("Could not open /proc/self/maps");
+    return;
+}
+LOGD("Before:\n");
+while (fgets(line, 2048, fp) != NULL) {
+    LOGD("%s", line);
+}
+fp->_close;
+\end{lstlisting}
+When initializing a variable in a function and printing out its address afterwards,
+one can see that the region is not described in the maps output. Unlike the
+common variable, the \code{malloc()} space lies in between the described maps
+address range. The region containing the space requested by \code{malloc()} 
+is marked as \code{[anon:libc\_malloc]}. That can be proved by reading the mapping
+before and after the \code{malloc()} call while only printing lines containing ``\code{[anon:libc\_malloc]}'' and comparing those outcomes. 
+Then it appears that one map section differs in address range equal to the 
+\code{malloc()} size.  
+
+TODO:mmap() difference on mapping?; why malloc useful/important?; write at a location?

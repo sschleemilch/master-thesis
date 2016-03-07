@@ -652,7 +652,6 @@ till the end without interpreting them (e.g. not following jumps).
 That examining technique can be exploited to break the disassembling
 procedure. Let's assume we do have the following DVM instructions (Example taken out of \parencite[p.67]{lvl_imp}).
 \autoref{junk_byte_listening}
-
   \begin{lstlisting}[language={[x64]Assembler}, caption=Junk-Byte-Insertion, label=junk_byte_listening, numbers=left]
     if "true" goto line 4
     load_array_into v1, line_3
@@ -806,7 +805,6 @@ value must be set in order to be recognized by the native code function.
 That value is often called ``egg'' and the search process ``egg-hunting''.
 Let's assume we do have the code snippet shown in \autoref{self_modifying_code} that exists in the context of an Android app activity
 \parencite{code_protection}.
-
  \begin{lstlisting}[language=Java, caption=Self Modifying Code Example, label=self_modifying_code]
     ...
     modifyVariable();
@@ -816,7 +814,6 @@ Let's assume we do have the code snippet shown in \autoref{self_modifying_code} 
     native private void modifyVariable();
     ...
 \end{lstlisting}
-
 
 The \code{modifyVariable()} is a native code method and sweeps
 over the process memory (detectable through \code{/proc/self/maps})

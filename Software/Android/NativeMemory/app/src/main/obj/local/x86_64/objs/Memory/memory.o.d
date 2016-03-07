@@ -1,5 +1,5 @@
-obj/local/x86_64/objs/Memory/memory.o: jni/memory.cpp \
- jni/schleemilch_ma_nativememory_MyNDK.h \
+obj/local/x86_64/objs/Memory/memory.o: jni/Memory/memory.cpp \
+ jni/Memory/schleemilch_ma_nativememory_MyNDK.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/jni.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/cdefs.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/cdefs_elf.h \
@@ -69,7 +69,7 @@ obj/local/x86_64/objs/Memory/memory.o: jni/memory.cpp \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/sysconf.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/pathconf.h
 
-jni/schleemilch_ma_nativememory_MyNDK.h:
+jni/Memory/schleemilch_ma_nativememory_MyNDK.h:
 
 /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/jni.h:
 

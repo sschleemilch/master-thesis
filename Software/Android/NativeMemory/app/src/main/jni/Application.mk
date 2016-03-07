@@ -1,2 +1,2 @@
-APP_MODULES := Memory
+APP_MODULES := Memory Anmemdlopen
 APP_ABI := all
