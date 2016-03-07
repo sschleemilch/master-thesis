@@ -9,7 +9,7 @@ only shell binaries (Linux kernel) but also a GUI environment
 as well as predefined frameworks and a complete environment
 for developers to write apps in the Java programming language.
 That's why Android is considered to be a ``full software stack''
-\parencite{levin}. Although it's built on Linux,
+\parencite[p.7f]{levin}. Although it's built on Linux,
 Google did modify the Linux kernel to their need.
 As a result, the Android kernel differs
 incompatibly with the Linux kernel since version 2.6.27.
@@ -33,7 +33,7 @@ between Android and Linux.
 \begin{figure}[htb]
   \includegraphics[width=\textwidth]{figures/androidvslinux}
   \caption[Android vs Linux]{Android and Linux comparison
-  ~\parencite{levin}}
+  ~\parencite[p.9]{levin}}
   \label{fig:androidvslinux}
 \end{figure}
 
@@ -53,7 +53,7 @@ register-based in contrast to JVM'S stack based architecture.
 DVM is optimized for mobile devices
 in terms of efficiency and sharing memory and is using the
 Dalvik Executable format (DEX) as bytecode which is still device
-independent \parencite{levin}. These \code{.dex} files are being
+independent \parencite[p.11f]{levin}. These \code{.dex} files are being
 packed into Java libraries (JAR) or into Android Application Packages (APK)
 and will get created automatically by the common Android Studio IDE out
 of Java code.
@@ -70,7 +70,7 @@ ART on the other hand does use Ahead-Of-Time (AOT) compilation
 which compiles an app to machine code at installation time.
 The reason for JIT in the first place were among other things
 storage limitations of mobile devices at the time Android was released
-\parencite{levin}. As a result, the ART apps installation time
+\parencite[p.11f]{levin}. As a result, the ART apps installation time
 is increased as well as the required storage space as a tradeoff
 to the app startup and runtime performance.
 
@@ -90,7 +90,7 @@ Since Android is likely to run on a great variety of devices,
 it has to support a big amount of different hardware versions.
 The HAL addresses this problem and
 standardizes the interface by allowing hardware vendors
-to implement their own drivers \parencite{levin}.
+to implement their own drivers \parencite[p.18f]{levin}.
 
 \section{Android Apps}\label{section:android_apps}
 Apps are the most abstract level of the Android software stack.
@@ -107,7 +107,7 @@ apps can not access data from other apps and they can only access
 resources those permissions were granted during installation time.
 These are one of the basic Android security concepts,
 the Privilege separation and the principle of the least
-privileges \parencite{securityinternals}.
+privileges \parencite[ch.1]{securityinternals}.
 
 Apps do have several components, the main ones are:
 
@@ -131,7 +131,7 @@ data which is chosen to be exchanged.
 They use a lower level Inter Process Communication (IPC) protocol
 provided by the Android Stack.
 With Broadcast receivers, an app can react on systemwide events
-(broadcasts) \parencite{securityinternals}.
+(broadcasts) \parencite[ch.1]{securityinternals}.
 
 Apps are distributed in form of machine independent \code{.apk} files.
 The APK file is a file container and is an extension to
@@ -207,7 +207,7 @@ Last but not least, the pm adds entries to the
 meta information about the installed packages like
 required permissions and the UID/GID of that instance.
 Android uses that UID/GID to enforce the sandboxing model
-~\parencite{securityinternals}.
+~\parencite[ch.1]{securityinternals}.
 \autoref{fig:app_installation} shows the explained
 relevant actions the pm performs.
 
@@ -235,7 +235,7 @@ By starting an app, it's therefore much more efficient to fork
 Zygote and then including the app specific part rather than
 creating a whole new process for every app but will also be introduced
 in greater detail.
-\parencite{hackershandbook}.
+\parencite[ch.2]{hackershandbook}.
 
 \subsection{Dalvik}
 As in section \autoref{section:app_installation} described, an

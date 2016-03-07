@@ -15,9 +15,9 @@ gets created by ``dex2oat'' during the installation time of an app,
 described in \autoref{section:app_installation}.
 Since ART does use AOT compilation, the file format is expected
 to be an executable or at least a native code container.
-A lot of copy protection mechanisms are based on the use of native
-code because it is supposed to be more secure from reverse code
-engineering (which is an assumption so far).
+%A lot of copy protection mechanisms are based on the use of native
+%code because it is supposed to be more secure from reverse code
+%engineering (which is an assumption so far).
 Therefore it's worth to have closer look at that file format
 especially since Google does not provide any further information
 about it's content and it might have the potential of
@@ -380,7 +380,7 @@ is capable of forking and specializing itself into a new app.
 The app process is therefore responsible for starting Zygote and other system
 related app like processes.
 The ``\code{/init}'' process arranges the start of Zygote via an
-``\code{app\_process}'' program start with specific parameters for a Zygote start 
+``\code{app\_process}'' program start with specific parameters for a Zygote start
 (init is responsible for far more, like starting native daemons system services and other things).
 
 A comman way to analyze source code is to start at its
@@ -487,7 +487,7 @@ specialized (selected by the resulting PID of \code{fork()}).
 Transfered FDs get closed and capability boundaries are applied.
 UID and GID are being set (Linux \code{setresgid/setresuid}) and resource limits are added via \code{strlimit(2)}.
 If necessary, a native bridge will be initialized and scheduler policies
-are being set. SELinux properties are applied and the thread name gets 
+are being set. SELinux properties are applied and the thread name gets
 changed to a name other than ``app\_process'', mostly the package name of the app.
 
 Back in the Java world \code{ZygoteConnection} checks the returned PID and either calls \code{handleChildProc()} in case of the child or
@@ -632,7 +632,7 @@ Possible prospects to do this are the renaming of string identifiers of
 classes, variables, methods and functions, to artificially insert
 irreducible code, create artificial parallelization, perform method inlining/outlining, to unroll loops, encoding strings or changing the control flow in
 order to confuse code analysts by keeping the original behavior
-\parencite{lvl_imp}.
+\parencite[p.87]{lvl_imp}.
 
 Popular tools for that purpose are Google's ``ProGuard''
 \parencite{proguardtool} which is included in the Android build system and
@@ -650,7 +650,7 @@ disassembling tools. It does work for tools using the
 the tools are processing every instruction from the entry-point
 till the end without interpreting them (e.g. not following jumps).
 That examining technique can be exploited to break the disassembling
-procedure. Let's assume we do have the following DVM instructions (Example taken out of \parencite{lvl_imp}).
+procedure. Let's assume we do have the following DVM instructions (Example taken out of \parencite[p.67]{lvl_imp}).
 \autoref{junk_byte_listening}
 
   \begin{lstlisting}[language={[x64]Assembler}, caption=Junk-Byte-Insertion, label=junk_byte_listening, numbers=left]
@@ -672,7 +672,7 @@ Enhanced tools will use the ``recursive traversal'' technique to analyze a
 program which is capable of detecting dead branches and conditional jumps like in the example above.
 These tools also may be tricked by choosing a more complicated condition for
 if-conditions that can only be evaluated at runtime and therefore the
-whole conditional branch (including the breaking byte sequence) would also tried to be evaluated (Actually this technique could already be counted to dynamic obfuscation) \parencite{lvl_imp}.
+whole conditional branch (including the breaking byte sequence) would also tried to be evaluated (Actually this technique could already be counted to dynamic obfuscation) \parencite[p.68]{lvl_imp}.
 
 Although this example is written for Dalvik since it consists of DVM
 instructions, it can be applied to ART apps as well but at native code level
@@ -691,7 +691,7 @@ TODO:: ART vs Dalvik conclusion? -> Can be applied to both, but at different
 
 \subsection{Dynamic}
 \subsubsection{Hidden Methods Invocation}
-In \parencite{lvl_imp} a technique is described to hide a whole method
+In \parencite[p.82f]{lvl_imp} a technique is described to hide a whole method
 in \code{.dex} files. This hiding method is highly dependent on the DEX specification from Google \parencite{dex} that has been described in
 \autoref{section:dex_file_format}.
 It does base on the fact that the actual instructions of methods residing
