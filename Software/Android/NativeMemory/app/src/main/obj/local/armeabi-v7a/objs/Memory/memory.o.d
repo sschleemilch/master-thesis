@@ -71,7 +71,11 @@ obj/local/armeabi-v7a/objs/Memory/memory.o: jni/Memory/memory.cpp \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/linux/stat.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/endian.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/sys/endian.h \
- /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/machine/endian.h
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/machine/endian.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/fcntl.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/linux/fcntl.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/asm/fcntl.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/asm-generic/fcntl.h
 
 jni/Memory/schleemilch_ma_nativememory_MyNDK.h:
 
@@ -218,3 +222,11 @@ jni/Memory/schleemilch_ma_nativememory_MyNDK.h:
 /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/sys/endian.h:
 
 /home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/machine/endian.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/fcntl.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/linux/fcntl.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/asm/fcntl.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-3/arch-arm/usr/include/asm-generic/fcntl.h:

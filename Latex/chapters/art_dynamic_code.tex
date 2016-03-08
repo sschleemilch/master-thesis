@@ -296,7 +296,7 @@ it would be also interesting if program code can be invoked directly in and out
 of memory. So there need to be inspected if an Android app process has access
 to memory and how to read/execute program code out of it.   
 
-\subsection{Android Memory Mapping}\label{section:virtual_memory}
+\subsection{Android Memory Mapping}\label{section:memory_mapping}
 When printing the content of \code{/proc/<PID>/maps} of a Linux process, one
 can see virtual memory locations that are assigned to its process. Also,
 ``\code{self}'' is a specific PID that can be used as a path in a process
@@ -358,12 +358,11 @@ Unfortunately, the amount of output lines is limited when using logging via logc
 implements a ring buffer with a device dependent size (``\code{adb logcat -g}''). That
 is a problem when printing the whole memory mapping and can confuse the inspection 
 since a ring buffer overwrites itself when overflowing. So either one can use an
-adb shell to ``\code{cat /proc/<PID>/maps}'' by hand or trigger the logcat output to
-specific strings. Getting an overview via a whole output and triggering for specific
-parts via logcat afterward might be the best solution. 
-
+adb shell to ``\code{cat /proc/<PID>/maps}'' by hand (root rights needed)
+or triggering the logcat output to specific strings. Getting an overview via a whole output and triggering for specific parts via logcat afterward might be the best solution. 
 To find the mapping of the executing library, triggering the name library is enough
-and its output is shown in on top of \autoref{tab:mem_alloc_map}.
+and its output is shown on top of \autoref{tab:mem_alloc_map}. Three regions
+of the library are mapped, for reading, writing and executing each.
 \begin{table}[htb]
   \caption[Memory Allocation Mapping]{Memory Allocation Mapping}
   \label{tab:mem_alloc_map}
@@ -377,7 +376,23 @@ and its output is shown in on top of \autoref{tab:mem_alloc_map}.
     b39f9000-b39fa000 & rw-p & 00000000 & b3:1c & 187593 & /data/app/.../lib/arm/libMemory.so \\
     be0c3000-be8c2000 & rw-p & 00000000 & 00:00 & 0      &    [stack]\\
     b3940000-b39c0000 & rw-p & 00000000 & 00:00 & 0      &    [anon:libc\_malloc]\\
-
     \bottomrule
   \end{tabular}
-\end{table}  
+\end{table}
+When creating an integer variable and printing its address afterwards, it appears
+that it is located in a ``\code{[stack]}'' marked region that is not included in 
+the library mapped range and memory allocations by the \code{malloc()} as well as the
+\code{mmap()} function are listed in areas marked as ``\code{[anon:libc\_malloc]}'' 
+(also printed in \autoref{tab:mem_alloc_map}).
+
+\subsection{Code Execution}\label{section:code_execution}
+To be able to execute code out of memory it has to be dynamically mapped into the
+process space. Like in \autoref{section:memory_mapping} deduced, \code{malloc()} or
+\code{mmap()} can be used for that purpose. The \code{mmap()} function needs a file
+descriptor as input and therefore it has to be cached at an app readable path where
+\code{malloc()} is a bit more flexible since it only expects the desired memory size.
+A sample implementation, mapping a shared object for both variants using a demonstration path again given from Java can be found in 
+\autoref{chapter:so_mem_mapping}.
+
+
+\section{General Memory Access}\label{section:general_mem_access}

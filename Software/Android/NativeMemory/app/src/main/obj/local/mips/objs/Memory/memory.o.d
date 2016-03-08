@@ -69,7 +69,11 @@ obj/local/mips/objs/Memory/memory.o: jni/Memory/memory.cpp \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/linux/stat.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/endian.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/sys/endian.h \
- /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/machine/endian.h
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/machine/endian.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/fcntl.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/linux/fcntl.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/asm/fcntl.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/asm-generic/fcntl.h
 
 jni/Memory/schleemilch_ma_nativememory_MyNDK.h:
 
@@ -212,3 +216,11 @@ jni/Memory/schleemilch_ma_nativememory_MyNDK.h:
 /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/sys/endian.h:
 
 /home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/machine/endian.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/fcntl.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/linux/fcntl.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/asm/fcntl.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-9/arch-mips/usr/include/asm-generic/fcntl.h:

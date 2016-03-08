@@ -10,6 +10,7 @@
 #include <dlfcn.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #define LOG_TAG "NDK-Logging"
 
@@ -24,8 +25,7 @@ typedef struct {
 
 lib_t libdata;
 
-JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc
-        (JNIEnv *env, jobject obj){
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIEnv *env, jobject obj){
 
     FILE* fp;
     char line[2048];
@@ -81,8 +81,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc
     fp->_close;
 
 }
-JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile
-        (JNIEnv *env, jobject obj, jstring inpath){
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv *env, jobject obj, jstring inpath){
 
     const char *path = env->GetStringUTFChars(inpath, NULL);
     struct stat st;
@@ -106,6 +105,8 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile
     LOGD("read %zu bytes", read);
     LOGD("Address of libdata: %p", &libdata.data);
     fclose(file);
+
+
     int8_t * buffer;
     buffer = (int8_t*) malloc(262144);
 
@@ -126,10 +127,22 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile
         }
     }
     fp->_close;
-
 }
 
-JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapFile
-        (JNIEnv *, jobject, jstring){
-
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapFile (JNIEnv *env, jobject obj, jstring inpath){
+    const char *path = env->GetStringUTFChars(inpath, NULL);
+    struct stat sb;
+    char* addr;
+    int fd;
+    off_t offset = 0;
+    fd = open(path, O_RDONLY);
+    if (fstat(fd, &sb) == -1){
+        LOGE("fstat Error");
+    }
+    addr = (char*) mmap(NULL, sb.st_size, PROT_READ | PROT_EXEC | PROT_WRITE,
+                        MAP_PRIVATE, fd, offset);
+    if (addr == MAP_FAILED){
+        LOGE("MMAP failed");
+    }
+    LOGD("MMAP Start addr: %x", addr);
 }
