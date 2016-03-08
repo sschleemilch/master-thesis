@@ -67,7 +67,12 @@ obj/local/x86_64/objs/Memory/memory.o: jni/Memory/memory.cpp \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/unistd.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/select.h \
  /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/sysconf.h \
- /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/pathconf.h
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/pathconf.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/stat.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/linux/stat.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/endian.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/endian.h \
+ /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/machine/endian.h
 
 jni/Memory/schleemilch_ma_nativememory_MyNDK.h:
 
@@ -206,3 +211,13 @@ jni/Memory/schleemilch_ma_nativememory_MyNDK.h:
 /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/sysconf.h:
 
 /home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/pathconf.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/stat.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/linux/stat.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/endian.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/sys/endian.h:
+
+/home/basti/Android/Sdk/ndk-bundle/platforms/android-21/arch-x86_64/usr/include/machine/endian.h:

@@ -296,7 +296,7 @@ it would be also interesting if program code can be invoked directly in and out
 of memory. So there need to be inspected if an Android app process has access
 to memory and how to read/execute program code out of it.   
 
-\section{Android Virtual Memory Mapping}\label{section:virtual_memory}
+\subsection{Android Memory Mapping}\label{section:virtual_memory}
 When printing the content of \code{/proc/<PID>/maps} of a Linux process, one
 can see virtual memory locations that are assigned to its process. Also,
 ``\code{self}'' is a specific PID that can be used as a path in a process
@@ -330,9 +330,13 @@ data that only persists inside of a function call like initialized arrays and
 variables and its content gets automatically released after leaving that function.
 The heap however can be used by the programmer to allocate memory
 (e.g. with \code{malloc()}) by hand but has to be freed explicitly.
-Let's evaluate which sections are used to store heap as well as common stack
+Let's evaluate which mapping sections are used to store heap as well as common stack
 elements by creating a native function with a buffer using \code{malloc()}
-and a common local integer variable.
+and a common local integer variable. While \code{malloc()} creates memory areas
+without any additional adaption, \code{mmap()} maps a whole file, returns a pointer
+to its start address and can set memory protection flags of the mapped area that
+are necessary when it shall be executed, written or read later (\code{PROT\_EXEC},
+ \code{PROT\_READ},\code{PROT\_WRITE}).
 \autoref{r_maps} shows how to read and print the maps content from C++ on logcat.
 \begin{lstlisting}[language=C++, caption=Reading /proc/self/maps, label=r_maps]
 FILE* fp;
@@ -344,17 +348,36 @@ if (fp == NULL){
 }
 LOGD("Before:\n");
 while (fgets(line, 2048, fp) != NULL) {
-    LOGD("%s", line);
+    if (strstr(line,"triggeredString")){
+        LOGD("%s", line);
+    }
 }
 fp->_close;
 \end{lstlisting}
-When initializing a variable in a function and printing out its address afterwards,
-one can see that the region is not described in the maps output. Unlike the
-common variable, the \code{malloc()} space lies in between the described maps
-address range. The region containing the space requested by \code{malloc()} 
-is marked as \code{[anon:libc\_malloc]}. That can be proved by reading the mapping
-before and after the \code{malloc()} call while only printing lines containing ``\code{[anon:libc\_malloc]}'' and comparing those outcomes. 
-Then it appears that one map section differs in address range equal to the 
-\code{malloc()} size.  
+Unfortunately, the amount of output lines is limited when using logging via logcat which
+implements a ring buffer with a device dependent size (``\code{adb logcat -g}''). That
+is a problem when printing the whole memory mapping and can confuse the inspection 
+since a ring buffer overwrites itself when overflowing. So either one can use an
+adb shell to ``\code{cat /proc/<PID>/maps}'' by hand or trigger the logcat output to
+specific strings. Getting an overview via a whole output and triggering for specific
+parts via logcat afterward might be the best solution. 
 
-TODO:mmap() difference on mapping?; why malloc useful/important?; write at a location?
+To find the mapping of the executing library, triggering the name library is enough
+and its output is shown in on top of \autoref{tab:mem_alloc_map}.
+\begin{table}[htb]
+  \caption[Memory Allocation Mapping]{Memory Allocation Mapping}
+  \label{tab:mem_alloc_map}
+  \centering
+  \begin{tabular}{l l l l l l}
+    \toprule
+    address & perms & offset & dev & inode & pathname \\
+    \midrule
+    b39f5000-b39f8000 & r-xp & 00000000 & b3:1c & 187593 & /data/app/.../lib/arm/libMemory.so \\
+    b39f8000-b39f9000 & r--p & 00000000 & b3:1c & 187593 & /data/app/.../lib/arm/libMemory.so \\
+    b39f9000-b39fa000 & rw-p & 00000000 & b3:1c & 187593 & /data/app/.../lib/arm/libMemory.so \\
+    be0c3000-be8c2000 & rw-p & 00000000 & 00:00 & 0      &    [stack]\\
+    b3940000-b39c0000 & rw-p & 00000000 & 00:00 & 0      &    [anon:libc\_malloc]\\
+
+    \bottomrule
+  \end{tabular}
+\end{table}  

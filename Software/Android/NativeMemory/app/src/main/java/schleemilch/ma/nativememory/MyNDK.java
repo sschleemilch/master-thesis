@@ -5,5 +5,6 @@ public class MyNDK {
         System.loadLibrary("Memory");
     }
     native public void showSelfProc();
-
+    native public void mallocFile(String path);
+    native public void mmapFile(String path);
 }

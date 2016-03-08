@@ -15,6 +15,22 @@ extern "C" {
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc
   (JNIEnv *, jobject);
 
+/*
+ * Class:     schleemilch_ma_nativememory_MyNDK
+ * Method:    mallocFile
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile
+  (JNIEnv *, jobject, jstring);
+
+/*
+ * Class:     schleemilch_ma_nativememory_MyNDK
+ * Method:    mmapFile
+ * Signature: (Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapFile
+  (JNIEnv *, jobject, jstring);
+
 #ifdef __cplusplus
 }
 #endif
