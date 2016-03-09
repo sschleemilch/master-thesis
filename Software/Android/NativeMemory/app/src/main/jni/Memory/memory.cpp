@@ -106,7 +106,8 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv 
     LOGD("Address of libdata: %p", &libdata.data);
     fclose(file);
 
-
+    mprotect(libdata.data, libdata.size, PROT_READ | PROT_EXEC);
+    _SC_PAGE
     int8_t * buffer;
     buffer = (int8_t*) malloc(262144);
 

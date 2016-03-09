@@ -292,9 +292,10 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env
 Until now, dynamic code execution or loading via shared libraries was done
 by downloading/copying a file into the internal storage of the app followed
 by invoking it which is kind of like caching it. Instead,
-it would be also interesting if program code can be invoked directly in and out
-of memory. So there need to be inspected if an Android app process has access
-to memory and how to read/execute program code out of it.   
+it would be also interesting if program code can be invoked directly in and afterwards
+executed out of memory. 
+So there need to be inspected if an Android app process has access
+to memory and if it is feasable read/execute program code out of it.   
 
 \subsection{Android Memory Mapping}\label{section:memory_mapping}
 When printing the content of \code{/proc/<PID>/maps} of a Linux process, one
@@ -391,8 +392,13 @@ process space. Like in \autoref{section:memory_mapping} deduced, \code{malloc()}
 \code{mmap()} can be used for that purpose. The \code{mmap()} function needs a file
 descriptor as input and therefore it has to be cached at an app readable path where
 \code{malloc()} is a bit more flexible since it only expects the desired memory size.
+It has however also a downside since it returns a memory region that is marked 
+as read and write but not as executable. So additional steps has to be performed
+to use that space for executing code, like calling \code{mprotect()} which needs
+the starting address, the size of its region and of course the permissions to set.
 A sample implementation, mapping a shared object for both variants using a demonstration path again given from Java can be found in 
 \autoref{chapter:so_mem_mapping}.
+
 
 
 \section{General Memory Access}\label{section:general_mem_access}
