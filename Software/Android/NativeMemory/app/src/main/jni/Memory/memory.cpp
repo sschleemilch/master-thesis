@@ -107,7 +107,6 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv 
     fclose(file);
 
     mprotect(libdata.data, libdata.size, PROT_READ | PROT_EXEC);
-    _SC_PAGE
     int8_t * buffer;
     buffer = (int8_t*) malloc(262144);
 
@@ -147,3 +146,35 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapFile (JNIEnv *
     }
     LOGD("MMAP Start addr: %x", addr);
 }
+void* alloc_executable_memory(size_t size) {
+    void* ptr = mmap(0, size,
+                     PROT_READ | PROT_WRITE | PROT_EXEC,
+                     MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    if (ptr == (void*)-1) {
+        LOGE("mmap");
+        return NULL;
+    }
+    return ptr;
+}
+void emit_code_into_memory(unsigned char* m) {
+    unsigned char code[] = {
+        0xe3, 0xa0, 0x00, 0x09, // mov r0, 9
+        0xe1, 0x2f, 0xff, 0x1e // return lr
+    };
+    memcpy(m, code, sizeof(code));
+}
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeSomething
+        (JNIEnv *env, jobject obj){
+    typedef int (*JittedFunc)(int, int);
+    size_t SIZE = 1024;
+
+    void* m = alloc_executable_memory(SIZE);
+    LOGD("MALLOC ADDR: %p", m);
+    emit_code_into_memory((unsigned char*)m);
+
+    JittedFunc func = (JittedFunc) m;
+    LOGD("FUNC ADDR: %p", &func);
+    int result = func(1,2);
+    LOGD("Result of 1 + 2 = %d",result);
+}
+
