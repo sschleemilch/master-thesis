@@ -72,6 +72,7 @@ Android implementation, the OAT file:
   \caption[ELF section headers]{ELF section headers}
   \label{tab:section_headers}
   \centering
+  \texttt{
   \begin{tabular}{l l l l l l l l l l l}
     \toprule
     \multicolumn{11}{l}{Secion Headers:}\\
@@ -87,6 +88,7 @@ Android implementation, the OAT file:
     {[} 7{]} & .shstrtab & STRTAB & 00000000 & 004038 & 000038 & 01 &   & 0 & 0 & 1 \\
     \bottomrule
   \end{tabular}
+  }
 \end{table}
 
 
@@ -132,6 +134,7 @@ gets reserved for uninitialized variables.
   \caption[ELF program headers]{ELF program headers}
   \label{tab:program_headers}
   \centering
+  \texttt{
   \begin{tabular}{l l l l l l l l}
     \toprule
     \multicolumn{8}{l}{Program Headers:}\\
@@ -144,6 +147,7 @@ gets reserved for uninitialized variables.
     DYNAMIC & 0x004000 & 0x00004000 & 0x00004000 & 0x00038 & 0x00038 & RW & 0x1000 \\
     \bottomrule
   \end{tabular}
+  }
 \end{table}
 
 
@@ -156,6 +160,7 @@ mapping of sections to segments
   \caption[ELF section segment mapping]{ELF section segment mapping}
   \label{tab:sections_segments_mapping}
   \centering
+  \texttt{
   \begin{tabular}{l l l l l}
     \toprule
     \multicolumn{5}{l}{00}\\
@@ -165,6 +170,7 @@ mapping of sections to segments
     04 & .dynamic & & & \\
     \bottomrule
   \end{tabular}
+  }
 \end{table}
 
 It's interesting to note that the Android usage of ELF for apps
@@ -318,6 +324,7 @@ a sample hello world application.
   \caption[Android Processes]{Android processes}
   \label{tab:ps_entries}
   \centering
+  \texttt{
   \begin{tabular}{l l l l l}
     \toprule
       USER & PID & PPID & ... & NAME \\
@@ -329,6 +336,7 @@ a sample hello world application.
       u0\_a35 & 11017 & 212 & ... & com.android.chrome \\
     \bottomrule
   \end{tabular}
+  }
 \end{table}
 
 The process ``\code{/init}'' is the first process of Android (although
@@ -350,6 +358,7 @@ to the same executable, which they do (see \autoref{tab:process_executables}).
   \caption[Process Executables]{Process starting executables}
   \label{tab:process_executables}
   \centering
+  \texttt{
   \begin{tabular}{l l}
     \toprule
     \multicolumn{2}{l}{root@flounder:/ \# ls -la /proc/10072/exe} \\
@@ -365,6 +374,7 @@ to the same executable, which they do (see \autoref{tab:process_executables}).
     ... & exe -> /system/bin/app\_process32\\
     \bottomrule
   \end{tabular}
+  }
 \end{table}
 
 An executable named ``\code{app\_process32/64}'' seems like to be the entry-point for apps (or at least Zygote) to get started.

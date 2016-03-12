@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         MyNDK ndk = new MyNDK();
-
+        /*
         File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "mul32.so");
         Log.d(TAG, internalStoragePath.getAbsolutePath());
 
@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
         //ndk.mallocFile(internalStoragePath.getAbsolutePath());
         //ndk.mmapFile(internalStoragePath.getPath());
         //ndk.showSelfProc();

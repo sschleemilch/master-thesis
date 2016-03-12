@@ -158,15 +158,20 @@ void* alloc_executable_memory(size_t size) {
 }
 void emit_code_into_memory(unsigned char* m) {
     unsigned char code[] = {
-        0xe3, 0xa0, 0x00, 0x09, // mov r0, 9
-        0xe1, 0x2f, 0xff, 0x1e // return lr
+            //0x09,0x00,0xa0,0xe3, //mov r0, #9
+            //0x1e,0xff,0x2f,0xe1, //bx  lr
+            0x91, 0x00, 0x00, 0xe0,
+            0x1e, 0xff, 0x2f, 0xe1,
+
     };
     memcpy(m, code, sizeof(code));
 }
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeSomething
         (JNIEnv *env, jobject obj){
     typedef int (*JittedFunc)(int, int);
-    size_t SIZE = 1024;
+    size_t SIZE = 8;
+    FILE * fp;
+    char line[2048];
 
     void* m = alloc_executable_memory(SIZE);
     LOGD("MALLOC ADDR: %p", m);
@@ -174,7 +179,21 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeSomething
 
     JittedFunc func = (JittedFunc) m;
     LOGD("FUNC ADDR: %p", &func);
-    int result = func(1,2);
-    LOGD("Result of 1 + 2 = %d",result);
+
+    fp = fopen("/proc/self/maps", "r");
+    if (fp == NULL){
+        LOGE("Could not open /proc/self/maps");
+        return;
+    }
+    while (fgets(line, 2048, fp) != NULL) {
+        //if(strstr(line, "libMemory.so") != NULL){
+            LOGD("%s", line);
+        //}
+    }
+    fp->_close;
+
+    int a = 20;
+    int b = 4;
+    LOGD("Result of %d * %d = %d",a,b,func(a,b));
 }
 
