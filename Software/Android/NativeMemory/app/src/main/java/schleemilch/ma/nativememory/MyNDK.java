@@ -8,4 +8,5 @@ public class MyNDK {
     native public void mallocFile(String path);
     native public void mmapFile(String path);
     native public void executeSomething();
+    native public void memoryAccess();
 }

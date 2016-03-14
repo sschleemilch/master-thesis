@@ -29,20 +29,19 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIE
 
     FILE* fp;
     char line[2048];
-
-
-    int8_t * buffer;
-    buffer = (int8_t*) malloc(262144);
-
-    for (int i = 0; i < 262144; i++){
-        buffer[i] = i;
-    }
-    LOGD("Malloc() Addr: %p\n", (void*)buffer);
-
-    int nV = 15;
-    LOGD("Variable Addr: %p\t", &nV);
-
-
+    fp = fopen("/proc/self/maps", "r");
+        if (fp == NULL){
+            LOGE("Could not open /proc/self/maps");
+            return;
+        }
+        LOGD("All\n");
+        while (fgets(line, 2048, fp) != NULL) {
+            //if(strstr(line, "libc_malloc") != NULL){
+                LOGD("%s", line);
+            //}
+        }
+        fp->_close;
+    /*
     fp = fopen("/proc/self/maps", "r");
     if (fp == NULL){
         LOGE("Could not open /proc/self/maps");
@@ -79,6 +78,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIE
         }
     }
     fp->_close;
+    */
 
 }
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv *env, jobject obj, jstring inpath){
@@ -181,7 +181,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeSomething
     LOGD("FUNC ADDR: %p", &func);
 
     fp = fopen("/proc/self/maps", "r");
-    if (fp == NULL){
+    if (fp == NULL) {
         LOGE("Could not open /proc/self/maps");
         return;
     }
@@ -196,4 +196,33 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeSomething
     int b = 4;
     LOGD("Result of %d * %d = %d",a,b,func(a,b));
 }
+
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryAccess (JNIEnv *env, jobject obj){
+    FILE * fp;
+    char line[2048];
+    fp = fopen("/proc/self/maps", "r");
+    if (fp == NULL){
+        LOGE("Could not open /proc/self/maps");
+        return;
+    }
+    char adline[2048];
+    while (fgets(line, 2048, fp) != NULL) {
+        if(strstr(line, "rw-p 0001d000 b3:19 366") != NULL){
+            LOGD("%s", line);
+            break;
+        }
+    }
+    fp->_close;
+
+
+    char adress[9];
+    strncpy(adress,line,8);
+    adress[8] = '\0';
+
+    long long int mp = (long long int)strtoll(adress, NULL, 16);
+    char *x = mp;
+
+    LOGD("%llx", mp);
+}
+
 

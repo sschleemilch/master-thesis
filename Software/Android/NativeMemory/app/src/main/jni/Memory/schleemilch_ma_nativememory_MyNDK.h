@@ -39,6 +39,14 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapFile
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeSomething
   (JNIEnv *, jobject);
 
+/*
+ * Class:     schleemilch_ma_nativememory_MyNDK
+ * Method:    memoryAccess
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryAccess
+  (JNIEnv *, jobject);
+
 #ifdef __cplusplus
 }
 #endif

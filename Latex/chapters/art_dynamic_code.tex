@@ -42,14 +42,14 @@ the libraries to build (\code{APP\_MODULES}) and the architectures to build for
 outcome directory path relative to \code{jni/} and \code{android.useDeprecatedNdk = true} needs to be added to \code{gradle.properties} to suppress an error message. 
 A \code{ndk-build} call will then compile all sources and creates the libraries
 at \code{libs/<archs>}. They can be used out of the box without need to load them by hand
-at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the app APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with necessary 
+at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the App APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with necessary 
 pointed out adaption is shown in \autoref{chapter:ndk_sample_project}.
 
 \section{Dynamic Shared Library Loading}\label{section:shared_library_loading}
 The process demonstrated in \autoref{section:ndk_integration} is common practice to 
-integrate native code into an app but is not really dynamically loaded. Instead
+integrate native code into an App but is not really dynamically loaded. Instead
 the main idea of dynamical code loading is the distribution of code for instance
-after licensing the app or to apply some sort of copy protection mechanisms by hiding
+after licensing the App or to apply some sort of copy protection mechanisms by hiding
 the true functionality. One approach is to use native code as a loading mechanism.
 C/C++ has the ability to load shared objects (\code{*.so}) with a method called
 \code{dlopen()}. Its signature is shown in \autoref{dlopen_sig}.
@@ -63,16 +63,16 @@ for instance is not reference-able as a path string. So generally apps can use d
 \begin{itemize}
 \item \textbf{Shared Preferences} can store data in form of key-value pairs
 \item \textbf{Internal Storage} stores private arbitrary data on the device memory at the path
- \code{/data/data/<appPackage>/} that is only accessible by the app itself.
-\item \textbf{External Storage} can also store arbitrary data on \code{/sdcard/} but it is not exclusively readable by the initializing app and needs a permission declaration in
+ \code{/data/data/<appPackage>/} that is only accessible by the App itself.
+\item \textbf{External Storage} can also store arbitrary data on \code{/sdcard/} but it is not exclusively readable by the initializing App and needs a permission declaration in
 the manifest file.
 \item \textbf{SQLite Database} provides support for powerful private databases
 \item \textbf{Network Connection} can store data on the web 
 \end{itemize}
-The most suitable option should be the internal storage since the app has unlimited read
+The most suitable option should be the internal storage since the App has unlimited read
 write rights and the content is safe from other sources rather then itself. For simplicity and demonstration reasons, the library to load will be stored in the
-\code{assets/} folder of the app that also only exists in the APK but is not 
-reference-able through a path. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal app storage and a file container for the library to load gets created. 
+\code{assets/} folder of the App that also only exists in the APK but is not 
+reference-able through a path. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal App storage and a file container for the library to load gets created. 
 \begin{lstlisting}[language=Java, caption=Internal Storage Initialization, label=internal_init]
 File internalStoragePath = new File(getDir("dynamic", Context.MODE_PRIVATE), "mul.so");
 \end{lstlisting}
@@ -162,7 +162,7 @@ added to \code{Application.mk} as well. Gradle needs to know the names of the su
 directories of \code{jni/} so that ``\code{jni.srcDirs=[]}'' has to be
 filled with those folder name strings. As a result of that structure, the compiled
 library that will get loaded afterwards also will be saved in the \code{libs/} folder
-and shipped within the app when not deleting it. In a scenario where an app requests new
+and shipped within the App when not deleting it. In a scenario where an App requests new
 parts and gets them from a server for instance, these libraries should then only be
 present server sided. In order to receive the right compiled shared object for every
 device, it should add CPU information with its request (e.g. by sending the output
@@ -290,11 +290,11 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env
 \section{Dynamic Code Execution from Memory}\label{section:dyn_code_memory}
 
 Until now, dynamic code execution or loading via shared libraries was done
-by downloading/copying a file into the internal storage of the app followed
+by downloading/copying a file into the internal storage of the App followed
 by invoking it which is kind of like caching it. Instead,
 it would be also interesting if program code can be invoked directly in and afterwards
 executed out of memory. 
-So there need to be inspected if an Android app process has access
+So there need to be inspected if an Android App process has access
 to memory and if it is feasable read/execute program code out of it.   
 
 \subsection{Android Memory Mapping}\label{section:memory_mapping}
@@ -327,7 +327,7 @@ path to the file.
 
 It is also a good way to start to have a look at an Android process as well.
 When doing so, it reveals all kind of mapped libraries (which are a lot even 
-with a blank activity app and emphasizes that forking of Zygote is efficient), fonts, its own APK and regions that don't have a pathname or just a pseudo name like
+with a blank activity App and emphasizes that forking of Zygote is efficient), fonts, its own APK and regions that don't have a pathname or just a pseudo name like
 ``\code{[anon:linker\_alloc]}'' or ``\code{[stack]}''. Generally, a stack holds
 data that only persists inside of a function call like initialized arrays and
 variables and its content gets automatically released after leaving that function.
@@ -441,9 +441,9 @@ for every function, exactly what will be needed (output for
   \end{tabular}
   }
 \end{table}
-The byte sequence \code{e0000091} represents the mnemonic equivalent of a multiplication
+The byte sequence \code{0xe0000091} represents the mnemonic equivalent of a multiplication
 (\code{r0 = r1 * r0}) and the following one is responsible for exiting the function and returning the value. Since object files are normally little endian, the bytes written
-to memory have to be inverted first (\code{0xe0000091 -> 0x91 0x00 0x00 0xe0}).
+to memory have to be inverted first (\code{0xe0000091 turns to 0x910000e0}).
 
 \subsubsection{Implementation}
 At first, a memory location will get allocated, a function for that purpose could be written that takes the regions size as an input like shown in \autoref{alloc_exe_mem}.
@@ -474,8 +474,7 @@ void emit_code_into_memory(unsigned char* m) {
 \end{lstlisting}
 A \code{typedef} can be used to specify the function signature matching the C source function. It can get initialized by pointing to the allocated memory region. 
 After that, all that's left to do is calling it like a common function.
-\autoref{exec_mach_code} shows the actual implementation as a JNI C++ function using the methods
-from before and showing some additional output information.
+\autoref{exec_mach_code} shows the actual implementation via JNI C++ using the predefined methods from before and showing some additional output information.
 \begin{lstlisting}[language=C++, caption=executeMachineCode(), label=exec_mach_code]
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeMachineCode (JNIEnv *env, jobject obj){
     typedef int (*JittedFunc)(int, int);

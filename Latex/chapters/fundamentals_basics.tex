@@ -65,14 +65,14 @@ With Android version 5.0, Google did introduce ART which is an
 alternative runtime. Like Dalvik it does use a VM but with a
 different concept.
 The prior Dalvik runtime does use Just-In-Time (JIT) compiling
-where executable machine code is created not until app runtime.
+where executable machine code is created not until App runtime.
 ART on the other hand does use Ahead-Of-Time (AOT) compilation
-which compiles an app to machine code at installation time.
+which compiles an App to machine code at installation time.
 The reason for JIT in the first place were among other things
 storage limitations of mobile devices at the time Android was released
 \parencite[p.11f]{levin}. As a result, the ART apps installation time
 is increased as well as the required storage space as a tradeoff
-to the app startup and runtime performance.
+to the App startup and runtime performance.
 
 The JNI provides an opportunity to write Java programs with embedded
 native processor specific code to escape from the VM world to for
@@ -98,11 +98,11 @@ Generally there are either system-(mostly preinstalled) or user-apps.
 The system apps storage location (\code{/system/apps/}) differs from
 the user apps (\code{/data/apps/}). System apps are included into the
 distributed OS whereas user-apps can be installed and updated
-via the Android Debug Bridge (ADB), app stores
+via the Android Debug Bridge (ADB), App stores
 like the Google Play Store or directly on the device by opening
-downloaded app files.
+downloaded App files.
 
-Every app has its own sandboxed environment. That means that
+Every App has its own sandboxed environment. That means that
 apps can not access data from other apps and they can only access
 resources those permissions were granted during installation time.
 These are one of the basic Android security concepts,
@@ -123,14 +123,14 @@ interaction. They can be started independently even though one Activity
 is chosen to be the one that starts when the user clicks on the
 app icon. Services are purely functional and are not represented
 at the UI compared to Activites. Their utilisation are mostly time
-consuming operations in the background of an app like server
+consuming operations in the background of an App like server
 communication or computational tasks. Since apps are sandboxed,
 they can't access each others data which is a huge limitation.
 That's why Content providers do offer an interface to the app
 data which is chosen to be exchanged.
 They use a lower level Inter Process Communication (IPC) protocol
 provided by the Android Stack.
-With Broadcast receivers, an app can react on systemwide events
+With Broadcast receivers, an App can react on systemwide events
 (broadcasts) \parencite[ch.1]{securityinternals}.
 
 Apps are distributed in form of machine independent \code{.apk} files.
@@ -147,19 +147,19 @@ after extraction.
   \label{fig:apk_content}
 \end{figure}
 The \code{AndroidManifest.xml} file holds metadata information
-about the app like the package name, it's version, a list of
+about the App like the package name, it's version, a list of
 activities and required permissions. \code{resources.arsc}
 does contain precompiled resources like strings, styles
 or binary XML. Developers can use the \code{assets/} folder
-to store raw data needed for the app like music files,
-fonts, additional DEX files and so on. If the app does make use of the JNI,
+to store raw data needed for the App like music files,
+fonts, additional DEX files and so on. If the App does make use of the JNI,
 the \code{lib/} folder does contain compiled library directories
 for every supported CPU architecture (armeabi, x86, \ldots).
 Every resource which is directly addressed from Android code
 is stored in the \code{res/} folder including XML files for
 layouts and menus. The \code{META-INF/} directory does hold
-the signatures for the specific app similar to a JAR file.
-The heart of every app is the \code{classes.dex} that does
+the signatures for the specific App similar to a JAR file.
+The heart of every App is the \code{classes.dex} that does
 contain the application code in form of the machine independent
 DEX format specified by Google \parencite{dex}. The Java Development
 Kit (JDK) tool ``javac'' creates a JAR out of every inputted
@@ -176,14 +176,14 @@ which then calls the \code{installPackage()} method for this
 APK. Among other things, the pm copies the original \code{*.apk}
 to the path \code{/data/app/<package>.<appname>-1/base.apk}.
 This location is used and accessed in order to get the
-needed resources for the app to run (layout, drawables, \ldots).
+needed resources for the App to run (layout, drawables, \ldots).
 The \code{lib/} directory is getting extracted and gets also copied
 into that path. \code{classes.dex} gets optimized by either ``dexopt''
 or ``dex2oat'' depending which runtime is present (DVM or ART).
 The outcoming file is in both cases no more machine independent
 and lies at \code{/data/dalvik-cache/<arch>/} with the name
 \code{data@app@<packagename>.<appname>-1@base.apk@classes.dex}.
-It does represent the last stored unit of an app that then
+It does represent the last stored unit of an App that then
 gets executed in the next step.
 Attention should be paid to the file extension.
 It's the same (\code{.dex}) in both runtimes but is actually a totally
@@ -197,7 +197,7 @@ tool for that conversion step is called ``dex2oat''. This ELF
 file also gets analyzed in the course of this thesis
 (it does however hold an ``OAT'' file among other things so that
 the tool name actually does makes sense but details will follow).
-To give an app the possibility to
+To give an App the possibility to
 store some data, a \code{/data/data/<appname>} directory is
 also created.
 
@@ -219,21 +219,21 @@ relevant actions the pm performs.
 
 \section{App Execution Process}\label{section:app_execution_simple}
 This chapter is supposed to give a short introduction about the
-main concept of the app execution process without going into
+main concept of the App execution process without going into
 great detail about it. However, the detailed inspection will
 be performed in \autoref{section:app_execution_detail}.
 When describing the execution process of an app, again the
 runtime must be considered (Dalvik or ART) since the execution process
-obviously differs. In both cases the entrypoint of the app is the
+obviously differs. In both cases the entrypoint of the App is the
 file stored at \code{/data/dalvik-cache/...@classes.dex} like in
 \autoref{section:app_installation} described. ``Zygote'' is
 the name of one of the first processes Android starts when booting.
 The process is responsible for loading more services and libraries
 of the Android framework and does hold precompiled resources that
-nearly every app instance will need.
+nearly every App instance will need.
 By starting an app, it's therefore much more efficient to fork
-Zygote and then including the app specific part rather than
-creating a whole new process for every app but will also be introduced
+Zygote and then including the App specific part rather than
+creating a whole new process for every App but will also be introduced
 in greater detail.
 \parencite[ch.2]{hackershandbook}.
 

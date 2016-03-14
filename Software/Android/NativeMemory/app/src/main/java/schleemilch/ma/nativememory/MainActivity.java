@@ -47,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         //ndk.mallocFile(internalStoragePath.getAbsolutePath());
         //ndk.mmapFile(internalStoragePath.getPath());
         //ndk.showSelfProc();
-        ndk.executeSomething();
+        //ndk.executeSomething();
+        ndk.memoryAccess();
     }
 }
