@@ -129,22 +129,60 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv 
     fp->_close;
 }
 
+char* mmapFile(const char* path){
+    struct stat sb;
+    char* addr;
+    int fd;
+    FILE* fp;
+    int SIZE;
+    off_t offset = 0;
+    fp = fopen(path, "r");
+    fseek(fp, 0, SEEK_END); //EOF
+    SIZE = ftell(fp);
+    size_t size = SIZE;
+    fp->_close;
+
+    fd = open(path, O_RDONLY);
+
+    LOGD("Trying to map: %s", path);
+
+    addr = (char*) mmap(NULL, size, PROT_READ | PROT_EXEC | PROT_WRITE,
+                        MAP_PRIVATE, fd, offset);
+    if (addr == MAP_FAILED){
+        LOGE("MMAP failed");
+        return 0x00;
+    }
+    LOGD("MMAP Start addr: %x", addr);
+    LOGD("Reserved-Size: %d", SIZE);
+    return addr;
+}
+
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapFile (JNIEnv *env, jobject obj, jstring inpath){
     const char *path = env->GetStringUTFChars(inpath, NULL);
     struct stat sb;
     char* addr;
     int fd;
+    FILE* fp;
+    int SIZE;
     off_t offset = 0;
+    fp = fopen(path, "r");
+    fseek(fp, 0, SEEK_END); //EOF
+    SIZE = ftell(fp);
+    size_t size = SIZE;
+    fp->_close;
+
     fd = open(path, O_RDONLY);
-    if (fstat(fd, &sb) == -1){
-        LOGE("fstat Error");
-    }
-    addr = (char*) mmap(NULL, sb.st_size, PROT_READ | PROT_EXEC | PROT_WRITE,
+
+    LOGD("Trying to map: %s", path);
+
+    addr = (char*) mmap(NULL, size, PROT_READ | PROT_EXEC | PROT_WRITE,
                         MAP_PRIVATE, fd, offset);
     if (addr == MAP_FAILED){
         LOGE("MMAP failed");
+        return;
     }
     LOGD("MMAP Start addr: %x", addr);
+    LOGD("Reserved-Size: %d", SIZE);
 }
 void* alloc_executable_memory(size_t size) {
     void* ptr = mmap(0, size,
@@ -214,15 +252,40 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryAccess (JNIE
     }
     fp->_close;
 
-
     char adress[9];
     strncpy(adress,line,8);
     adress[8] = '\0';
 
     long long int mp = (long long int)strtoll(adress, NULL, 16);
-    char *x = mp;
+    void* vp = (void*)mp;
+    char* cp = (char*) vp;
+    LOGD("%p", cp);
 
-    LOGD("%llx", mp);
+    LOGD("Bytes Before:");
+    for (int i = 0; i < 5; i++){
+        LOGD("%x", cp[i]);
+        cp[i] = i;
+    }
+    LOGD("Afterwards:");
+    for (int i = 0; i < 5; i++){
+        LOGD("%x", cp[i]);
+    }
+
 }
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapBinExec
+        (JNIEnv *env, jobject obj, jstring inpath){
 
+    const char *path = env->GetStringUTFChars(inpath, NULL);
+    char* start = mmapFile(path);
+    LOGD("Got start: %p",start);
+
+    //jump to .text
+    start += 0x8018;
+    typedef int (*JittedFuncMain)(int, char**);
+    JittedFuncMain func = (JittedFuncMain) start;
+
+    //call it....
+    int x = func(1, NULL);
+    LOGD("Result: %d", x);
+}
 

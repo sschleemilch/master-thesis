@@ -9,4 +9,5 @@ public class MyNDK {
     native public void mmapFile(String path);
     native public void executeSomething();
     native public void memoryAccess();
+    native public void mmapBinExec(String path);
 }

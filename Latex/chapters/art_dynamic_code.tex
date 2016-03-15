@@ -393,8 +393,8 @@ the library mapped range and memory allocations by the \code{malloc()} as well a
 
 \subsection{Code Execution}\label{section:code_execution}
 So which function (malloc or mmap) is more suitable for just in time (JIT) code execution? 
-Like explained in \parencite{jit_intro}, one should go with \code{mmap()} over \code{malloc()} because protection bits can only be set at page boundaries. That's why with
-\code{malloc()}, it needs to be ensured manually that the allocation is aligned at a 
+Like explained in \parencite{jit_intro}, one should go with \code{mmap()} over \code{malloc()} because protection bits can only be set at memory page boundaries.
+That's why with \code{malloc()}, it needs to be ensured manually that the allocation is aligned at a 
 page boundary. If it is not the case, a \code{mprotect()} call will have the side effect of disabling/enabling more memory than actually required.
 
 In the end, ``code'' stands for machine code that will get executed, which is not more
@@ -403,15 +403,13 @@ executed (like shared objects or ELF binaries, partially described in
 \autoref{section:elf_file_format}) and API calls. There is of course a reason for those kind of formats since they do offer information for the linker to function properly on every system using them. Generally there are two possibilities of invoking and executing
 native instruction.
 The first one is to map a well known format like a shared object or an executable
-into memory but then the process needs to be adapted in order to find those executable
-parts in memory (linker is responsible for doing that before the program gets executed).
+into memory but then the running ``host'' process needs to be adapted in order to find those executable parts in memory (linker is responsible for doing that before the program gets executed).
 If the program is using external libraries, a linker is responsible for linking them in, statically or dynamically. So one would end up writing linker
 functionalities or patching the one mapped into the process. It does exist a proof of concept for a Linux x86\_64 system shown in \parencite{memdlopen} that can load 
-shared objects out of a file or an Internet socket right into the process.
-A key part of this program is the patching of ``\code{ld-2.19.so}'' that is mapped within the process. Porting that library to Android is not that simple since Android
-is not using this library but an own linker at \code{/system/bin/linker}.
+shared objects out of a file or an Internet socket right into the process space.
+A key part of this program is the patching of ``\code{ld-2.19.so}'' that is already mapped within the process. Porting that library to Android is not that simple since Android is not using this library but an own linker at \code{/system/bin/linker}.
 
-So let's try to invoke machine code directly without any file format overhead like
+So let's first try to invoke machine code directly without any file format overhead like
 in binaries and shared objects. Again, a simple multiplication function will be implemented to show a proof of concept, shown in \autoref{machineCodeMulC}.
 \begin{lstlisting}[language=C, caption=machineCodeMul.c, label=machineCodeMulC]
 int mul(int a, int b){
@@ -441,12 +439,14 @@ for every function, exactly what will be needed (output for
   \end{tabular}
   }
 \end{table}
-The byte sequence \code{0xe0000091} represents the mnemonic equivalent of a multiplication
+The byte sequence \code{0xe0000091} represents the raw machine code for the mnemonic equivalent of a multiplication
 (\code{r0 = r1 * r0}) and the following one is responsible for exiting the function and returning the value. Since object files are normally little endian, the bytes written
-to memory have to be inverted first (\code{0xe0000091 turns to 0x910000e0}).
+to memory have to be inverted first (\code{0xe0000091 turns to 0x910000e0}) before
+executing them.
 
 \subsubsection{Implementation}
-At first, a memory location will get allocated, a function for that purpose could be written that takes the regions size as an input like shown in \autoref{alloc_exe_mem}.
+At first, a memory location will be needed and therefore gets allocated,
+a function for that purpose could be written that takes the regions size as an input like shown in \autoref{alloc_exe_mem}.
 \begin{lstlisting}[language=C++, caption=alloc\_executable\_memory(), label=alloc_exe_mem]
 void* alloc_executable_memory(size_t size) {
     void* ptr = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -458,11 +458,11 @@ void* alloc_executable_memory(size_t size) {
 }
 \end{lstlisting}
 It returns a void pointer to the starting address of its allocated region. Note that 
-if no file is being specified as a \code{mmap()} parameter (instead a -1),
+if no file is being specified as a \code{mmap()} parameter (instead a ``\code{-1}''),
 the \code{MAP\_ANONYMOUS} flag has to be set. Additionally, even though size can be specified in \code{mmap()}, its limited to page size constraints. So it will allocate 
 memory that is greater or equal to the given size. 
 The next thing to do is to copy the bytes to be executed at that location. For that,
-also a function seems suitable that takes a pointer, specifying some bytes and finally calling \code{memcpy} (see \autoref{emit_code_mem}).  
+also a function seems suitable that takes a pointer, specifying some bytes and finally calling \code{memcpy()} (see \autoref{emit_code_mem}).  
 \begin{lstlisting}[language=C++, caption=emit\_code\_into\_memory(), label=emit_code_mem]
 void emit_code_into_memory(unsigned char* m) {
     unsigned char code[] = {
@@ -472,7 +472,8 @@ void emit_code_into_memory(unsigned char* m) {
     memcpy(m, code, sizeof(code));
 }
 \end{lstlisting}
-A \code{typedef} can be used to specify the function signature matching the C source function. It can get initialized by pointing to the allocated memory region. 
+A \code{typedef} is being used to specify the function signature matching the C source function that is planned to be injected.
+It can get initialized by pointing to the allocated memory region. 
 After that, all that's left to do is calling it like a common function.
 \autoref{exec_mach_code} shows the actual implementation via JNI C++ using the predefined methods from before and showing some additional output information.
 \begin{lstlisting}[language=C++, caption=executeMachineCode(), label=exec_mach_code]
@@ -492,6 +493,63 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeMachineCode
     LOGD("Result of %d * %d = %d", a, b, func(a, b));
 }
 \end{lstlisting}
-Note that \code{func} is just treated as a variable, means its address relies on the stack region (as it is supposed to be) while \code{m}'s address is being displayed in the \code{/proc/self/maps} output without any \code{[libc\_malloc]} annotation or path.
+Note that \code{func} is just treated as a variable, means its address relies on the stack region (as it is supposed to be) while \code{m}'s address is being displayed in the \code{/proc/self/maps} output without any \code{[libc\_malloc]} annotation or path
+but just left blank.
+
+TODO: What about libraries??
+Manually invoke shared object??
+Things to do after mapping into memory?
+
+
 
 \section{General Memory Access}\label{section:general_mem_access}
+In general, an App can write every memory section that is mapped with writing permission
+like one would expect. To find writable locations in the mapped space, one can again
+use the output of \code{/proc/self/maps} triggering for the permission triple 
+``\code{rw-p}''. \autoref{gen_mem_write} for instance triggers for the writable
+\code{/system/bin/linker} entry. The size of the memory region can be parsed out 
+of that matching line. \code{strtoll} can be used to do the actual parsing from a 
+hexadecimal char sequence to its \code{long long int} number and can be casted to 
+a pointer afterwards. Using a char pointer for the actual writing reading process 
+is beneficial, since char always has the size of one byte. Using array notation, one 
+can then access each byte of the memory. 
+\begin{lstlisting}[language=C++, caption=memoryWriting(), label=gen_mem_write]
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting 
+ (JNIEnv *env, jobject obj){
+    FILE * fp;
+    char line[2048];
+    fp = fopen("/proc/self/maps", "r");
+    if (fp == NULL){
+        LOGE("Could not open /proc/self/maps");
+        return;
+    }
+    while (fgets(line, 2048, fp) != NULL) {
+        if(strstr(line, "rw-p 0001d000 b3:19 366") != NULL){
+            LOGD("%s", line);
+            break;
+        }
+    }
+    fp->_close;
+
+    char address[9];
+    strncpy(address,line,8);
+    address[8] = '\0';
+
+    long long int mp = (long long int)strtoll(address, NULL, 16);
+    void* vp = (void*)mp;
+    char* cp = (char*) vp;
+    LOGD("%p", cp);
+
+    LOGD("Print/Write Memory:");
+    for (int i = 0; i < 10; i++){
+        LOGD("%x", cp[i]);
+        cp[i] = i; //writing
+    }
+    LOGD("Print Memory:");
+    for (int i = 0; i < 10; i++){
+        LOGD("%x", cp[i]);
+    }
+
+}
+\end{lstlisting}
+Being able to write to memory in general is a necessary precondition for advanced patching techniques like adapting the linker and is therefore doable in ART.

@@ -22,15 +22,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         MyNDK ndk = new MyNDK();
-        /*
-        File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "mul32.so");
+
+        File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "sl");
         Log.d(TAG, internalStoragePath.getAbsolutePath());
 
         BufferedInputStream bis = null;
         OutputStream soWriter = null;
         final int BUF_SIZE = 8 * 1024;
         try {
-            bis = new BufferedInputStream(getAssets().open("mul32.so"));
+            bis = new BufferedInputStream(getAssets().open("sl"));
             soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
             byte [] buf = new byte[BUF_SIZE];
 
@@ -43,11 +43,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        */
+
         //ndk.mallocFile(internalStoragePath.getAbsolutePath());
-        //ndk.mmapFile(internalStoragePath.getPath());
+        //ndk.mmapFile(internalStoragePath.getAbsolutePath());
         //ndk.showSelfProc();
         //ndk.executeSomething();
-        ndk.memoryAccess();
+        //ndk.memoryAccess();
+        ndk.mmapBinExec(internalStoragePath.getAbsolutePath());
     }
 }
