@@ -45,7 +45,7 @@ at \code{libs/<archs>}. They can be used out of the box without need to load the
 at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the App APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with necessary 
 pointed out adaption is shown in \autoref{chapter:ndk_sample_project}.
 
-\section{Dynamic Shared Library Loading}\label{section:shared_library_loading}
+\section{Dynamic Shared Library Loading out of a File}\label{section:shared_library_loading}
 The process demonstrated in \autoref{section:ndk_integration} is common practice to 
 integrate native code into an App but is not really dynamically loaded. Instead
 the main idea of dynamical code loading is the distribution of code for instance
@@ -133,7 +133,7 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
 }
 \end{lstlisting}
 One short word about logging/debugging: The common \code{printf()} writes to the standard output. A better way of viewing C++ outputs is to use the ADB logging mechanism. Google does include a \code{\_\_android\_log\_print()} function that
-has the same behavior as \code{printf()} but writes to the logcat output and 
+has the same behavior as \code{printf()} but writes to the Logcat output and 
 \code{LOGD()} is a defined makro calling that function. 
 
 The library that will get loaded is a simple multiplication function and a pointer
@@ -195,7 +195,7 @@ examples ``native-activity''). To invoke the activity, one need to call the
 a segmentation fault (SIGSEV).
 
 
-\section{Dynamic Binary Execution}\label{section:dyn_bin_exec}
+\section{Dynamic Binary Execution out of a File}\label{section:dyn_bin_exec}
 
 It could be also interesting to execute binaries directly instead of loading shared objects. To compile them, again the NDK can be used with changing the module's
 \code{Android.mk} file by replacing \code{include \$(BUILD\_SHARED\_LIBRARY)} with 
@@ -287,22 +287,23 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_binExe (JNIEnv *env
 }
 \end{lstlisting}
 
-\section{Dynamic Code Execution directly out of Memory}\label{section:dyn_code_memory}
+\section{Dynamic Code Execution out of Memory}\label{section:dyn_code_memory}
 
 Until now, dynamic code execution or loading via shared libraries was done
 by downloading/copying a file into the internal storage of the App followed
-by invoking it which is kind of like caching it. Instead,
-it would be also interesting if program code can be invoked directly in and afterwards
-executed out of memory. 
-So there need to be inspected if an Android App process has access
-to memory and if it is feasable read/execute program code out of it.   
+by invocation. This seems like a detour since at some point, that file has to be fetched and written to a file followed by loading it again.
+Instead, it would be also interesting if program code can be executed directly
+out of memory. Memory in this context means the RAM region of the App's process. 
+So there needs to be inspected if an Android App process has even access
+to memory and if it is feasible to read/write/execute program code in self
+allocated memory. 
 
 \subsection{Android Memory Mapping}\label{section:memory_mapping}
-When printing the content of \code{/proc/<PID>/maps} of a Linux process, one
-can see virtual memory locations that are assigned to its process. Also,
-``\code{self}'' is a specific PID that can be used as a path in a process
-to access its own \code{proc/} directory.
-An example output of one map entry is shown in \autoref{tab:proc_maps_out} and its explanations are pulled out of a stackoverflow answer to the question at \parencite{proc_maps}.
+So let's have a look at the general memory mapping of a common Android App.
+When printing the content of \code{/proc/<PID>/maps} of the App's Linux process, virtual memory locations that are assigned to the process are revealed.
+The keyword ``\code{self}'' is the specific PID that can be used as a path in a process to access its own \code{proc/} directory (Otherwise, root rights are 
+needed to read maps of processes other than its own).
+An example output of one map entry is shown in \autoref{tab:proc_maps_out} and its explanations are pulled out of a stack-overflow answer to the question at \parencite{proc_maps}, that explains the contents of the maps output.
 \begin{table}[htb]
   \caption[Content of /proc/<PID>/maps]{Content of /proc/<PID>/maps}
   \label{tab:proc_maps_out}
@@ -317,31 +318,25 @@ An example output of one map entry is shown in \autoref{tab:proc_maps_out} and i
   \end{tabular}
   }
 \end{table}  
-The address shows the physical start and end of its mapped section. Permissions
-shows how this region can be accessed (common Linux ``\code{rwx}'' permission triple)
-and can be marked as private \code{p} or shared \code{s}. If the section
-was mapped out of a file, offset describes the offset inside of that file to
-the specific region. Device also only applies if mapped from a file and includes
-the device number and inode holds its file number. Pathname obviously holds the
-path to the file. 
+The \code{address} shows the absolute physical start and end of its mapped section. Permissions (\code{perms}) informs about how this region can be accessed (common Linux ``\code{rwx}'' permission triple)
+and can be marked as private \code{p} (exclusively accessible by its mapped process) or shared \code{s} (accessible from other processes).
+If the section was mapped out of a file, \code{offset} describes the offset
+in bytes to the specific region of the mapped file.
+Device (\code{dev}) also only applies if mapped from a file and includes
+the device number while \code{inode} holds its file number.
+The \code{pathname} obviously shows the path of its source file. 
 
-It is also a good way to start to have a look at an Android process as well.
-When doing so, it reveals all kind of mapped libraries (which are a lot even 
-with a blank activity App and emphasizes that forking of Zygote is efficient), fonts, its own APK and regions that don't have a pathname or just a pseudo name like
-``\code{[anon:linker\_alloc]}'' or ``\code{[stack]}''. Generally, a stack holds
-data that only persists inside of a function call like initialized arrays and
-variables and its content gets automatically released after leaving that function.
+When looking at an Android App process in particular, it reveals all kind of mapped libraries (which is a great amount even with a blank activity App and emphasizes that forking of Zygote is way more efficient), fonts, its own \code{base.apk} as well as  regions that don't have a pathname or just a pseudo pathname like ``\code{[anon:linker\_alloc]}'' or ``\code{[stack]}''. 
+
+Generally, a stack contains data that only persists inside of a function call like initialized arrays or variables and its content gets automatically released after returning from that function.
 The heap however can be used by the programmer to allocate memory
-(e.g. with \code{malloc()}) by hand but has to be freed explicitly.
-Let's evaluate which mapping sections are used to store heap as well as common stack
-elements by creating a native function with a buffer using \code{malloc()}
-and a common local integer variable. While \code{malloc()} creates memory areas
-without any additional adaption, \code{mmap()} can map a whole file, returns a pointer
-to its start address and can set memory protection flags of the mapped area that
-are necessary when it shall be executed, written or read later (\code{PROT\_EXEC},
- \code{PROT\_READ}, \code{PROT\_WRITE}). Executing code out of heap is forbidden by 
- default.
-\autoref{r_maps} shows how to read and print the maps content from C++ on logcat.
+(e.g. with \code{malloc()}) manually but has to be freed explicitly.
+Let's evaluate which mapping sections are used to store heap as well as common stack elements by creating a native function with a buffer using \code{malloc()} and also a common local integer variable.
+While \code{malloc()} creates memory areas
+without any additional adaption, \code{mmap()} can map a whole file, returns a pointer to its start address and can set memory protection flags of the mapped area that are necessary when it shall be executed, written or read later
+(\code{PROT\_EXEC}, \code{PROT\_READ}, \code{PROT\_WRITE}).
+Executing code out of heap is forbidden by default.
+\autoref{r_maps} shows how to read and print the maps content from C++ on Logcat.
 \begin{lstlisting}[language=C++, caption=Reading /proc/self/maps, label=r_maps]
 FILE* fp;
 char line[2048];
@@ -358,12 +353,11 @@ while (fgets(line, 2048, fp) != NULL) {
 }
 fp->_close;
 \end{lstlisting}
-Unfortunately, the amount of output lines is limited when using logging via logcat which
+Unfortunately, the amount of output lines is limited when using logging via Logcat which
 implements a ring buffer with a device dependent size (``\code{adb logcat -g}''). That
 is a problem when printing the whole memory mapping and can confuse the inspection 
-since a ring buffer overwrites itself when overflowing. So either one can use an
-adb shell to ``\code{cat /proc/<PID>/maps}'' by hand (root rights needed)
-or triggering the logcat output to specific strings. Getting an overview via a whole output and triggering for specific parts via logcat afterward might be the best solution. 
+since a ring buffer overwrites itself when overflowing. So either one can use an adb shell to ``\code{cat /proc/<PID>/maps}'' by hand (root rights needed)
+or triggering the Logcat output to specific strings. Getting an overview via a whole output and triggering for specific parts via Logcat afterward might be the best solution. 
 To find the mapping of the executing library, triggering the name library is enough
 and its output is shown on top of \autoref{tab:mem_alloc_map}. Three regions
 of the library are mapped, for reading, writing and executing each.
@@ -393,18 +387,20 @@ the library mapped range and memory allocations by the \code{malloc()} as well a
 
 \subsection{Code Execution}\label{section:code_execution}
 So which function (malloc or mmap) is more suitable for just in time (JIT) code execution? 
-Like explained in \parencite{jit_intro}, one should go with \code{mmap()} over \code{malloc()} because protection bits can only be set at memory page boundaries.
-That's why with \code{malloc()}, it needs to be ensured manually that the allocation is aligned at a 
-page boundary. If it is not the case, a \code{mprotect()} call will have the side effect of disabling/enabling more memory than actually required.
+Like explained in \parencite{jit_intro}, one should go with \code{mmap()} over \code{malloc()}. This is about protection bits that can only be set at memory page boundaries.
+That's why with \code{malloc()}, it needs to be ensured manually that the allocation is aligned at a page boundary. If it is not the case, a \code{mprotect()} call will have the side effect of disabling/enabling more memory than actually required.
+Since \code{mmap()} is designed for mapping whole files, it will take care of that by default.
 
-In the end, ``code'' stands for machine code that will get executed, which is not more
-than a sequence of bytes. Until now, dynamic loading was performed via files that do have a specific format that contains far more than just raw bytes that are getting
+In the end, ``code'' like in ``Executing Code'' stands for machine code that will get executed, which is not more than a sequence of bytes (actually only 1's and 0's).
+Until this point, dynamic loading was performed through files that do have a specific format that contains far more than just raw bytes that are getting
 executed (like shared objects or ELF binaries, partially described in 
-\autoref{section:elf_file_format}) and API calls. There is of course a reason for those kind of formats since they do offer information for the linker to function properly on every system using them. Generally there are two possibilities of invoking and executing
+\autoref{section:elf_file_format}) and API calls.
+There is of course a reason for those kind of formats since they do offer information for the linker to function properly on every system using them.
+Generally there are two possibilities of invoking and executing
 native instructions.
 The first one is to map a well known format like a shared object or an executable
 into memory but then the running ``host'' process needs to be adapted in order to find those executable parts in memory (linker is responsible for doing that before the program gets executed).
-If the program is using external libraries, a linker is responsible for linking them in, statically or dynamically. So one would end up writing linker
+If a program is using external libraries, a linker is responsible for linking them in, statically or dynamically. So one would end up writing linker
 functionalities or patching the one mapped into the process. It does exist a proof of concept for a Linux x86\_64 system shown in \parencite{memdlopen} that can load 
 shared objects out of a file or an Internet socket right into the process space.
 A key part of this program is the patching of ``\code{ld-2.19.so}'' that is already mapped within the process. Porting that library to Android is not that simple since Android is not using this library but an own linker at \code{/system/bin/linker}.
@@ -413,7 +409,7 @@ A key part of this program is the patching of ``\code{ld-2.19.so}'' that is alre
 \subsubsection{Machine Code}
 
 So let's first try to invoke machine code directly without any file format overhead like
-in binaries and shared objects. Again, a simple multiplication function will be implemented to show a proof of concept, shown in \autoref{machineCodeMulC}.
+in ELF binaries and shared objects. Again, a simple multiplication function will be implemented to show a proof of concept, shown in \autoref{machineCodeMulC}.
 \begin{lstlisting}[language=C, caption=machineCodeMul.c, label=machineCodeMulC]
 int mul(int a, int b){
     return a*b;
@@ -424,9 +420,9 @@ For this explicit purpose, the \code{arm-none-eabi} tool-chain was being used in
 combination with an Arch Linux 64 Bit system.
 It does contain a \code{gcc} to compile C-Code as well as \code{objdump} to analyze object files.
 A ``\code{arm-none-eabi-gcc -O3 -c machineCodeMul.c -o machineCodeMul.o}'' call outputs an object file out of a C source. 
-Objdump can then show mnemonics as well as machine code
-for every function, exactly what will be needed (output for
-\code{machineCodeMul.o}'s \code{mul()} function shown in \autoref{tab:mul_objdump}).
+Objdump can then show mnemonics as well as its corresponding machine code
+for every function, exactly what will then be written to memory in the next step
+(output for \code{machineCodeMul.o}'s \code{mul()} function shown in \autoref{tab:mul_objdump}).
 \begin{table}[htb]
   \caption[arm-none-eabi-objdump -D machineCodeMul.o]{arm-none-eabi-objdump -D machineCodeMul.o}
   \label{tab:mul_objdump}
@@ -444,8 +440,8 @@ for every function, exactly what will be needed (output for
 \end{table}
 The byte sequence \code{0xe0000091} represents the raw machine code for the mnemonic equivalent of a multiplication
 (\code{r0 = r1 * r0}) and the following one is responsible for exiting the function and returning the value. Since object files are normally little endian, the bytes written
-to memory have to be inverted first (\code{0xe0000091 turns to 0x910000e0}) before
-executing them.
+to memory have to be reordered first (\code{0xe0000091 turns to 0x910000e0}) before
+execution.
 
 At first, a memory location will be needed and therefore gets allocated,
 a function for that purpose could be written that takes the regions size as an input like shown in \autoref{alloc_exe_mem}.
@@ -474,10 +470,13 @@ void emit_code_into_memory(unsigned char* m) {
     memcpy(m, code, sizeof(code));
 }
 \end{lstlisting}
-A \code{typedef} is being used to specify the function signature matching the C source function that is planned to be injected.
-It can get initialized by pointing to the allocated memory region. 
+But how can this code actually be executed?
+A \code{typedef} is being used to specify the function signature matching the C source function that will get executed afterwards.
+It can get initialized by pointing to the allocated memory region like it also does when
+writing a function the common way. The function name is then a pointer to the process region including the actual machine code.  
 After that, all that's left to do is calling it like a common function.
-\autoref{exec_mach_code} shows the actual implementation via JNI C++ using the predefined methods from before and showing some additional output information.
+\autoref{exec_mach_code} shows the actual implementation via JNI C++ using the predefined methods from before and showing some additional output information about
+the allocated memory spots.
 \begin{lstlisting}[language=C++, caption=executeMachineCode(), label=exec_mach_code]
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeMachineCode (JNIEnv *env, jobject obj){
     typedef int (*JittedFunc)(int, int);
@@ -495,27 +494,27 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeMachineCode
     LOGD("Result of %d * %d = %d", a, b, func(a, b));
 }
 \end{lstlisting}
-Note that \code{func} is just treated as a variable, means its address relies on the stack region (as it is supposed to be) while \code{m}'s address is being displayed in the \code{/proc/self/maps} output without any \code{[libc\_malloc]} annotation or path
+Note that the function typedef variable \code{func} is just treated as a variable,
+means its address relies on the stack region (like it is supposed to be)
+and the \code{m}'s address allocated by \code{mmap()} is being displayed in the \code{/proc/self/maps} output without any \code{[libc\_malloc]} annotation or path
 but just left blank.
 
-This method of executing machine code is quite simple if no external libraries are involved so that the resulting machine code in the object file can be copied directly
-onto the device and will work. 
-So if someone is able to cross-compile code into machine code that is runnable by its own, that method can be useful.
+If the original C function does not contain any external library calls, the execution
+of machine code directly out of memory is pretty straight forward, at least for one
+specific function like showed for a multiplication. When library calls are being
+performed inside of that method, it gets much more complicated, but why?
+
+
 
 
 \subsubsection{Shared Objects and Binaries}
 
+
 \section{General Memory Access}\label{section:general_mem_access}
-In general, an App can write every memory section that is mapped with writing permission
-like one would expect. To find writable locations in the mapped space, one can again
-use the output of \code{/proc/self/maps} triggering for the permission triple 
-``\code{rw-p}''. \autoref{gen_mem_write} for instance triggers for the writable
-\code{/system/bin/linker} entry. The size of the memory region can be parsed out 
-of that matching line. \code{strtoll} can be used to do the actual parsing from a 
-hexadecimal char sequence to its \code{long long int} number and can be casted to 
-a pointer afterwards. Using a char pointer for the actual writing reading process 
-is beneficial, since char always has the size of one byte. Using array notation, one 
-can then access each byte of the memory. 
+In general, an App can write every memory section that is mapped with writing permission like expected. To find writable locations in the mapped space, again the output of \code{/proc/self/maps} can be used with triggering for the permission triple ``\code{rw-p}'' string. \autoref{gen_mem_write} for instance triggers for the specific writable \code{/system/bin/linker} entry. The size of the memory region can be parsed out of that matching line. \code{strtoll} can be used to do the actual parsing from a 
+hexadecimal char sequence to its \code{long long int} number and can be casted to a pointer (=memory address) afterwards.
+Using a char pointer for the actual writing reading process 
+are commonly used, since char always has the size of one byte. So when using array notation, each byte of the memory can be easily accessed. 
 \begin{lstlisting}[language=C++, caption=memoryWriting(), label=gen_mem_write]
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting 
  (JNIEnv *env, jobject obj){
