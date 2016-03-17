@@ -1,5 +1,5 @@
 #include <iostream>
-#include <elf.h>
+//#include <elf.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -26,6 +26,23 @@ void printRawBytes(unsigned char* bytes, long len){
     }
     printf("\n");
 }
+void b2i(uint16_t *dst, unsigned char* src){
+    *dst = src[0] | (src[1] << 8);
+}
+void b2i(uint32_t *dst, unsigned char* src){
+    *dst = src[0]&0xff | (src[1] << 8) |
+            (src[2] << 16) | (src[3] << 24);
+}
+void i2b(uint16_t *src, unsigned char* dst){
+    dst[0] = *src&0xff;
+    dst[1] = (*src>>8)&0xff;
+}
+void i2b(uint32_t *src, unsigned char* dst){
+    dst[0] = *src&0xff;
+    dst[1] = (*src>>8)&0xff;
+    dst[2] = (*src>>16)&0xff;
+    dst[3] = (*src>>24)&0xff;
+}
 
 int main(int argc, char** argv) {
     printf("ELF Parsing Tool\n");
@@ -46,8 +63,18 @@ int main(int argc, char** argv) {
     fread(elfBytes, inFileSize, 1, inpFile);
     fclose(inpFile);
 
-    Elf32_Ehdr header;
-    memcpy(header.e_ident, elfBytes, EI_NIDENT);
+
+    uint32_t t32;
+    b2i(&t32, elfBytes);
+
+    for (int i = 0; i < 4; i++){
+        printf("%01x", elfBytes[i]);
+    }
+    printf("\n");
+
+    printf("%x", t32);
+    //Elf32_Ehdr header;
+    //memcpy(header.e_ident, elfBytes, EI_NIDENT);
     
     return 0;
 }
