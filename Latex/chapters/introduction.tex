@@ -38,12 +38,13 @@ like websites and alternative App stores.
 There are different attack vectors attackers are considering.
 The main ones are packed into three following scenarios.
 
-\subsubsection*{Scenario 1: Piracy/Intellectual Property Theft}
+\subsubsection*{Scenario 1: Piracy/Intellectual Property Theft}\label{section:scenario_1}
 Something that is present in every domain where program code is being written
 and can be sold is illegal copying of a whole program or copying and adapting of
 its source code. Of source, not every Android App is available for free. So being
 able to copy an App to another device and get it to run is a serious threat for developers. However, there do exist licensing mechanisms to check if a user is 
-authorized to use the App. Another possibility for attackers would be to disassemble
+authorized to use the App, if not, the App can be exited.
+Another possibility for attackers would be to disassemble
 the App into its source code to copy and adapt the App and releasing it by its own
 (for instance with a different name and layout).
 That form is crucial for Apps that do contain a lot of know-how in form of written code.
@@ -53,7 +54,7 @@ That form is crucial for Apps that do contain a lot of know-how in form of writt
 %code of an App (which is quite simple out of the delivered
 %package of an App), adapt and rerelease it with different credentials.
 
-\subsubsection*{Scenario 2: App Patching}
+\subsubsection*{Scenario 2: App Patching}\label{section:scenario_2}
 Many Apps these days are free of charge in their basic version and
 do offer ``In-App Purchases'' for additional content or services.
 An attacker could try to circumvent the licensing mechanism 
@@ -61,7 +62,7 @@ by ``patching'' the App which means injecting code at runtime or trying to get i
 code followed by adding code to bypass the licensing and reinstalling it. Of course this
 leads also to a financial loss for developers. 
 
-\subsubsection*{Scenario 3: Malicious Code Injection}
+\subsubsection*{Scenario 3: Malicious Code Injection}\label{section:scenario_3}
 Quite similar to scenario one the attacker chooses a popular App he wants to exploit 
 but this time the focus relies on getting sensitive data from users. So a good example
 would be a banking App where users can also do transactions and have to enter pins and TANS. To be able to sniff sensitive data, one possibility is to get the Apps source code
