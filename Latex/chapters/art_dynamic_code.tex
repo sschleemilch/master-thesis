@@ -11,7 +11,7 @@ There is more than one way to integrate the NDK into Android Studio. The one des
 in this thesis uses the platform build tools script \code{ndk-build}. Another possible
 integration is the use of the gradle experimental plugin and is described in \parencite{gradle_experimental}.
 The NDK allows to embed compiled C/C++ in an application. It can be installed via Android Studio which is the default and recommended IDE for Android development.
-The result of compiled C/C++ code is of course CPU dependent. Therefore the library has to be cross compiled for 
+The result of compiled C/C++ code is of course CPU dependent. Therefore the library has to be cross compiled for
 every possible CPU supported by Android. Possible architectures supported by the NDK are so far:
 \begin{itemize}
 \item \textbf{arm64-v8a}
@@ -23,13 +23,13 @@ every possible CPU supported by Android. Possible architectures supported by the
 \item \textbf{x86\_64}
 \end{itemize}
 The common way is that Android compiles every native source code into shared libraries
-(\code{*.so}) that can then be loaded from Java code. However, it is also possible to build executable binaries with NDK in theory. Entry point for the build process is an \code{ndk-build} script inside of the installed \code{ndk-bundle/} folder that takes care of calling the cross-compiling toolchains. It can be controlled by Android makefiles (\code{Android.mk}) and does 
-expect a specific folder structure to work which is partially created when using Android Studio. An additional \code{jni/} folder has to be created that will hold all the native source code (right click on \code{app/} and choose \code{New->Folder->JNI Folder}). 
+(\code{*.so}) that can then be loaded from Java code. However, it is also possible to build executable binaries with NDK in theory. Entry point for the build process is an \code{ndk-build} script inside of the installed \code{ndk-bundle/} folder that takes care of calling the cross-compiling toolchains. It can be controlled by Android makefiles (\code{Android.mk}) and does
+expect a specific folder structure to work which is partially created when using Android Studio. An additional \code{jni/} folder has to be created that will hold all the native source code (right click on \code{app/} and choose \code{New->Folder->JNI Folder}).
 
 From Java, the compiled library can be loaded by using a
-\code{System.loadLibrary("MyLib")} call. In order to be able to call methods out 
-of that library, the method signatures have to be known and can be declared with 
-a \code{native} keyword in addition to the common Java method declaration. It is also a 
+\code{System.loadLibrary("MyLib")} call. In order to be able to call methods out
+of that library, the method signatures have to be known and can be declared with
+a \code{native} keyword in addition to the common Java method declaration. It is also a
 common practice to create a new Java class specifying all NDK functions but not a must have. When doing so, a header file for the native source code (\code{*.h}) can be automatically
 created by using the \code{javah} command line tool. It includes the necessary JNI
 declarations for the specified methods (including the JNIEnv pointer for instance)
@@ -39,14 +39,14 @@ usual C/C++ project.
 The last necessary thing is to create an \code{Android.mk} makefile for every library as well as \code{Application.mk}. \code{Android.mk} defines the library name that \code{loadLibrary()} expects, lists the source files and defines the outcome (shared library or executable) whereas \code{Application.mk} includes
 the libraries to build (\code{APP\_MODULES}) and the architectures to build for
 (\code{APP\_ABI}). The \code{build.gradle} has to be adapted as well, defining the
-outcome directory path relative to \code{jni/} and \code{android.useDeprecatedNdk = true} needs to be added to \code{gradle.properties} to suppress an error message. 
+outcome directory path relative to \code{jni/} and \code{android.useDeprecatedNdk = true} needs to be added to \code{gradle.properties} to suppress an error message.
 A \code{ndk-build} call will then compile all sources and creates the libraries
 at \code{libs/<archs>}. They can be used out of the box without need to load them by hand
-at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the App APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with necessary 
+at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the App APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with necessary
 pointed out adaption is shown in \autoref{chapter:ndk_sample_project}.
 
 \section{Dynamic Shared Library Loading out of a File}\label{section:shared_library_loading}
-The process demonstrated in \autoref{section:ndk_integration} is common practice to 
+The process demonstrated in \autoref{section:ndk_integration} is common practice to
 integrate native code into an App but is not really dynamically loaded. Instead
 the main idea of dynamical code loading is the distribution of code for instance
 after licensing the App or to apply some sort of copy protection mechanisms by hiding
@@ -67,19 +67,19 @@ for instance is not reference-able as a path string. So generally apps can use d
 \item \textbf{External Storage} can also store arbitrary data on \code{/sdcard/} but it is not exclusively readable by the initializing App and needs a permission declaration in
 the manifest file.
 \item \textbf{SQLite Database} provides support for powerful private databases
-\item \textbf{Network Connection} can store data on the web 
+\item \textbf{Network Connection} can store data on the web
 \end{itemize}
 The most suitable option should be the internal storage since the App has unlimited read
 write rights and the content is safe from other sources rather then itself. For simplicity and demonstration reasons, the library to load will be stored in the
-\code{assets/} folder of the App that also only exists in the APK but is not 
-reference-able through a path. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal App storage and a file container for the library to load gets created. 
+\code{assets/} folder of the App that also only exists in the APK but is not
+reference-able through a path. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal App storage and a file container for the library to load gets created.
 \begin{lstlisting}[language=Java, caption=Internal Storage Initialization, label=internal_init]
 File internalStoragePath = new File(getDir("dynamic", Context.MODE_PRIVATE), "mul.so");
 \end{lstlisting}
-At a next step, the library has to be copied out of the assets folder and into that 
+At a next step, the library has to be copied out of the assets folder and into that
 recently created file container for it. Any file within the assets can be opened with an
 \code{getAssets().open("file")} call. For the read/write process one can use
-\code{BufferedInputStream} and \code{BufferedOutputStream}, shown in 
+\code{BufferedInputStream} and \code{BufferedOutputStream}, shown in
 \autoref{buff_in_out}.
 \begin{lstlisting}[language=Java, caption=Buffered Input/Output, label=buff_in_out]
 BufferedInputStream bis = null;
@@ -104,9 +104,9 @@ The signature of the native method to call does contain at least the path as a s
 the internal stored file that can be printed with a \code{getAbsolutePath()} call of the
 \code{internalStoragePath} file object. Remember that \code{dlopen()} needs that path.
 A class ``\code{MyNDK}'' gets created and contains the native declaration of the
-``\code{libExe(String path)}'' method as well as a static call of 
-\code{System.loadLibrary(``MyLib'')} that takes care of the binding. 
-The implementation of \code{libExe()} is shown in \autoref{libexe}. 
+``\code{libExe(String path)}'' method as well as a static call of
+\code{System.loadLibrary(``MyLib'')} that takes care of the binding.
+The implementation of \code{libExe()} is shown in \autoref{libexe}.
 \begin{lstlisting}[language=C++, caption=Native libExe(), label=libexe, numbers=left]
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
         (JNIEnv * env, jobject jobj, jstring path){
@@ -133,13 +133,13 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
 }
 \end{lstlisting}
 One short word about logging/debugging: The common \code{printf()} writes to the standard output. A better way of viewing C++ outputs is to use the ADB logging mechanism. Google does include a \code{\_\_android\_log\_print()} function that
-has the same behavior as \code{printf()} but writes to the Logcat output and 
-\code{LOGD()} is a defined makro calling that function. 
+has the same behavior as \code{printf()} but writes to the Logcat output and
+\code{LOGD()} is a defined makro calling that function.
 
 The library that will get loaded is a simple multiplication function and a pointer
 for it gets initialized at line seven. \code{dlopen()} returns a void pointer and
 \code{dlsym()} searches the symbol table of the handle pointed file for the function
-given as a string. That call is interesting when comparing C to C++. In 
+given as a string. That call is interesting when comparing C to C++. In
 \parencite{dlopen_howto}, the problem of name mangling in C++ and the combined usage of
 \code{dlopen()} is being described in detail.
 In short, one will need an ``\code{extern "C"}'' at the \code{mul()} definition in order to make the \code{dlsym()} function to find the method
@@ -148,17 +148,17 @@ So without that extern keyword, \code{dlsym()} fails.
 Finally, the \code{mul()} function can be called out of the library.
 After that call, \code{dlclose()} has to be executed. It is also possible to remove
 the library file after that process that might be useful for copy protection usage.
-From the Java perspective, a \code{MyNDK} object needs to be created followed by 
+From the Java perspective, a \code{MyNDK} object needs to be created followed by
 a call of its \code{libExe()} to call and execute the library.
 
 To be able to load a shared object library like this, it obviously needs to be
-generated first. One could use an own cross compiler for that or just also use 
-the NDK since it includes all necessary tool-chains. 
+generated first. One could use an own cross compiler for that or just also use
+the NDK since it includes all necessary tool-chains.
 However some project structure changes have to be made to be able to compile two independent libraries. Each library to compile should have its own folder inside
 of \code{jni/} with an \code{Android.mk} each. The greater \code{Android.mk} in
-\code{jni/} has to be changed to call all subsequent make files with 
+\code{jni/} has to be changed to call all subsequent make files with
 ``\code{include \$(call all-subdir-makefiles)}'' and each module to build has to be
-added to \code{Application.mk} as well. Gradle needs to know the names of the sub 
+added to \code{Application.mk} as well. Gradle needs to know the names of the sub
 directories of \code{jni/} so that ``\code{jni.srcDirs=[]}'' has to be
 filled with those folder name strings. As a result of that structure, the compiled
 library that will get loaded afterwards also will be saved in the \code{libs/} folder
@@ -169,14 +169,14 @@ device, it should add CPU information with its request (e.g. by sending the outp
 of ``\code{System.getProperty("os.arch")}'').
 
 It is also possible to do that kind of shared object loading directly out of Java
-code. Like shown in \autoref{section:ndk_integration}, a static call of 
-\code{System.loadLibrary("MyLib")} does the heavy lifting of invoking the library. 
+code. Like shown in \autoref{section:ndk_integration}, a static call of
+\code{System.loadLibrary("MyLib")} does the heavy lifting of invoking the library.
 The \code{loadLibrary()} function however does only check specific paths for the given
-library name which are specified in \code{java.library.path}, containing 
+library name which are specified in \code{java.library.path}, containing
 \code{/vendor/lib} and \code{/system/lib} as well as the path of the app's APK lib
 folder. So for dynamic loading, this loading method is not suitable since these
 locations can't be accessed unless with root rights. Fortunately there is another
-loading function \code{System.load(String s)} that accepts an absolute path to 
+loading function \code{System.load(String s)} that accepts an absolute path to
 the shared object file like the C++ equivalent \code{dlopen()}. Attention must be
 paid to naming conventions in \code{loadLibrary()} in comparison to \code{load()}.
 Libraries compiled by the NDK are getting a \code{lib} prefix to its actual module
@@ -184,7 +184,7 @@ name automatically. It means that \code{System.loadLibrary("MyLib")} invokes a f
 that's called \code{libMyLib.so} while the \code{load()} needs directly the physical
 stored path name.
 
-Even if Java is also capable of loading shared object libraries at runtime, the 
+Even if Java is also capable of loading shared object libraries at runtime, the
 signatures of the library to load has to be implemented before to be able to call
 its methods unlike the C/C++ implementation where symbols can be resolved itself.
 
@@ -198,8 +198,8 @@ a segmentation fault (SIGSEV).
 \section{Dynamic Binary Execution out of a File}\label{section:dyn_bin_exec}
 
 It could be also interesting to execute binaries directly instead of loading shared objects. To compile them, again the NDK can be used with changing the module's
-\code{Android.mk} file by replacing \code{include \$(BUILD\_SHARED\_LIBRARY)} with 
-\code{include \$(BUILD\_EXECUTABLE)}. When doing so, there is to mention 
+\code{Android.mk} file by replacing \code{include \$(BUILD\_SHARED\_LIBRARY)} with
+\code{include \$(BUILD\_EXECUTABLE)}. When doing so, there is to mention
 that all modules compiled for 32 Bit systems are executables directly while modules
 compiled for 64 Bit are again shared objects (by checking the output of the Linux
 \code{file} command line program).
@@ -207,33 +207,33 @@ They are dedicated to their interpreters (\code{/system/bin/linker} and \code{/s
 Android seems like to support only position independent executables (PIE).
 PIE's purpose is to be able to execute its code regardless of its absolute address
 and \parencite{pie} is an interesting article about the impact of PIEs.
-Shared objects are a specific implementation of PIEs. So in case of 32 Bit systems, there will be an error message 
+Shared objects are a specific implementation of PIEs. So in case of 32 Bit systems, there will be an error message
 ``\code{error: only position independent executables (PIE) are supported.}'' when
 compiled as executable without any additions. There is of course a solution for that
 by adding a \code{LOCAL\_CFLAGS} entry \code{-fPIE} as well as the \code{LOCAL\_LDFLAGS}
 entries \code{-fPIE} and \code{-pie} to its Android makefile. In fact, after adding
-those attributes, there is no more difference between that compiled executable 
+those attributes, there is no more difference between that compiled executable
 compared to the shared library counterpart other than it has to contain a
-\code{main()} in order to be executed. 
+\code{main()} in order to be executed.
 
 Again, binary execution can be implemented in Java as well as in native C/C++ code.
-Java will be used in both cases to fetch the binary file from an arbitrary location that can be determined at runtime or statically (again \code{assets/} 
+Java will be used in both cases to fetch the binary file from an arbitrary location that can be determined at runtime or statically (again \code{assets/}
 for demonstration) and writing it into the internal private storage path. By checking the outcome file of that process via \code{adb shell} and ``\code{ls -l}'', the file is of course not marked as executable by default but at least the owner and the group is set right so there
 should not be any permission issue.
 If the file is not marked as an executable, it will result in a ``can't execute: Permission denied'' message in case of a C++ implementation or an ``IOException'' in case of Java. Fortunately, it can be fixed simply by calling \code{setExecutable(true)}
-of the Java \code{File} object representing the binary. 
+of the Java \code{File} object representing the binary.
 
 \subsection{Java Implementation}\label{dyn_bin_java}
 The preparation procedure for executing is the same like in the shared object loading
 case, means saving the file in its internal storage and delivering a \code{File} object
 to work with. A Java \code{Runtime} object has an \code{exec(String s)} function that is capable of execution code given at its absolute path. It does return a \code{Process}
-object. At Android, the current runtime can be accessed with a static access of the 
+object. At Android, the current runtime can be accessed with a static access of the
 \code{Runtime}'s \code{getRuntime()} function.
 That's basically everything needed to make it work. However one will not see any
 outputs (like \code{printf()}) of that separately started process.
-The documentation of \code{Process} reveals that the subprocess output can be 
+The documentation of \code{Process} reveals that the subprocess output can be
 fetched with \code{getInputStream()} and its error output with \code{getErrorStream()}.
-It can also be checked and waited for the subprocess to finish via \code{waitFor()} 
+It can also be checked and waited for the subprocess to finish via \code{waitFor()}
 which should be the normal case when calling a native binary. The final very
 compact implementation is shown in \autoref{java_bin_exec}.
 \begin{lstlisting}[language=Java, caption=Java Native Exec(), label=java_bin_exec]
@@ -254,9 +254,9 @@ Log.d(TAG, "nativeOut: " + nativeOutput);
 
 \subsection{C/C++ Implementation}\label{dyn_bin_c}
 As for C/C++, the implementation is not much more complicated compared to Java.
-The main part of execution is a call of \code{popen()} 
-(man printed at \parencite{popen}) which expects a command 
-given as a char array to execute and the type of its created pipe (read ``r'' or write ``w''). Internally, it uses \code{fork()} and \code{pipe()} for creating the new 
+The main part of execution is a call of \code{popen()}
+(man printed at \parencite{popen}) which expects a command
+given as a char array to execute and the type of its created pipe (read ``r'' or write ``w''). Internally, it uses \code{fork()} and \code{pipe()} for creating the new
 process and executing the given program at its path. It returns a \code{FILE} pointer
 whose stream can be read out by \code{fgets()}. The complete C++ implementation
 of the behavior is shown in \autoref{cpp_bin_exec}. In order to catch \code{stderr}
@@ -293,15 +293,15 @@ Until now, dynamic code execution or loading via shared libraries was done
 by downloading/copying a file into the internal storage of the App followed
 by invocation. This seems like a detour since at some point, that file has to be fetched and written to a file followed by loading it again.
 Instead, it would be also interesting if program code can be executed directly
-out of memory. Memory in this context means the RAM region of the App's process. 
+out of memory. Memory in this context means the RAM region of the App's process.
 So there needs to be inspected if an Android App process has even access
 to memory and if it is feasible to read/write/execute program code in self
-allocated memory. 
+allocated memory.
 
 \subsection{Android Memory Mapping}\label{section:memory_mapping}
 So let's have a look at the general memory mapping of a common Android App.
 When printing the content of \code{/proc/<PID>/maps} of the App's Linux process, virtual memory locations that are assigned to the process are revealed.
-The keyword ``\code{self}'' is the specific PID that can be used as a path in a process to access its own \code{proc/} directory (Otherwise, root rights are 
+The keyword ``\code{self}'' is the specific PID that can be used as a path in a process to access its own \code{proc/} directory (Otherwise, root rights are
 needed to read maps of processes other than its own).
 An example output of one map entry is shown in \autoref{tab:proc_maps_out} and its explanations are pulled out of a stack-overflow answer to the question at \parencite{proc_maps}, that explains the contents of the maps output.
 \begin{table}[htb]
@@ -317,16 +317,16 @@ An example output of one map entry is shown in \autoref{tab:proc_maps_out} and i
     \bottomrule
   \end{tabular}
   }
-\end{table}  
+\end{table}
 The \code{address} shows the absolute physical start and end of its mapped section. Permissions (\code{perms}) informs about how this region can be accessed (common Linux ``\code{rwx}'' permission triple)
 and can be marked as private \code{p} (exclusively accessible by its mapped process) or shared \code{s} (accessible from other processes).
 If the section was mapped out of a file, \code{offset} describes the offset
 in bytes to the specific region of the mapped file.
 Device (\code{dev}) also only applies if mapped from a file and includes
 the device number while \code{inode} holds its file number.
-The \code{pathname} obviously shows the path of its source file. 
+The \code{pathname} obviously shows the path of its source file.
 
-When looking at an Android App process in particular, it reveals all kind of mapped libraries (which is a great amount even with a blank activity App and emphasizes that forking of Zygote is way more efficient), fonts, its own \code{base.apk} as well as  regions that don't have a pathname or just a pseudo pathname like ``\code{[anon:linker\_alloc]}'' or ``\code{[stack]}''. 
+When looking at an Android App process in particular, it reveals all kind of mapped libraries (which is a great amount even with a blank activity App and emphasizes that forking of Zygote is way more efficient), fonts, its own \code{base.apk} as well as  regions that don't have a pathname or just a pseudo pathname like ``\code{[anon:linker\_alloc]}'' or ``\code{[stack]}''.
 
 Generally, a stack contains data that only persists inside of a function call like initialized arrays or variables and its content gets automatically released after returning from that function.
 The heap however can be used by the programmer to allocate memory
@@ -355,9 +355,9 @@ fp->_close;
 \end{lstlisting}
 Unfortunately, the amount of output lines is limited when using logging via Logcat which
 implements a ring buffer with a device dependent size (``\code{adb logcat -g}''). That
-is a problem when printing the whole memory mapping and can confuse the inspection 
+is a problem when printing the whole memory mapping and can confuse the inspection
 since a ring buffer overwrites itself when overflowing. So either one can use an adb shell to ``\code{cat /proc/<PID>/maps}'' by hand (root rights needed)
-or triggering the Logcat output to specific strings. Getting an overview via a whole output and triggering for specific parts via Logcat afterward might be the best solution. 
+or triggering the Logcat output to specific strings. Getting an overview via a whole output and triggering for specific parts via Logcat afterward might be the best solution.
 To find the mapping of the executing library, triggering the name library is enough
 and its output is shown on top of \autoref{tab:mem_alloc_map}. Three regions
 of the library are mapped, for reading, writing and executing each.
@@ -380,20 +380,20 @@ of the library are mapped, for reading, writing and executing each.
   }
 \end{table}
 When creating an integer variable and printing its address afterwards, it appears
-that it is located in a ``\code{[stack]}'' marked region that is not included in 
+that it is located in a ``\code{[stack]}'' marked region that is not included in
 the library mapped range and memory allocations by the \code{malloc()} as well as the
-\code{mmap()} function are listed in areas marked as ``\code{[anon:libc\_malloc]}'' 
+\code{mmap()} function are listed in areas marked as ``\code{[anon:libc\_malloc]}''
 (also printed in \autoref{tab:mem_alloc_map}).
 
 \subsection{Code Execution}\label{section:code_execution}
-So which function (malloc or mmap) is more suitable for just in time (JIT) code execution? 
+So which function (malloc or mmap) is more suitable for just in time (JIT) code execution?
 Like explained in \parencite{jit_intro}, one should go with \code{mmap()} over \code{malloc()}. This is about protection bits that can only be set at memory page boundaries.
 That's why with \code{malloc()}, it needs to be ensured manually that the allocation is aligned at a page boundary. If it is not the case, a \code{mprotect()} call will have the side effect of disabling/enabling more memory than actually required.
 Since \code{mmap()} is designed for mapping whole files, it will take care of that by default.
 
 In the end, ``code'' like in ``Executing Code'' stands for machine code that will get executed, which is not more than a sequence of bytes (actually only 1's and 0's).
 Until this point, dynamic loading was performed through files that do have a specific format that contains far more than just raw bytes that are getting
-executed (like shared objects or ELF binaries, partially described in 
+executed (like shared objects or ELF binaries, partially described in
 \autoref{section:elf_file_format}) and API calls.
 There is of course a reason for those kind of formats since they do offer information for the linker to function properly on every system using them.
 Generally there are two possibilities of invoking and executing
@@ -401,7 +401,7 @@ code and in the end native instructions.
 The first one is to map a well known format like a shared object or an executable
 into memory but then the running ``host'' process needs to be adapted in order to find those executable parts in memory (linker is responsible for doing that before the program gets executed).
 If a program is using external libraries, a linker is responsible for linking them in, statically or dynamically. So one would end up writing linker
-functionalities or patching the one mapped into the process. It does exist a proof of concept for a Linux x86\_64 system shown in \parencite{memdlopen} that can load 
+functionalities or patching the one mapped into the process. It does exist a proof of concept for a Linux x86\_64 system shown in \parencite{memdlopen} that can load
 shared objects out of a file or an Internet socket right into the process space.
 A key part of this program is the patching of ``\code{ld-2.19.so}'' that is already mapped within the process. Porting that library to Android is not that simple since Android is not using this library but an own linker at \code{/system/bin/linker}.
 
@@ -416,7 +416,7 @@ This time, a cross-compiler and its included tools like \code{objdump} is useful
 For this explicit purpose, the \code{arm-none-eabi} tool-chain was being used in
 combination with an Arch Linux 64 Bit system.
 It does contain a \code{gcc} to compile C-Code as well as \code{objdump} to analyze object files.
-A ``\code{arm-none-eabi-gcc -O3 -c machineCodeMul.c -o machineCodeMul.o}'' call outputs an object file out of a C source. 
+A ``\code{arm-none-eabi-gcc -O3 -c machineCodeMul.c -o machineCodeMul.o}'' call outputs an object file out of a C source.
 Objdump can then show mnemonics as well as its corresponding machine code
 for every function, exactly what will then be written to memory in the next step
 (output for \code{machineCodeMul.o}'s \code{mul()} function shown in \autoref{tab:mul_objdump}).
@@ -452,12 +452,12 @@ void* alloc_executable_memory(size_t size) {
     return ptr;
 }
 \end{lstlisting}
-It returns a void pointer to the starting address of its allocated region. Note that 
+It returns a void pointer to the starting address of its allocated region. Note that
 if no file is being specified as a \code{mmap()} parameter (instead a ``\code{-1}''),
-the \code{MAP\_ANONYMOUS} flag has to be set. Additionally, even though size can be specified in \code{mmap()}, its limited to page size constraints. So it will allocate 
-memory that is greater or equal to the given size. 
+the \code{MAP\_ANONYMOUS} flag has to be set. Additionally, even though size can be specified in \code{mmap()}, its limited to page size constraints. So it will allocate
+memory that is greater or equal to the given size.
 The next thing to do is to copy the bytes to be executed at that location. For that,
-also a function seems suitable that takes a pointer, specifying some bytes and finally calling \code{memcpy()} (see \autoref{emit_code_mem}).  
+also a function seems suitable that takes a pointer, specifying some bytes and finally calling \code{memcpy()} (see \autoref{emit_code_mem}).
 \begin{lstlisting}[language=C++, caption=emit\_code\_into\_memory(), label=emit_code_mem]
 void emit_code_into_memory(unsigned char* m) {
     unsigned char code[] = {
@@ -470,7 +470,7 @@ void emit_code_into_memory(unsigned char* m) {
 But how can this code actually be executed?
 A \code{typedef} is being used to specify the function signature matching the C source function that will get executed afterwards.
 It can get initialized by pointing to the allocated memory region like it also does when
-writing a function the common way. The function name is then a pointer to the process region including the actual machine code.  
+writing a function the common way. The function name is then a pointer to the process region including the actual machine code.
 After that, all that's left to do is calling it like a common function.
 \autoref{exec_mach_code} shows the actual implementation via JNI C++ using the predefined methods from before and showing some additional output information about
 the allocated memory spots.
@@ -493,8 +493,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeMachineCode
 \end{lstlisting}
 Note that the function typedef variable \code{func} is just treated as a variable,
 means its address relies on the stack region (like it is supposed to be)
-and the \code{m}'s address allocated by \code{mmap()} is being displayed in the \code{/proc/self/maps} output without any \code{[libc\_malloc]} annotation or path
-but just left blank.
+and the \code{m}'s address allocated by \code{mmap()} is being displayed in the \code{/proc/self/maps} output without any ``\code{[libc\_malloc]}'' annotation or path but just left blank.
 
 If the original C function does not contain any external library calls, the execution
 of machine code directly out of memory is pretty straight forward, at least for one
@@ -504,18 +503,18 @@ within the same C file it is not a simple matter since linker functionality is
 completely missing in this form of pure machine code. Therefore, addresses to jump to
 have to be adapted by hand.
 
-So in general, executing code out of memory is possible in Android ART but to be able 
+So in general, executing code out of memory is possible in Android ART but to be able
 to use it productively, some more work has to be done in order to invoke whole shared
-objects or whole binaries instead of machine code chunks like shown here. Just implementing an ELF parser at runtime to extract all kind of defined methods would not be enough but additional alterations to the machine code needs to be done.  
+objects or whole binaries instead of machine code chunks like shown here. Just implementing an ELF parser at runtime to extract all kind of defined methods would not be enough but additional alterations to the machine code needs to be done.
 
 
 \section{General Memory Access}\label{section:general_mem_access}
-In general, an App can write every memory section that is mapped with writing permission like expected. To find writable locations in the mapped space, again the output of \code{/proc/self/maps} can be used with triggering for the permission triple ``\code{rw-p}'' string. \autoref{gen_mem_write} for instance triggers for the specific writable \code{/system/bin/linker} entry. The size of the memory region can be parsed out of that matching line. \code{strtoll} can be used to do the actual parsing from a 
+In general, an App can write every memory section that is mapped with writing permission like expected. To find writable locations in the mapped space, again the output of \code{/proc/self/maps} can be used with triggering for the permission triple ``\code{rw-p}'' string. \autoref{gen_mem_write} for instance triggers for the specific writable \code{/system/bin/linker} entry. The size of the memory region can be parsed out of that matching line. \code{strtoll} can be used to do the actual parsing from a
 hexadecimal char sequence to its \code{long long int} number and can be casted to a pointer (=memory address) afterwards.
-Using a char pointer for the actual writing reading process 
-are commonly used, since char always has the size of one byte. So when using array notation, each byte of the memory can be easily accessed. 
+Using a char pointer for the actual writing reading process
+are commonly used, since char always has the size of one byte. So when using array notation, each byte of the memory can be easily accessed.
 \begin{lstlisting}[language=C++, caption=memoryWriting(), label=gen_mem_write]
-JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting 
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting
  (JNIEnv *env, jobject obj){
     FILE * fp;
     char line[2048];
@@ -555,5 +554,12 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting
 \end{lstlisting}
 Being able to write to memory in general is a necessary precondition for advanced patching techniques like adapting the linker and is therefore doable in ART.
 
-
 \section{Possible Appliance}
+The question is how the gathered native methods can be used to establish
+a copy protection effect.
+
+\begin{listing}
+\item Native Code Licensing -> SIGSEV when not licensed/patched licensing
+\item Native Code String Encryption/Decryption
+\item Dynamic Native Code to alter Program flow
+\end{listing}
