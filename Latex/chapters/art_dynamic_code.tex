@@ -397,16 +397,13 @@ executed (like shared objects or ELF binaries, partially described in
 \autoref{section:elf_file_format}) and API calls.
 There is of course a reason for those kind of formats since they do offer information for the linker to function properly on every system using them.
 Generally there are two possibilities of invoking and executing
-native instructions.
+code and in the end native instructions.
 The first one is to map a well known format like a shared object or an executable
 into memory but then the running ``host'' process needs to be adapted in order to find those executable parts in memory (linker is responsible for doing that before the program gets executed).
 If a program is using external libraries, a linker is responsible for linking them in, statically or dynamically. So one would end up writing linker
 functionalities or patching the one mapped into the process. It does exist a proof of concept for a Linux x86\_64 system shown in \parencite{memdlopen} that can load 
 shared objects out of a file or an Internet socket right into the process space.
 A key part of this program is the patching of ``\code{ld-2.19.so}'' that is already mapped within the process. Porting that library to Android is not that simple since Android is not using this library but an own linker at \code{/system/bin/linker}.
-
-
-\subsubsection{Machine Code}
 
 So let's first try to invoke machine code directly without any file format overhead like
 in ELF binaries and shared objects. Again, a simple multiplication function will be implemented to show a proof of concept, shown in \autoref{machineCodeMulC}.
@@ -502,12 +499,14 @@ but just left blank.
 If the original C function does not contain any external library calls, the execution
 of machine code directly out of memory is pretty straight forward, at least for one
 specific function like showed for a multiplication. When library calls are being
-performed inside of that method, it gets much more complicated, but why?
+performed inside of that method, it gets much more complicated. Even with function calls
+within the same C file it is not a simple matter since linker functionality is
+completely missing in this form of pure machine code. Therefore, addresses to jump to
+have to be adapted by hand.
 
-
-
-
-\subsubsection{Shared Objects and Binaries}
+So in general, executing code out of memory is possible in Android ART but to be able 
+to use it productively, some more work has to be done in order to invoke whole shared
+objects or whole binaries instead of machine code chunks like shown here. Just implementing an ELF parser at runtime to extract all kind of defined methods would not be enough but additional alterations to the machine code needs to be done.  
 
 
 \section{General Memory Access}\label{section:general_mem_access}
@@ -555,3 +554,6 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting
 }
 \end{lstlisting}
 Being able to write to memory in general is a necessary precondition for advanced patching techniques like adapting the linker and is therefore doable in ART.
+
+
+\section{Possible Appliance}
