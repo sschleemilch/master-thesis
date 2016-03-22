@@ -11,7 +11,7 @@ it is still the distribution format of every App (inside of an APK).
 \subsection{APP Executable Format}\label{section:app_executable_format}
 
 A core element of the recently introduced ART is the file that
-gets created by ``dex2oat'' during the installation time of an app,
+gets created by ``dex2oat'' during the installation time of an App,
 described in \autoref{section:app_installation}.
 Since ART does use AOT compilation, the file format is expected
 to be an executable or at least a native code container.
@@ -22,7 +22,7 @@ Therefore it's worth to have closer look at that file format
 especially since Google does not provide any further information
 about it's content and it might have the potential of
 revolutionizing the available copy protection mechanisms for
-Android or having at least a great impact on them.
+Android or having at least a great impact.
 
 By applying the Unix command ``\code{file}'' (which can classify
 files to MIME-types) to the resulting file of the ``\code{dex2oat}''
@@ -44,7 +44,7 @@ executable binary formats.
   \label{fig:elf_format}
 \end{figure}
 
-The \autoref{fig:elf_format} shows the file structure.
+\autoref{fig:elf_format} shows the file structure.
 One have to differentiate the context of how the file is viewed.
 While a linker does care about sections, sections may be
 glued together to segments when executing the file.
@@ -56,7 +56,7 @@ In ART, the file is marked as an shared object with LSB encoding
 and not as an executable which makes clear that this file is not
 supposed to get executed directly but to be linked first
 (An open question remains so far which process is then starting
-the app).
+the App).
 Segments are referenced by the program header table and sections
 by the section header table. For an execution process, only the header
 and the information out of the program header table is needed
@@ -71,7 +71,7 @@ Android implementation, the OAT file:
 \begin{table}[htb]
   \caption[ELF section headers]{ELF section headers}
   \label{tab:section_headers}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l l l l l l l l l l}
     \toprule
@@ -133,7 +133,7 @@ gets reserved for uninitialized variables.
 \begin{table}[htb]
   \caption[ELF program headers]{ELF program headers}
   \label{tab:program_headers}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l l l l l l l}
     \toprule
@@ -150,16 +150,14 @@ gets reserved for uninitialized variables.
   }
 \end{table}
 
-
 The \code{readelf} tool is also capable of showing the resulting
 mapping of sections to segments
 (\autoref{tab:sections_segments_mapping}).
 
-
 \begin{table}[htb]
   \caption[ELF section segment mapping]{ELF section segment mapping}
   \label{tab:sections_segments_mapping}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l l l l}
     \toprule
@@ -173,7 +171,7 @@ mapping of sections to segments
   }
 \end{table}
 
-It's interesting to note that the Android usage of ELF for apps
+It's interesting to note that the Android usage of ELF for Apps
 is very minimalistic and does contain very few sections/segments
 compared to a common program written in C/C++ (\code{helloWorld.c}
 does include over 30 sections). As described before,
@@ -202,7 +200,7 @@ the instruction set (ARM, ARM64, MIPS, \ldots), the executable
 offset (actually it is not standalone executable but just contains
 native code instructions)
 relative to the begin of ``oatdata'' and the quantity of embedded
-DEX files (in case of apps it's always one, other system files like
+DEX files (in case of Apps it's always one, other system files like
 ``boot.oat'' may contain several DEX files). It does follow the
 ``OAT Dex Header'', containing
 the absolute path of the ``source'' file (=DEX), the checksum, the
@@ -225,7 +223,7 @@ execution of an App (besides ODEX which can be easily converted back to DEX). Th
 both formats and therefore it's possible to execute
 DEX files without the transformation step. As a consequence,
 DEX files can also be loaded dynamically at runtime which are not a part
-of the distributed app. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}. DEX as it is does not only contain
+of the distributed App. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}. DEX as it is does not only contain
 VM instructions but some meta data around that to locate
 higher abstraction level sections of the file like classes,
 methods and fields.
@@ -285,7 +283,7 @@ provide an overall view of the file format of ART App executables.
 The awareness of the detailed executable file format does pop
 new questions about the ART internal functionality.
 Since the file is marked as an shared object, it won't get
-executed as a standalone program but most likely will be also
+executed as a standalone program but most likely will be
 invoked in a forked Zygote process like in the Dalvik runtime.
 However it is not clear which parts of the OAT file are
 needed to run an App adequately. Is the embedded DEX for instance
@@ -294,7 +292,7 @@ in a following chapter, DEX files are
 a crucial part of applications to protect. What if that part
 can be missed out by distributing a minimal stub application
 followed by a dynamic native code injection at runtime?
-It is also interesting if and how commong obfuscation
+It is also interesting if and how common obfuscation
 techniques designed for Dalvik, described in \autoref{section:obfuscation_techniques}, can be applied to ART.
 Therefore a deep understanding for the App init and execution
 process under ART is a precondition to answer those
@@ -306,7 +304,7 @@ To get behind the scenes of the App execution, one can start at
 the resulting Linux process that exists for every running App at
 the end of the day.
 The Linux tool ``\code{ps}'' can be used to display
-running processes and therefore running apps.
+running processes and therefore running Apps.
 To investigate the App execution a root shell at the target device
 has to be opened (device should be rooted) with ``\code{adb shell}''
 followed by an ``\code{su}'' command after getting the
@@ -323,7 +321,7 @@ a sample hello world application.
 \begin{table}[htb]
   \caption[Android Processes]{Android processes}
   \label{tab:ps_entries}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l l l l}
     \toprule
@@ -345,19 +343,19 @@ level).
 It can be derived that every user and system App has either the process
 ``\code{zygote}'' or ``\code{zygote64}'' as its parent process depending
 if the App can be converted at the dexopt step to 32 or 64 bit.
-That makes clear that apps are forked from the Zygote process which in turn
+That makes clear that Apps are forked from the Zygote process which in turn
 is a  fork of ``\code{/init}''.
 Even more detailed information about processes can be
 pulled out of the ``\code{/proc}'' directory (obviously an abbreviation for
 ``process'').
 The directory offers an interface to the kernel space and does contain a folder for every process, named after its PID \parencite{proc}. The most attractive attribute for this investigation purpose of that folder is the
-``\code{exe}'' attribute which is a symbolic link to the executable that started the process. Since apps are a fork of Zygote, they should also point
+``\code{exe}'' attribute which is a symbolic link to the executable that started the process. Since Apps are a fork of Zygote, they should also point
 to the same executable, which they do (see \autoref{tab:process_executables}).
 
 \begin{table}[htb]
   \caption[Process Executables]{Process starting executables}
   \label{tab:process_executables}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l}
     \toprule
@@ -377,18 +375,18 @@ to the same executable, which they do (see \autoref{tab:process_executables}).
   }
 \end{table}
 
-An executable named ``\code{app\_process32/64}'' seems like to be the entry-point for apps (or at least Zygote) to get started.
+An executable named ``\code{app\_process32/64}'' seems like to be the entry-point for Apps (or at least Zygote) to get started.
 The responsible program of that executable
 can be found in the Android Open Source Project (AOSP) where
 ``\code{app\_main.cpp}'' is the name of the source code file that gets
 compiled into the 32 or 64 bit version
 and can be found at ``\code{/frameworks/base/cmds/app\_process/}''.
-Although its implementation allows apps to get started directly without
+Although its implementation allows Apps to get started directly without
 Zygote, they are not supposed to, means it's not the common way
 when a user clicks on an App icon. Instead, it will get clear that Zygote
-is capable of forking and specializing itself into a new app.
+is capable of forking and specializing itself into a new App.
 The App process is therefore responsible for starting Zygote and other system
-related App like processes.
+related App-like processes.
 The ``\code{/init}'' process arranges the start of Zygote via an
 ``\code{app\_process}'' program start with specific parameters for a Zygote start
 (init is responsible for far more, like starting native daemons system services and other things).
@@ -445,7 +443,7 @@ aid of an \code{Arguments} class. Attributes that are needed for the later \code
 \begin{table}[htb]
   \caption[Arguments Class Attributes]{Arguments Class Attributes}
   \label{tab:argument_class_attributes}
-  \centering
+  %\centering
   \begin{tabular}{l l l}
     \toprule
      Given Argument & Attribute & Description \\
@@ -471,7 +469,7 @@ aid of an \code{Arguments} class. Attributes that are needed for the later \code
   \end{tabular}
 \end{table}
 
-Then all the defined security policies are being applied. To avoid bad file
+Then, all the defined security policies are being applied. To avoid bad file
 descriptor messages after forking a child, a native code has to close them before (\code{sServerSocket} and the local socket \code{mSocket} of the
 \code{ZygoteConnection} class whose FDs are written into an \code{fdsToClose}
 array).
@@ -498,19 +496,19 @@ Transfered FDs get closed and capability boundaries are applied.
 UID and GID are being set (Linux \code{setresgid/setresuid}) and resource limits are added via \code{strlimit(2)}.
 If necessary, a native bridge will be initialized and scheduler policies
 are being set. SELinux properties are applied and the thread name gets
-changed to a name other than ``app\_process'', mostly the package name of the app.
+changed to a name other than ``app\_process'', mostly the package name of the App.
 
 Back in the Java world \code{Zygote\allowbreak Connection} checks the returned PID and either calls \code{handleChildProc()} in case of the child or
 \code{handleParentProc()} in case of the parent (Zygote itself).
-These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level (since the child should not listen on sockets like the parent Zygote) and remaining arguments are being evaluated. When forking an app, a class name will be defined at that time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters. The class loader \code{cloader} is defined as
+These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level (since the child should not listen on sockets like the parent Zygote) and remaining arguments are being evaluated. When forking an App, a class name will be defined at that time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters. The class loader \code{cloader} is defined as
 either with \code{PathClassLoader()} or \code{ClassLoader()} constructor whether a classpath is
 given (path to APK or raw *.dex) where \code{PathClassLoader} is a specialized version of \code{ClassLoader}.
 However when looking into the class loading code at this point, it becomes clear that the DEX file of an App is used to represent a class and later finding its main method within, so that
-it can be said for sure that an app's DEX file is needed at least as an entry point under ART.
+it can be said for sure that an App's DEX file is needed at least as an entry point under ART.
 
 The \code{invokeStaticMain()} loads the specified class via the \code{className} string and furthermore searches for the main method within, storing it as a Java \code{Method} object and finally throwing an
 \code{MethodAnd\allowbreak ArgsCaller()} exception. This exception gets caught by the main method of \code{Zygote\allowbreak Init}.
-Remember that the Zygote itself is ``trapped'' in a loop whereas the child process can escape from by throwing that exception. So as a result, Zygote will remain in the loop offering a socket to fork itself again (=starting a new app) while the child process (=the App to start) escapes from that loop invoking the main method of the class specified over the socket
+Remember that the Zygote itself is ``trapped'' in a loop whereas the child process can escape from by throwing that exception. So as a result, Zygote will remain in the loop offering a socket to fork itself again (=starting a new App) while the child process (=the App to start) escapes from that loop invoking the main method of the class specified over the socket
 connection in the next step.
 To clarify the program flow, \autoref{fig:zygote_forking} displays
 the object and therefore file interaction during the forking process.
@@ -551,18 +549,23 @@ arguments. That method is defined in the official Java Documentation \parencite{
 
 This is where it gets interesting. The most recent state of the App starting process
 right now is the forked and adapted process to the specific application. Now, the actual main
-method gets invoked and later executed. Therefore the next step will reveal how ART will handle the created OAT files for apps with embedded dex and native code with its structure explained in \autoref{section:app_executable_format}. The invoke method in the \code{Method} class dis implemented as native code, means C++ (see \autoref{method_invoke}).
+method gets invoked and later executed. Therefore the next step will reveal how ART will handle the created OAT files for Apps with embedded DEX and native code with its structure explained in \autoref{section:app_executable_format}. The invoke method in the \code{Method} class is implemented as native code, means C++ (see \autoref{method_invoke}).
 \lstinputlisting[language=Java, caption=Method Invoke Native Signature, label=method_invoke,firstline=370, lastline=376]{"code/Method.java"}
 The \code{receiver} parameter represents the object the method gets called on. Therefore
 in case of a static main method, it is \code{null}. The native implementation of \code{invoke}
 is quite short and forwards the call to \code{InvokeMethod()} located in
 ``\code{reflection.cc}''. Those files are located at ``\code{/art/runtime/native}''.
 
-
 After the size of the stack has been checked, an \code{ArtMethod* m} pointer gets initialized with its Java method (\code{Method} class) and through ``\code{art\_method.cc}''s static \code{FromReflecetdMethod()}. It does follow a few checks about the receiver (if \code{m} is static or
-not)
+not). The \code{m} instance will be used to get the class sizes and checking
+its access flags. Finally, \code{InvokeWithArgArray()} will get called in
+``\code{reflection.cc}'' that in turn calls the \code{Invoke()} of the
+\code{ArtMethod} object defined in ``\code{art\_method.cc}''.
+After checking if the runtime is started, it is asked to get
+the entry point for the quick compiled code of the method to invoke.
 
-TODO: To be finished or cutted if not getting into further Detail!
+
+TODO: To be finished or cut if not getting into further Detail!
 
 %When a user clicks on an App icon, the ``onClick()'' method
 %of the ``Launcher'' application gets called.
@@ -629,7 +632,7 @@ for Android applications. However, this list is mainly focused on
 the Dalvik runtime since ART has been released quite recently.
 Where static obfuscation techniques do show the same behavior in both
 runtimes, the dynamic solutions do possibly not since the execution process
-of apps in ART differs (described in \autoref{section:app_execution_detail}).
+of Apps in ART differs (described in \autoref{section:app_execution_detail}).
 The impact of those techniques to ART will get analyzed at every specific case.
 
 
@@ -684,10 +687,10 @@ whole conditional branch (including the breaking byte sequence) would also tried
 
 
 This example is based on DVM instructions and was therefore designed for Dalvik and
-Android prior version five. 
-The Junk-Byte Insertion will no more be possible in ART. Why? 
+Android prior version five.
+The Junk-Byte Insertion will no more be possible in ART. Why?
 Even if one would insert Junk-Bytes into the DEX file, there is still a conversion
-step into the new OAT format introduced in ART, which compiles into native code so 
+step into the new OAT format introduced in ART, which compiles into native code so
 that any form of inserted bytes wont be adopted. So Junk-Bytes can of course still
 be inserted into DEX to prevent an attacker to perform disassembling of DEX but those
 Junk-Bytes will not apply to the compiled code. However, since the compiled code
@@ -798,8 +801,8 @@ philosophy. With that in mind, it should be clear that it is not possible
 to load a Dex file into a byte array and execute it directly like it was
 possible at Dalvik using the libdvm library via JNI since ART cannot execute
 DVM instructions by design. So in the scope of copy protection mechanisms
-with ART, dynamic code loading at Java layer is not that useful anymore. 
-Instead it needs to get analyzed how code can be loaded dynamically in ART which 
+with ART, dynamic code loading at Java layer is not that useful anymore.
+Instead it needs to get analyzed how code can be loaded dynamically in ART which
 will be determined in \autoref{chapter:android_dynamic_native_code}.
 
 \subsubsection{Self Modifying Code}

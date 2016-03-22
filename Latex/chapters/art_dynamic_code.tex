@@ -307,7 +307,7 @@ An example output of one map entry is shown in \autoref{tab:proc_maps_out} and i
 \begin{table}[htb]
   \caption[Content of /proc/<PID>/maps]{Content of /proc/<PID>/maps}
   \label{tab:proc_maps_out}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l l l l l}
     \toprule
@@ -364,7 +364,7 @@ of the library are mapped, for reading, writing and executing each.
 \begin{table}[htb]
   \caption[Memory Allocation Mapping]{Memory Allocation Mapping}
   \label{tab:mem_alloc_map}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l l l l l}
     \toprule
@@ -423,7 +423,7 @@ for every function, exactly what will then be written to memory in the next step
 \begin{table}[htb]
   \caption[arm-none-eabi-objdump -D machineCodeMul.o]{arm-none-eabi-objdump -D machineCodeMul.o}
   \label{tab:mul_objdump}
-  \centering
+  %\centering
   \texttt{
   \begin{tabular}{l l l l}
   \toprule
@@ -455,7 +455,7 @@ void* alloc_executable_memory(size_t size) {
 It returns a void pointer to the starting address of its allocated region. Note that
 if no file is being specified as a \code{mmap()} parameter (instead a ``\code{-1}''),
 the \code{MAP\_ANONYMOUS} flag has to be set. Additionally, even though size can be specified in \code{mmap()}, its limited to page size constraints. So it will allocate
-memory that is greater or equal to the given size. Note that there might be a 
+memory that is greater or equal to the given size. Note that there might be a
 small security hole since that allocated memory is already marked as writable
 and also that region is likely to be bigger than the actual code that will get
 executed later. That could be exploited by an attacker. Therefore it is slightly more secure to allocate memory without execution  permission first since copying machine code to that location does only need write
@@ -511,7 +511,7 @@ have to be adapted by hand.
 
 So in general, executing code out of memory is possible in Android ART but to be able
 to use it productively, some more work has to be done in order to invoke whole shared
-objects or whole binaries instead of machine code chunks like shown here. Just implementing an ELF parser at runtime to extract all kind of defined methods would not be enough but additional alterations to the machine code needs to be done to adjust jump addresses to the specific manually allocated memory containing machine code. 
+objects or whole binaries instead of machine code chunks like shown here. Just implementing an ELF parser at runtime to extract all kind of defined methods would not be enough but additional alterations to the machine code needs to be done to adjust jump addresses to the specific manually allocated memory containing machine code.
 
 
 \section{General Memory Access}\label{section:general_mem_access}
@@ -568,13 +568,13 @@ check, it is not needed to implement the licensing mechanism in native code or
 obfuscate it in any other way.
 Even if an attacker manages to fake the App into being licensed, he still would
 not be able to execute the App properly since core parts would be missing.
-That parts could be dynamically loaded from a DEX file like explained in  
+That parts could be dynamically loaded from a DEX file like explained in
 \autoref{section:dynamic_code_loading}. A crucial part here is that it should
 be focused on preventing the App usage even if the licensing call is somehow
-circumvented. An attacker could try to copy those one time downloaded parts and distribute a new App concluding them, so that it will not be that big of 
+circumvented. An attacker could try to copy those one time downloaded parts and distribute a new App concluding them, so that it will not be that big of
 a challenge. But what about also encrypting those parts locally with a key that
 is only legit for the specific device (by checking its IMEI, MAC address, or
-ANDROID\_ID that is a random 64 Bit number created by Android at the first user setup that might change after a factory reset)? 
+ANDROID\_ID that is a random 64 Bit number created by Android at the first user setup that might change after a factory reset)?
 
 
 
