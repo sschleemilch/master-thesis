@@ -309,4 +309,40 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mmapBinExec
     int x = func(1, NULL);
     LOGD("Result: %d", x);
 }
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_writingOwnOAT
+        (JNIEnv *env, jobject thiz){
+    FILE * fp;
+    char line[2048];
+    fp = fopen("/proc/self/maps", "r");
+    if (fp == NULL){
+        LOGE("Could not open /proc/self/maps");
+        return;
+    }
+    char adline[2048];
+    while (fgets(line, 2048, fp) != NULL) {
+        if(strstr(line, "base.odex") != NULL){
+            LOGD("%s", line);
+        }
+    }
+    fp->_close;
+
+    char adress[9];
+    strncpy(adress,line,8);
+    adress[8] = '\0';
+
+    long long int mp = (long long int)strtoll(adress, NULL, 16);
+    void* vp = (void*)mp;
+    char* cp = (char*) vp;
+    LOGD("%p", cp);
+
+    LOGD("Bytes Before:");
+    for (int i = 0; i < 5; i++){
+        LOGD("%x", cp[i]);
+        //cp[i] = i;
+    }
+    LOGD("Afterwards:");
+    for (int i = 0; i < 5; i++){
+        LOGD("%x", cp[i]);
+    }
+}
 

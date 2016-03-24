@@ -1,5 +1,4 @@
 #include <iostream>
-//#include <elf.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -73,8 +72,6 @@ int main(int argc, char** argv) {
     printf("\n");
 
     printf("%x", t32);
-    //Elf32_Ehdr header;
-    //memcpy(header.e_ident, elfBytes, EI_NIDENT);
-    
+
     return 0;
 }

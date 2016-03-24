@@ -7,8 +7,8 @@ public class Playground {
 		
 		//oldf.oatdata.dexfile.deleteDEXInsns();
 		//oldf.oatdata.updateDEXFileContent();
-		oldf.oatdata.dexfile.dump();
+		//oldf.oatdata.dexfile.dump();
 		//FileOperations.writeBytesToFile("heiseinsdel.oat", oldf.getBytes());
-		
+		oldf.dump();
 	}
 }

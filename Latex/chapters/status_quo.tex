@@ -101,7 +101,7 @@ It does follow a short description of sections that are implemented
     ``oatexec'' and ``oatlastword'' in case of an OAT file.
     \item \code{.dynstr} does hold strings for dynamic linking,
     mostly names that are referenced by \code{.dynsym}.
-    \item \code{.hash} contains the symbol hash table
+    \item \code{.hash} is a hash table that supports symbol table access
     \item \code{.rodata} stands for ``Read-Only data'' and does
     contain arbitrary data whose interpretation is solely
     determined by the program itself. We will
@@ -117,7 +117,7 @@ It does follow a short description of sections that are implemented
 \end{itemize}
 
 \autoref{tab:program_headers} shows the alternative view of the
-file by having a look at segments (``\code{readelf -S <ELF-App-File>}'')
+file by having a look at segments (``\code{readelf -l <ELF-App-File>}'')
 . Type ``PHDR'' stands for ``Program header''. Segments with type
 ``LOAD'' are supposed to be loaded from disk into memory while
 a ``DYNAMIC'' segment is a part of a ``LOAD'' segment and is equal
@@ -530,42 +530,50 @@ method of Zygote).
 
 \lstinputlisting[language=Java, caption=Zygote Child Loop Breakout Exception, label=child_breakout,firstline=697, lastline=703]{"code/ZygoteInit.java"}
 
+Invocation means basically injecting the code of a method in the current process. That is the next and final thing that will be performed and it won't
+be explored in great detail what happens.
 
-\subsubsection{Method Invocation}\label{cl_loading}
-Invocation means basically injecting the code of a method in the current process.
-In case of Android there exists the Java world as well as the Linux/native world.
-Zygote does exist in both worlds (Java: \code{Zygote.java, ZygoteConnection.java, \ldots}
-and native: \code{app\_process call with -{}-zygote}). The runtime is responsible for
-executing Java layered code.
-
-\code{ZygoteConnection} creates the \code{ClassLoader} instance and commits it to
-\code{ZygoteInit} via the \code{invoke\allowbreak Static\allowbreak Main()} method. If the class specified
-in \code{className} can be loaded successfully, the class loader tries to initialize a
-\code{Method} instance of the defined classes main method.
-That instance \code{m} gets finally transfered to the explained exception that gets thrown
-at this point and finally the method instance \code{m} does call
-\code{invoke(null, new Object[] {mArgs})} where \code{mArgs} represents a string array of
-arguments. That method is defined in the official Java Documentation \parencite{java_method} since \code{m} represents the common \code{Method} class but is adapted for Android's needs.
-
-This is where it gets interesting. The most recent state of the App starting process
-right now is the forked and adapted process to the specific application. Now, the actual main
-method gets invoked and later executed. Therefore the next step will reveal how ART will handle the created OAT files for Apps with embedded DEX and native code with its structure explained in \autoref{section:app_executable_format}. The invoke method in the \code{Method} class is implemented as native code, means C++ (see \autoref{method_invoke}).
-\lstinputlisting[language=Java, caption=Method Invoke Native Signature, label=method_invoke,firstline=370, lastline=376]{"code/Method.java"}
-The \code{receiver} parameter represents the object the method gets called on. Therefore
-in case of a static main method, it is \code{null}. The native implementation of \code{invoke}
-is quite short and forwards the call to \code{InvokeMethod()} located in
-``\code{reflection.cc}''. Those files are located at ``\code{/art/runtime/native}''.
-
-After the size of the stack has been checked, an \code{ArtMethod* m} pointer gets initialized with its Java method (\code{Method} class) and through ``\code{art\_method.cc}''s static \code{FromReflecetdMethod()}. It does follow a few checks about the receiver (if \code{m} is static or
-not). The \code{m} instance will be used to get the class sizes and checking
-its access flags. Finally, \code{InvokeWithArgArray()} will get called in
-``\code{reflection.cc}'' that in turn calls the \code{Invoke()} of the
-\code{ArtMethod} object defined in ``\code{art\_method.cc}''.
-After checking if the runtime is started, it is asked to get
-the entry point for the quick compiled code of the method to invoke.
+Since most of the steps are performed
+in Java and class loaders are being used to represent the class and main method
+to be loaded, it is pretty clear that the DEX file is mandatory to locate the
+native code methods even at ART.
 
 
-TODO: To be finished or cut if not getting into further Detail!
+% \subsubsection{Method Invocation}\label{cl_loading}
+% Invocation means basically injecting the code of a method in the current process.
+% In case of Android there exists the Java world as well as the Linux/native world.
+% Zygote does exist in both worlds (Java: \code{Zygote.java, ZygoteConnection.java, \ldots}
+% and native: \code{app\_process call with -{}-zygote}). The runtime is responsible for
+% executing Java layered code.
+
+% \code{ZygoteConnection} creates the \code{ClassLoader} instance and commits it to
+% \code{ZygoteInit} via the \code{invoke\allowbreak Static\allowbreak Main()} method. If the class specified
+% in \code{className} can be loaded successfully, the class loader tries to initialize a
+% \code{Method} instance of the defined classes main method.
+% That instance \code{m} gets finally transfered to the explained exception that gets thrown
+% at this point and finally the method instance \code{m} does call
+% \code{invoke(null, new Object[] {mArgs})} where \code{mArgs} represents a string array of
+% arguments. That method is defined in the official Java Documentation \parencite{java_method} since \code{m} represents the common \code{Method} class but is adapted for Android's needs.
+
+% This is where it gets interesting. The most recent state of the App starting process
+% right now is the forked and adapted process to the specific application. Now, the actual main
+% method gets invoked and later executed. Therefore the next step will reveal how ART will handle the created OAT files for Apps with embedded DEX and native code with its structure explained in \autoref{section:app_executable_format}. The invoke method in the \code{Method} class is implemented as native code, means C++ (see \autoref{method_invoke}).
+% \lstinputlisting[language=Java, caption=Method Invoke Native Signature, label=method_invoke,firstline=370, lastline=376]{"code/Method.java"}
+% The \code{receiver} parameter represents the object the method gets called on. Therefore
+% in case of a static main method, it is \code{null}. The native implementation of \code{invoke}
+% is quite short and forwards the call to \code{InvokeMethod()} located in
+% ``\code{reflection.cc}''. Those files are located at ``\code{/art/runtime/native}''.
+
+% After the size of the stack has been checked, an \code{ArtMethod* m} pointer gets initialized with its Java method (\code{Method} class) and through ``\code{art\_method.cc}''s static \code{FromReflecetdMethod()}. It does follow a few checks about the receiver (if \code{m} is static or
+% not). The \code{m} instance will be used to get the class sizes and checking
+% its access flags. Finally, \code{InvokeWithArgArray()} will get called in
+% ``\code{reflection.cc}'' that in turn calls the \code{Invoke()} of the
+% \code{ArtMethod} object defined in ``\code{art\_method.cc}''.
+% After checking if the runtime is started, it is asked to get
+% the entry point for the quick compiled code of the method to invoke.
+
+
+% TODO: To be finished or cut if not getting into further Detail!
 
 %When a user clicks on an App icon, the ``onClick()'' method
 %of the ``Launcher'' application gets called.
