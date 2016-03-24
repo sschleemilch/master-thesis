@@ -81,7 +81,7 @@ instance access hardwarde directly.
 It is mostly used to optimize the performance for Apps (e.g. games)
 or to impede reverse engineering of the application code.
 Google does provide a Native Development Kit (NDK) to help
-developers creating native libraries ~\parencite{ndk} that includes 
+developers creating native libraries ~\parencite{ndk} that includes
 cross compiling toolchains for all supported Android architectures.
 
 Bionic is the Android corresponding GlibC library which was created
@@ -134,7 +134,7 @@ if Apps should be able to communicate with eath other.
 That's why Content providers do offer an interface to the App
 data which is chosen to be exchanged.
 They use a lower level Inter Process Communication (IPC) protocol
-provided by the Android Stack which, like the name indicates, operates 
+provided by the Android Stack which, like the name indicates, operates
 on process level in Linux.
 With Broadcast receivers, an App can react on systemwide events
 (broadcasts) \parencite[ch.1]{securityinternals}.
@@ -197,13 +197,13 @@ layouts and menus. The \code{META-INF/} directory does hold
 the signatures for the specific App similar to a JAR file.
 The heart of every App is the \code{classes.dex} that does
 contain the application code in form of the machine independent
-DEX format specified by Google \parencite{dex} which is comparable to 
+DEX format specified by Google \parencite{dex} which is comparable to
 Java byte code. The Java Development
 Kit (JDK) tool ``javac'' creates a JAR out of every inputted
  \code{.java} file while the Google build tool ``dx'' takes over
  the transition from \code{.jar} to \code{.dex} ~\parencite{dxtool}.
- An \code{ApkBuilder} takes the DEX file, adding \code{.so} files and 
- other resources and finally building the \code{base.apk} that gets signed 
+ An \code{ApkBuilder} takes the DEX file, adding \code{.so} files and
+ other resources and finally building the \code{base.apk} that gets signed
  afterwards by \code{jarsigner}.
 
 \section{App Installation Process}\label{section:app_installation}
@@ -223,25 +223,34 @@ or ``dex2oat'' depending which runtime is present (DVM or ART).
 The out-coming file is in both cases no more machine independent
 and lies at \code{/data/dalvik-cache/<arch>/} with the name
 \code{data@app@<packagename>.<appname>-1@base.apk@classes.dex}.
+That path however did change with Android version 6 to
+\code{/data/app/oat/<pachagename>.<appname>/<arch>/base.odex} which
+is more straight forward since every the whole data of an App is being
+stored at the same place (except for the internal storage an App can
+use, which is located at \code{/data/data/...}).
 It does represent the last stored unit of an App that then
 gets executed in the next step.
 Attention should be paid to the file extension.
-It's the same (\code{.dex}) in both runtimes but is actually a totally
+It's the same (\code{.dex}) with both runtimes but is actually a totally
 different file format.
 Therefore the name of the file is just a reference to the path
-of its source when replacing the ``@'' characters with ``/''.
-If the present runtime is DVM thus Android < 5.0, the generated
-file format is ODEX (Optimized DEX) and otherwise
+of its source when replacing the ``@'' characters with ``/'' (prior Android 6).
+Since Android 6, it became a little more convenient since the file extension changed to ``\code{.odex}'' which corresponds to its actual content since it is
+an optimized version of the DEX.
+If the present runtime is DVM, thus Android < 5.0, the generated
+file format is ODEX (Optimized DEX) and in later versions
 ELF 32/64 (Executable Linking Format) although the responsible
-tool for that conversion step is called ``dex2oat''. This ELF
-file also gets analyzed in the course of this thesis
+tool for that conversion step is called ``dex2oat''. Still, the file
+is named the same way and won't change to ``\code{.elf}'' so the naming
+convention is more like a semantic information rather than saying something
+about its content explicitly.
+This ELF file also gets analyzed in the course of this thesis
 (it does however hold an ``OAT'' file among other things so that
-the tool name actually does makes sense but details will follow in a later
-chapter).
+the tool name actually does makes sense).
 To give an App the possibility to
 store some data, a \code{/data/data/<appname>} directory is
-also created which is a storage whose permissions are limited to its owning 
-App. 
+also created which is a storage whose permissions are limited to its owning
+App.
 
 Last but not least, the pm adds entries to the
 \code{/data/system/packages.xml} as well as the
@@ -307,4 +316,3 @@ shows the direct comparison of those two runtimes.
   \caption[App execution process]{App execution process}
   \label{fig:app_execution}
 \end{figure}
-
