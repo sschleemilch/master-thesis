@@ -4,16 +4,14 @@ Since DEX code seems like to be the weak spot for Apps in terms of security
 topics as well was for licensing and piracy issues, it seems logic to try
 to circumvent this file format by design.
 When comparing the mobile device distribution
-system of Apps to desktop environments like Linux, Windows or MacOS, it becomes
-clear that the main difference is the distribution of Java like byte-code compared to binaries, at least for commercial software or the operating system itself. So the question would be if it is possible to establish an App store that only distributes native code instead of APKs. Like deduced in \autoref{section:app_execution_detail}, it is more than very likely that the DEX file is still needed for addressing native code inside of an ELF.
+system of Apps to desktop environments like Linux, Windows or MacOS, it becomes clear that the main difference is the distribution of Java like byte-code compared to binaries, at least for commercial software or the operating system itself. So the question would be if it is possible to establish an App store that only distributes native code instead of APKs. Like deduced in \autoref{section:app_execution_detail}, it is more than very likely that the DEX file is still needed for addressing native code inside of an ELF.
 Still that thought experiment will be performed in order to clarify if it is possible in general.
 
 At first, an architecture needs to be defined that would be suitable for an alternative native code App store. To keep the user experience as is, it would be beneficial to be able to still use the Google Play App Store for distributing Apps. Therefore at least a bare-bone APK for the application needs to be created that will then be placed into the Google Store.
-That application can then be installed the common Android way. At its first startup, it then could connect to the actual native code app store
+That application can then be installed the common Android way. At its first startup, it then could connect to the actual native code App store
 requesting the functional App in form of raw byte code or an ELF file that
 somehow gets injected in the current bare-bone application.
-Since the Android ODEX ELF file of an App has the DEX embedded, it would need
-to be adapted for instance leaving the DEX area blank.
+Since the Android ODEX ELF file of an App has the DEX embedded, it would need to be adapted for instance leaving the DEX area blank.
 So the skeleton version needs to implement at least the communication mechanism as well as the self modifying code part that can handle the receiving code snippets (\autoref{fig:native_store_arch} visually shows
 the explained architecture).
 \begin{figure}[htb]
@@ -28,8 +26,7 @@ folder as well as \code{oat/} do belong to the \code{system} user. So accessing 
 impossible out of the App context without root rights. Same goes for the
 \code{base.odex} which also belongs to \code{system} and is marked as
 ``\code{rw-}''.
-Another way to check the possibilities of changing files dynamically at runtime
-are the mapped files and their permissions that can be read out of \code{/proc/self/maps} like explained in \autoref{section:memory_mapping} using C++.
+Another way to check the possibilities of changing files dynamically at runtime are the mapped files and their permissions that can be read out of \code{/proc/self/maps} like explained in \autoref{section:memory_mapping} using C++.
 Since the last entity of an App getting executed is the ODEX file, it is
 mapped into the process (\autoref{tab:app_odex_mapping} shows an example)
 \begin{table}[htb]
@@ -49,4 +46,5 @@ mapped into the process (\autoref{tab:app_odex_mapping} shows an example)
   \end{tabular}
   }
 \end{table}
-Several regions of the ODEX are mapped (offset marks the beginning relative to its file) with different permissions. Interesting is the part with writing permissions and its contents. The corresponding ELF format was analyzed in \autoref{section:elf_file_format}. To find out which specific section is mapped as writable, a program can be written in order to dump the content of every section including its offset or just using a hex editor. So first, the ODEX has to be pulled out of the Android device for which root rights are necessary. The file can then be moved into the \code{/sdcard} path and be pulled out using \code{adb pull /sdcard/base.odex} from a computer.
+Several regions of the ODEX are mapped (offset marks the beginning relative to its file) with different permissions. Interesting is the part with writing permissions and its contents. The corresponding ELF format was analyzed in \autoref{section:elf_file_format}. To find out which specific section is mapped as writable, a program can be written in order to dump the content of every section including its offset or just using a hex editor or even the \code{readelf} tool. So first, the ODEX has to be pulled out of the Android device for which root rights are necessary (otherwise it is not possible to even navigate into the App directory).
+The file can then be moved into the \code{/sdcard} path and copied out out using \code{adb pull /sdcard/base.odex} from a computer. It then becomes clear that the mapped file region marked as writable is located in the string table section ``\code{.strtab}''. That mapped section though is not useful in terms of altering the Apps own code since it does not contain the DEX nor the ELF file. Therefore, a concept of distributing native code in form of crosscompiled ELF files without root rights is not possible. 
