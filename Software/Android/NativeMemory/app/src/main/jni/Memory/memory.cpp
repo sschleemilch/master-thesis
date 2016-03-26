@@ -36,9 +36,9 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIE
         }
         LOGD("All\n");
         while (fgets(line, 2048, fp) != NULL) {
-            //if(strstr(line, "libc_malloc") != NULL){
+            if(strstr(line, "base.odex") != NULL){
                 LOGD("%s", line);
-            //}
+            }
         }
         fp->_close;
     /*
@@ -81,6 +81,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIE
     */
 
 }
+
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv *env, jobject obj, jstring inpath){
 
     const char *path = env->GetStringUTFChars(inpath, NULL);
