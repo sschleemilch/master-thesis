@@ -3,7 +3,10 @@
 This chapter will cover shortly how to write native code in Android and how
 the connection between Java and C/C++ is being established as well as its
 integration into Android Studio.
-Then there will be a sample application that shows a dynamic native code execution of a native code shared library that can either be shipped within \code{assets/} or can be pulled in from external sources like the web, secure elements and so on.
+Then there will be a sample application that shows a dynamic native code execution of a native code shared library, a binary or even machine code that can either be shipped within \code{assets/} or can be pulled in from external sources like the web, secure elements and so on. It will also be covered
+if and to what extent an Android App has access to its own memory location as
+well to its mapped files considering its writing and execution permissions.
+With C/C++ there should be multifarious possibilities if sandboxing/permission concept mechanisms do play along.
 
 \section{NDK and Android Studio Integration}\label{section:ndk_integration}
 A complete documentation and starting guide about the NDK can be found at \parencite{ndk} and a guide to the integration into Android Studio at \parencite{ndk_integration}.
@@ -36,14 +39,14 @@ declarations for the specified methods (including the JNIEnv pointer for instanc
 and can then be included in the C/C++ source file that can then be implemented as a
 usual C/C++ project.
 
-The last necessary thing is to create an \code{Android.mk} makefile for every library as well as \code{Application.mk}. \code{Android.mk} defines the library name that \code{loadLibrary()} expects, lists the source files and defines the outcome (shared library or executable) whereas \code{Application.mk} includes
+The last necessary thing is to create an \code{Android.mk} makefile for every library as well as \code{Application.mk}. The \code{Android.mk} file defines the library name that \code{loadLibrary()} expects, lists the source files and defines the outcome (shared library or executable) whereas \code{Application.mk} includes
 the libraries to build (\code{APP\_MODULES}) and the architectures to build for
 (\code{APP\_ABI}). The \code{build.gradle} has to be adapted as well, defining the
 outcome directory path relative to \code{jni/} and \code{android.useDeprecatedNdk = true} needs to be added to \code{gradle.properties} to suppress an error message.
 A \code{ndk-build} call will then compile all sources and creates the libraries
 at \code{libs/<archs>}. They can be used out of the box without need to load them by hand
-at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the App APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with necessary
-pointed out adaption is shown in \autoref{chapter:ndk_sample_project}.
+at runtime. All that's needed is the \code{loadLibrary()} call. Physically, those libraries are stored at the same path as the App APK file like introduced earlier. By applying this method, those native libs are shipped together within the application that might not be the intended behavior. A whole NDK sample project with those necessary
+pointed out adaptations is shown in \autoref{chapter:ndk_sample_project}.
 
 \section{Dynamic Shared Library Loading out of a File}\label{section:shared_library_loading}
 The process demonstrated in \autoref{section:ndk_integration} is common practice to
@@ -52,7 +55,7 @@ the main idea of dynamical code loading is the distribution of code for instance
 after licensing the App or to apply some sort of copy protection mechanisms by hiding
 the true functionality. One approach is to use native code as a loading mechanism.
 C/C++ has the ability to load shared objects (\code{*.so}) with a method called
-\code{dlopen()}. Its signature is shown in \autoref{dlopen_sig}.
+\code{dlopen()} (=``Dynamic Library Open''). Its signature is shown in \autoref{dlopen_sig}.
 \begin{lstlisting}[language=C++, caption=dlopen() Signature, label=dlopen_sig]
 void *dlopen(const char *path, int flag)
 \end{lstlisting}
@@ -72,7 +75,7 @@ the manifest file.
 The most suitable option should be the internal storage since the App has unlimited read
 write rights and the content is safe from other sources rather then itself. For simplicity and demonstration reasons, the library to load will be stored in the
 \code{assets/} folder of the App that also only exists in the APK but is not
-reference-able through a path. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal App storage and a file container for the library to load gets created.
+reference-able through a path but can be opened through an Asset-Manager. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal App storage and a file container for the library to load gets created.
 \begin{lstlisting}[language=Java, caption=Internal Storage Initialization, label=internal_init]
 File internalStoragePath = new File(getDir("dynamic", Context.MODE_PRIVATE), "mul.so");
 \end{lstlisting}
@@ -144,7 +147,7 @@ given as a string. That call is interesting when comparing C to C++. In
 \code{dlopen()} is being described in detail.
 In short, one will need an ``\code{extern "C"}'' at the \code{mul()} definition in order to make the \code{dlsym()} function to find the method
 because C++ does not use only the method name as its symbol but a unique created ID.
-So without that extern keyword, \code{dlsym()} fails.
+So without that extern keyword, \code{dlsym()} will fail.
 Finally, the \code{mul()} function can be called out of the library.
 After that call, \code{dlclose()} has to be executed. It is also possible to remove
 the library file after that process that might be useful for copy protection usage.
@@ -561,20 +564,46 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting
 Being able to write to memory in general is a necessary precondition for advanced patching techniques like adapting the linker and is therefore doable in ART.
 
 \section{Utilizations}
-The question is how the gathered native code based methods can be used to establish a copy protection effect with impact.
-A good practice would be to deliver necessary parts of an App only when
-it has been licensed before. If those parts are downloaded after the licensing
-check, it is not needed to implement the licensing mechanism in native code or
-obfuscate it in any other way.
-Even if an attacker manages to fake the App into being licensed, he still would
-not be able to execute the App properly since core parts would be missing.
-That parts could be dynamically loaded from a DEX file like explained in
-\autoref{section:dynamic_code_loading}. A crucial part here is that it should
-be focused on preventing the App usage even if the licensing call is somehow
-circumvented. An attacker could try to copy those one time downloaded parts and distribute a new App concluding them, so that it will not be that big of
-a challenge. But what about also encrypting those parts locally with a key that
-is only legit for the specific device (by checking its IMEI, MAC address, or
-ANDROID\_ID that is a random 64 Bit number created by Android at the first user setup that might change after a factory reset)?
+The question is how those gathered methods of dynamically loading code can be
+used practically.
+
+Licensing is a common way of controlling additional paid
+features of an App. The main problem of licensing mechanisms is the one
+function call that checks the licensing status of its user. Like pointed
+out in \parencite{app_sec}, the checking licensing call can be easily
+patched, in many cases even automatically using Lucky Patcher or similar
+software so that the function call always returns ``\code{licensed == true}''
+or gets skipped entirely. How to solve this problem? A good practice would be to deliver necessary parts of an App only when the licensing mechanism was
+called successfully, means that there was established a connection to the
+licensing server for instance that in turn will distribute the additional
+App content (see \autoref{fig:license_dynamic_loading}).
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.5]{figures/license_dynamic_loading}
+  \caption[Dynamic App Content Loading]{Dynamic App Content Loading}
+  \label{fig:license_dynamic_loading}
+\end{figure}
+So that even an attacker manages to skip the license call and fake the App
+into being licensed, he still would not have access to those additional
+function cause of missing application files. Like shown in this chapter,
+that behavior could be implemented in native code as well as in Java and
+is also relatively independent in terms of type of code to be loaded (DEX,
+shared library, binary).
+
+
+
+% If those parts are downloaded after the licensing
+% check, it is not needed to implement the licensing mechanism in native code or
+% obfuscate it in any other way.
+% Even if an attacker manages to fake the App into being licensed, he still would
+% not be able to execute the App properly since core parts would be missing.
+% That parts could be dynamically loaded from a DEX file like explained in
+% \autoref{section:dynamic_code_loading}. A crucial part here is that it should
+% be focused on preventing the App usage even if the licensing call is somehow
+% circumvented. An attacker could try to copy those one time downloaded parts and distribute a new App concluding them, so that it will not be that big of
+% a challenge. But what about also encrypting those parts locally with a key that
+% is only legit for the specific device (by checking its IMEI, MAC address, or
+% ANDROID\_ID that is a random 64 Bit number created by Android at the first user setup that might change after a factory reset)?
 
 
 

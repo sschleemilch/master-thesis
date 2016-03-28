@@ -3,7 +3,9 @@
 
 This chapter will first provide some detailed information about the ART runtime since the internal mechanics are a precondition to understand the more complex copy protection mechanisms and obfuscation techniques. The existing ones will be explained afterwards. Most of them are based on the Dalvik runtime. It will then be determined whether a specific method is also
 applicable to ART. A great focus will of course rely on the DEX format since
-it is still the distribution format of every App (inside of an APK).
+it is still the distribution format of every App (inside of an APK named as
+\code{classes.dex}). Unless explicitly written otherwise, investigations performed do rely on an AOSP and device version running Android 5.1.1 and may therefore vary on different Android versions since Google applies changes
+at runtime layer very frequently.
 
 \section{ART Internals}
 \label{section:art_internals}
@@ -185,43 +187,43 @@ Google does not provide any official documentation about the OAT
 file format other than the source code itself
 (\code{art/runtime/oat[\_file].h[c]}). \parencite{hiding_behind_art}
 however gives a helpful introduction and an overview is given
-in \autoref{fig:oat_format} that shows the content of ``oatdata''.
+in \autoref{fig:oat_format} that shows the content of ``\code{oatdata}'' and
+``\code{oatexec}'' which are scattered among superordinated ELF sections.
 
 \begin{figure}[htb]
   \centering
-  \includegraphics[scale=0.5]{figures/oat_format}
+  \includegraphics[scale=0.4]{figures/oat_format}
   \caption[OAT format]{OAT format}
   \label{fig:oat_format}
 \end{figure}
 
 Important attributes that the ``OAT Header'' contains are the
 checksum over itself,
-the instruction set (ARM, ARM64, MIPS, \ldots), the executable
-offset (actually it is not standalone executable but just contains
-native code instructions)
-relative to the begin of ``oatdata'' and the quantity of embedded
-DEX files (in case of Apps it's always one, other system files like
+the instruction set (ARM, ARM64, MIPS, \ldots), the native code
+offset relative to the begin of ``\code{oatdata}'' (located in
+``\code{oatexec}'') and the quantity of embedded
+DEX files (in case of Apps it always equals one, other system files like
 ``boot.oat'' may contain several DEX files). It does follow the
 ``OAT Dex Header'', containing
-the absolute path of the ``source'' file (=DEX), the checksum, the
+the absolute path of its ``source'' file (=input file of \code{dex2oat},
+means DEX), the checksum, the
 embedded DEX file's offset as well as
-an offset to the ``OAT Class Headers''. ``OAT Class Headers''
+an offset to the ``OAT Class Headers''. Those ``OAT Class Headers''
 do offer information about defined classes. It does include the type
 of class, means how many methods in the class
 are compiled to native code (``all'', ``some'' or ``none'' but
 should be ``all'' in almost every case) and secondly
 the offsets to the native code begin of every compiled method.
 The actual code is located in a superordinated section
-\code{.text} which is separated but referenced from this one.
+\code{.text}, as already said, labeled as ``\code{oatexec}'' which is separated but referenced from this one.
 
 \subsubsection{DEX File Format}
 \label{section:dex_file_format}
 To be complete, a description and explanation to the DEX format is also given,
 which is officially documented by Google \parencite{dex}.
 Before the introduction of ART, DEX was the last unit before
-execution of an App (besides ODEX which can be easily converted back to DEX). The DVM does however accept
-both formats and therefore it's possible to execute
-DEX files without the transformation step. As a consequence,
+execution of an App (besides ODEX which can be easily converted back to DEX). The DVM does however accept both formats and therefore it's possible to execute
+DEX files without the optimization step. As a consequence,
 DEX files can also be loaded dynamically at runtime which are not a part
 of the distributed App. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}. DEX as it is does not only contain
 VM instructions but some meta data around that to locate
@@ -275,7 +277,7 @@ provide an overall view of the file format of ART App executables.
 
 \begin{figure}[htb]
   \centering
-  \includegraphics[scale=0.5]{figures/andelf_format}
+  \includegraphics[scale=0.6]{figures/andelf_format}
   \caption[ART App executable format]{ART App executable format}
   \label{fig:andelf_format}
 \end{figure}
@@ -537,6 +539,36 @@ Since most of the steps are performed
 in Java and class loaders are being used to represent the class and main method
 to be loaded, it is pretty clear that the DEX file is mandatory to locate the
 native code methods even at ART.
+If the reader is interested of checking the AOSP by himself,
+\autoref{tab:aosp_files} shows the explained source files and their paths
+inside of the AOSP branch of version six in this case.
+
+\begin{table}[htb]
+  \caption[Zygote/App Start AOSP(6.0) Files]{Zygote/App Start AOSP(6.0) Files}
+  \label{tab:aosp_files}
+  %\centering
+  \texttt{
+  \begin{tabular}{l l}
+    \toprule
+    Path & Filename \\
+    \midrule
+    /frameworks/base/cmds/app\_process & app\_main.cpp \\
+    /frameworks/base/core/java/com/android/internal/os/ & ZygoteInit.java \\
+    /frameworks/base/core/java/com/android/internal/os/ & ZygoteConnection.java\\
+    /frameworks/base/core/java/com/android/internal/os/ & Zygote.java \\
+    /frameworks/base/core/jni/ & com\_...\_os\_Zygote.cpp \\
+    /frameworks/base/core/jni/ & com\_...\_os\_ZygoteInit.cpp \\
+    \bottomrule
+  \end{tabular}
+  }
+\end{table}
+
+So what does actually happen when a user clicks on an App icon?
+The Launcher App that gets packaged with the AOSP takes care of the interface
+responsible for showing App icons, the home screen and so on. The App icon click will call the corresponding \code{onClick()} method that will in turn
+call \code{startActivity()} of the Activity Manager service through the Android Binder. The service will start \code{startViaZygote()} which
+opens a socket to the Zygote process requesting to start the new Activity/App
+\parencite[ch.2, System Services]{embedded_android}.
 
 
 % \subsubsection{Method Invocation}\label{cl_loading}
@@ -595,7 +627,7 @@ Generally there do exist two possible outcomes of DEX disassembling
 - Java code (\code{*.java}) and Smali code (\code{*.smali}).
 Since the DEX format is more or less just a different mapping of a
 JAR and its containing \code{.class} files, the transition to JAR
-is quite simple \parencite{dvminternals}. A tool that is able to
+is quite simple \parencite{dvminternals}. One of many tools that is able to
 perform this step is ``dex2jar'' \parencite{dex2jartool}.
 Along with this JAR, standard Java decompilers like ``JD-GUI''
 \parencite{jdtool} can be used to produce the \code{*.java} source code.
@@ -610,7 +642,8 @@ for DEX files rather than taking the Java code detour. There is also
 a tool included that can convert the ODEX back to DEX (which was interesting
 for Dalvik Runtime systems).
 
-Overall, the disassembly of unchanged DEX is quite easy and is shown
+Overall, the disassembly of unchanged DEX is quite easy and
+its main tools and possible conversions are shown
 as a concluding overview in \autoref{fig:dex_disassembly}
 
 Therefore several countermeasures were established which are
@@ -631,7 +664,8 @@ that can be separated in two main groups, static and dynamic obfuscation.
 Static means that the obfuscation technique is applied to code units (source
 code, binaries, ...) while the application is not executed. Therefore an
 attacker could possibly successful analyze the application without executing it
-if he manages to break this obfuscation. An upside of static techniques in general is that they are independent of the following runtime if two compared runtimes are using the same input files (which they do in case of Android, DEX).
+if he manages to break this obfuscation. An upside of static techniques in general is that they are independent of the following runtime if two compared runtimes are using the same input files (which they do in case of Android with
+its DEX formatted files).
 Applications that are dynamically obfuscated on the other hand, are much harder to analyze. The behavior
 of the application is not decided until its execution. An attacker needs to connect to the process of the running application followed by a just in time inspection. Dynamical methods do have the downside that they are highly dependent on the runtime.
 
@@ -657,7 +691,7 @@ order to confuse code analysts by keeping the original behavior
 
 Popular tools for that purpose are Google's ``ProGuard''
 \parencite{proguardtool} which is included in the Android build system and
-can be enabled easily as well as``DexGuard'' by GuardSquare
+can be enabled easily as well as ``DexGuard'' by GuardSquare
 \parencite{dexguardtool}. ``ProGuard'' does
 operate on source code level where ``DexGuard'' operates on DEX.
 Since the first ``layer'' of Android applications is Java code, classical Java
@@ -787,7 +821,7 @@ ToLoad.class}'' (Be sure to use a Java version < 1.8, otherwise the \code{dx}
 command will fail since Java 1.8 ist not yet officially supported by Android at the time
 of writing this thesis).
 The \code{dexPath} has to be readable by the App itself. Therefore
-the Dex should be stored in the App data directory where dexPath should then
+the Dex should be stored in the private App data directory where dexPath should then
 search for, same for the optimized directory.
 \code{getDir()} can create a private folder with a given name
 and privileges. With \code{getAssets().open()}, the Dex can be
@@ -805,13 +839,17 @@ So the dynamic DEX loading is generally possible in ART with purely official
 Android Java methods. However, the execution of code loaded that way should
 be very slow since the Dex file gets optimized in an ART way (=compilation
 into native code) and it doesn't really fit into the ART AOT compilation
-philosophy. With that in mind, it should be clear that it is not possible
+philosophy. Of course when using this method initializing an App right after installation once, it is still useful.
+With that in mind, it should be clear that it is not possible
 to load a Dex file into a byte array and execute it directly like it was
-possible at Dalvik using the libdvm library via JNI since ART cannot execute
-DVM instructions by design. So in the scope of copy protection mechanisms
-with ART, dynamic code loading at Java layer is not that useful anymore.
-Instead it needs to get analyzed how code can be loaded dynamically in ART which
-will be determined in \autoref{chapter:android_dynamic_native_code}.
+possible at Dalvik using the ``\code{libdvm}'' library via JNI.
+The reason should be clear since ART does not operate on DVM byte-codes and therefore cannot execute those DVM instructions by design.
+So in the scope of copy protection mechanisms
+with ART, dynamic code loading at Java layer is not that useful anymore
+but can still be used to dynamically load App parts in general.
+Instead it needs to get analyzed how code can be loaded dynamically in ART which will be determined in \autoref{chapter:android_dynamic_native_code}.
+To come to the point right away: Dynamically loading code is possible, mainly
+by using native code and therefore JNI functionalities.
 
 \subsubsection{Self Modifying Code}
 Quite similar to dynamic code loading described in
@@ -836,8 +874,9 @@ Let's assume we do have the code snippet shown in \autoref{self_modifying_code} 
     ...
 \end{lstlisting}
 
-The \code{modifyVariable()} is a native code method and sweeps
-over the process memory (detectable through \code{/proc/self/maps})
+The \code{modifyVariable()} is a native code method defined over the JNI
+and sweeps over the process memory (detectable by evaluating
+\code{/proc/self/maps})
 in order to find the egg value. After skipping the assignment of
 the egg value, the next instruction is responsible for allocating
 the \code{toChange} variable which in this case is ``\code{0x13 0x21}''

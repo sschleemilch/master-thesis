@@ -56,12 +56,11 @@ in terms of efficiency and sharing memory and is using the
 Dalvik Executable format (DEX) as bytecode which is device
 independent and one reason for chosing a VM design in the first place\parencite[p.11f]{levin}. These \code{.dex} files are being
 packed into Java libraries (JAR) or into Android Application Packages (APK)
-and will get created automatically by the official Android Studio IDE from Google out
-of Java code.
+and will get created automatically by the official Android Studio IDE from Google out of Java code.
 
-A runtimes purpose is to provide
-interpretation of machine independend code, in other words,
-transforming Java bytecode into machinecode (pure 1's and 0's a CPU understands).
+A runtime's purpose is to provide
+interpretation of machine independent code, in other words,
+transforming Java byte-code into machine-code (pure 1's and 0's a CPU understands).
 With Android version 5.0, Google did introduce ART which is an
 alternative runtime. Like Dalvik it does use a VM but with a
 different concept.
@@ -72,17 +71,17 @@ which compiles an App to machine code at installation time.
 The reason for JIT in the first place were among other things
 storage limitations of mobile devices at the time Android was released
 \parencite[p.11f]{levin}. As a result, the ART Apps installation time
-is increased as well as the required storage space as a tradeoff
+is increased as well as the required storage space as a trade-off
 to the App startup and runtime performance.
 
 The JNI provides an opportunity to write Java programs with embedded
 native processor specific code to escape from the VM world to for
-instance access hardwarde directly.
+instance access hardware directly.
 It is mostly used to optimize the performance for Apps (e.g. games)
 or to impede reverse engineering of the application code.
 Google does provide a Native Development Kit (NDK) to help
 developers creating native libraries ~\parencite{ndk} that includes
-cross compiling toolchains for all supported Android architectures.
+cross compiling tool-chains for all supported Android architectures.
 
 Bionic is the Android corresponding GlibC library which was created
 for license and simplicity reasons. Overall, it is more lightweight
@@ -96,7 +95,7 @@ to implement their own drivers \parencite[p.18f]{levin}.
 
 \section{Android Apps}\label{section:android_apps}
 Apps are the most abstract level of the Android software stack.
-Generally there are either system-(mostly preinstalled, like a browser)
+Generally there are either system-(mostly pre-installed, like a browser)
 or user-apps (everything installed by user).
 The system Apps storage location (\code{/system/apps/}) differs from
 the user Apps (\code{/data/apps/}). System Apps are included into the
@@ -105,13 +104,13 @@ via the Android Debug Bridge (ADB), App stores
 like the Google Play Store or directly on the device by opening
 downloaded App files (APKs).
 
-Every App has its own sandboxed environment. That means that
+Every App has its own sand-boxed environment. That means that
 apps can not access data from other Apps and they can only access
 resources those permissions were granted during installation time.
 These are one of the basic Android security concepts,
 the Privilege separation and the principle of the least
 privileges \parencite[ch.1]{securityinternals} which can be applied through
-linux group and user permission concepts.
+Linux group and user permission concepts.
 
 Apps do have several components, the main ones are:
 
@@ -126,17 +125,17 @@ Activities do represent a screen view in the UI ready for user
 interaction. They can be started independently even though one Activity
 is chosen to be the one that starts when the user clicks on the
 app icon. Services are purely functional and are not represented
-at the UI compared to Activites. Their utilisation are mostly time
+at the UI compared to Activities. Their utilization are mostly time
 consuming operations in the background of an App like server
-communication or computational tasks. Since Apps are sandboxed,
+communication or computational tasks. Since Apps are sand-boxed,
 they can't access each others data which can be seen as a limitation
-if Apps should be able to communicate with eath other.
+if Apps should be able to communicate with each other.
 That's why Content providers do offer an interface to the App
 data which is chosen to be exchanged.
 They use a lower level Inter Process Communication (IPC) protocol
 provided by the Android Stack which, like the name indicates, operates
 on process level in Linux.
-With Broadcast receivers, an App can react on systemwide events
+With Broadcast receivers, an App can react on system-wide events
 (broadcasts) \parencite[ch.1]{securityinternals}.
 
 Apps are distributed in form of machine independent \code{.apk} files.
@@ -185,7 +184,7 @@ after extraction.
 The \code{AndroidManifest.xml} file holds meta-data information
 about the App like the package name, it's version, a list of
 activities (one of them is marked as the action \code{MAIN} activity) and required permissions. \code{resources.arsc}
-does contain precompiled resources like strings, styles
+does contain pre-compiled resources like strings, styles
 or binary XML. Developers can use the \code{assets/} folder
 to store raw data needed for the App like music files,
 fonts, additional DEX files and so on. If the App does make use of the JNI,
@@ -264,7 +263,7 @@ relevant actions the pm performs.
 
 \begin{figure}[htb]
   \includegraphics[width=\textwidth]{figures/app_installation}
-  \caption[App installation process (paths prior version 6)]{App installation process (paths prior version 6)}
+  \caption[App installation process]{App installation process}
   \label{fig:app_installation}
 \end{figure}
 
@@ -280,7 +279,7 @@ file stored at \code{/data/dalvik-cache/...@classes.dex} like in
 \autoref{section:app_installation} described. ``Zygote'' is
 the name of one of the first processes Android starts when booting.
 The process is responsible for loading more services and libraries
-of the Android framework and does hold precompiled resources that
+of the Android framework and does hold pre-compiled resources that
 nearly every App instance will need.
 By starting an app, it's therefore much more efficient to fork
 the Zygote process at Linux layer and then including the App specific part
