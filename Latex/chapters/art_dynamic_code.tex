@@ -565,8 +565,11 @@ Being able to write to memory in general is a necessary precondition for advance
 
 \section{Utilizations}
 The question is how those gathered methods of dynamically loading code can be
-used practically.
+used practically. A few examples of how those dynamic code methods can be used
+are shown here that are meant to inspire the reader for even more thought-through 
+advanced solutions.
 
+\subsection{Licensing Improving}
 Licensing is a common way of controlling additional paid
 features of an App. The main problem of licensing mechanisms is the one
 function call that checks the licensing status of its user. Like pointed
@@ -585,10 +588,23 @@ App content (see \autoref{fig:license_dynamic_loading}).
 \end{figure}
 So that even an attacker manages to skip the license call and fake the App
 into being licensed, he still would not have access to those additional
-function cause of missing application files. Like shown in this chapter,
+functionalities cause of missing application files that will not getting
+transmitted server sided. Like shown in this chapter,
 that behavior could be implemented in native code as well as in Java and
 is also relatively independent in terms of type of code to be loaded (DEX,
-shared library, binary).
+shared library, binary). However, if those additional App parts are being
+downloaded successfully, with root rights they can be pulled out of the
+device so that an advanced attacker could again circumvent the licensing
+mechanism for several devices after purchasing the App once and then patching
+the license/code fetching calls. 
+A possible remedy for that could be continuous license checking calls in the
+background implemented as a service whenever there is an Internet connection
+present (like every 10 minutes). That service could not only try to delete
+files that should not be present at its device but could also lead to an 
+App crash with a meaningless message which would be most suitable.
+
+A simple 
+
 
 
 

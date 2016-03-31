@@ -36,9 +36,9 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIE
         }
         LOGD("All\n");
         while (fgets(line, 2048, fp) != NULL) {
-            if(strstr(line, "base.odex") != NULL){
+            //if(strstr(line, "base.odex") != NULL){
                 LOGD("%s", line);
-            }
+            //}
         }
         fp->_close;
     /*
@@ -201,37 +201,15 @@ void emit_code_into_memory(unsigned char* m) {
             //0x1e,0xff,0x2f,0xe1, //bx  lr
             //0x91, 0x00, 0x00, 0xe0,
             //0x1e, 0xff, 0x2f, 0xe1,
-             0x00,0x48,0x2d,0xe9,
-             0x04,0xb0,0x8d,0xe2,
-             0x04,0x10,0xa0,0xe3,
-             0x05,0x00,0xa0,0xe3,
-             0xfe,0xff,0xff,0xeb,
-             0x2c,0x80,0xb3,0xb5,
-             0x00,0x30,0xa0,0xe1,
-             0x03,0x00,0xa0,0xe1,
-             0x04,0xd0,0x4b,0xe2,
-             0x00,0x48,0xbd,0xe8,
-             0x1e,0xff,0x2f,0xe1,
-
-             0x04,0xb0,0x2d,0xe5,
-             0x00,0xb0,0x8d,0xe2,
-             0x0c,0xd0,0x4d,0xe2,
-             0x08,0x00,0x0b,0xe5,
-             0x0c,0x10,0x0b,0xe5,
-             0x08,0x30,0x1b,0xe5,
-             0x0c,0x20,0x1b,0xe5,
-             0x92,0x03,0x03,0xe0,
-             0x03,0x00,0xa0,0xe1,
-             0x00,0xd0,0x4b,0xe2,
-             0x04,0xb0,0x9d,0xe4,
-             0x1e,0xff,0x2f,0xe1,
+             0x00,0x01,0x02,0x03,0x04,
+             0x05,0x06,0x07,0x08,0x09
     };
     memcpy(m, code, sizeof(code));
 }
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeSomething
         (JNIEnv *env, jobject obj){
     typedef int (*JittedFunc)();
-    size_t SIZE = 88;
+    size_t SIZE = 10;
     FILE * fp;
     char line[2048];
 
@@ -321,8 +299,9 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_writingOwnOAT
     }
     char adline[2048];
     while (fgets(line, 2048, fp) != NULL) {
-        if(strstr(line, "base.odex") != NULL){
+        if(strstr(line, "rw-p 005a6000") != NULL){
             LOGD("%s", line);
+            break;
         }
     }
     fp->_close;
@@ -337,12 +316,12 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_writingOwnOAT
     LOGD("%p", cp);
 
     LOGD("Bytes Before:");
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 100; i++){
         LOGD("%x", cp[i]);
-        //cp[i] = i;
+        cp[i] = i;
     }
     LOGD("Afterwards:");
-    for (int i = 0; i < 5; i++){
+    for (int i = 0; i < 100; i++){
         LOGD("%x", cp[i]);
     }
 }

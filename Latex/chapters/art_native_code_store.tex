@@ -27,8 +27,12 @@ impossible out of the App context without root rights. Same goes for the
 \code{base.odex} which also belongs to \code{system} and is marked as
 ``\code{rw-}''.
 Another way to check the possibilities of changing files dynamically at runtime are the mapped files and their permissions that can be read out of \code{/proc/self/maps} like explained in \autoref{section:memory_mapping} using C++.
+Remember that ``mapped'' means that those files are copied into the memory
+and therefore changes made in mapped files do not take over to the actual
+physical stored counterparts. So those changes written to mapped files would
+not be permanent.
 Since the last entity of an App getting executed is the ODEX file, it is
-mapped into the process (\autoref{tab:app_odex_mapping} shows an example)
+mapped into the process (\autoref{tab:app_odex_mapping} shows an example).
 \begin{table}[htb]
   \caption[App's ODEX/ELF mapping]{App's ODEX/ELF mapping}
   \label{tab:app_odex_mapping}
