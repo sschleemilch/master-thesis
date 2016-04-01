@@ -25,6 +25,11 @@ typedef struct {
 
 lib_t libdata;
 
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_crashApp (JNIEnv *env, jobject obj){
+unsigned char * p = 0x00000000;
+*p = 5;
+}
+
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIEnv *env, jobject obj){
 
     FILE* fp;

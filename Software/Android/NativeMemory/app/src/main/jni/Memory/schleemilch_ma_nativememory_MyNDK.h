@@ -7,6 +7,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_crashApp
+        (JNIEnv *, jobject);
 /*
  * Class:     schleemilch_ma_nativememory_MyNDK
  * Method:    showSelfProc

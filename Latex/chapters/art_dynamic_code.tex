@@ -601,9 +601,46 @@ A possible remedy for that could be continuous license checking calls in the
 background implemented as a service whenever there is an Internet connection
 present (like every 10 minutes). That service could not only try to delete
 files that should not be present at its device but could also lead to an 
-App crash with a meaningless message which would be most suitable.
+App crash with a meaningless message in case of not being licensed. 
 
-A simple 
+A simple way of crashing an application is to trigger a SIGSEV for instance
+by accesssing the NULL-pointer. In C/C++ that is no challenge since pointers
+do exist (see \autoref{crash_app_sigsev}).  
+\begin{lstlisting}[language=C++, caption=crashApp(), label=crash_app_sigsev]
+unsigned char *p = 0x00000000;
+*p = 1;
+\end{lstlisting}
+That will cause an Android GUI message ``<AppName> has stopped working'' while
+the ADB interface will reveal the actual cause `` Fatal signal 11 (SIGSEGV), code 1, fault addr 0x0 in tid 25271 (ma.nativememory)''.
+ \begin{table}[htb]
+   \caption[ADB Debug SIGSEV Fingerprint]{ADB Debug SIGSEV Fingerprint}
+   \label{tab:sigsev_debug}
+   %\centering
+   \texttt{
+   \begin{tabular}{l}
+  \toprule
+  *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** \\
+ Build fingerprint: 'google/.../2554798:user/release-keys' \\
+ Revision: '0' \\
+ ABI: 'arm' \\
+ pid: 25515, tid: 25515, name:ma.nativememory \\
+ signal 11 (SIGSEGV), code 1 (SEGV\_MAPERR), fault addr 0x0 \\
+    r0 b4d56a80  r1 bea34ffc  r2 00430000  r3 00000000 \\
+     r4 7045ea08  r5 12c5b800  r6 00000000  r7 00000000 \\
+     r8 12d8e100  r9 b4d76500  sl 12c5b800  fp 6fe4d244 \\
+     ip b3b01259  sp bea34ff0  lr a211dee1  pc b3b0125a  cpsr 600e0030 \\
+     \#00 pc 0000125a  /data/app/<AppName>/lib/arm/libMemory.so \\(Java\_<package>\_MyNDK\_crashApp+1) \\
+     \#01 pc 0044eedf  /data/app/<AppName>/oat/arm/base.odex\\ (offset 0x2d5000) (void <package>.MyNDK.crashApp()+74) \\
+     \#02 pc 0059dc9b  /data/app/<AppName>/oat/arm/base.odex \\(offset 0x2d5000) (void <package>.MainActivity.onCreate(android.os.Bundle)+854) \\
+     \#03 pc 72da30a9  /data/dalvik-cache/arm/system@framework@boot.oat\\(offset 0x1ec9000) \\
+  \bottomrule
+   \end{tabular}
+   }
+ \end{table}
+Additionally there will be printed debug information about all the CPU
+registers and their contents as well as the program counters (pc) and
+their corresponding methods that lead to the crash (output is shown in
+\autoref{tab:sigsev_debug})
 
 
 

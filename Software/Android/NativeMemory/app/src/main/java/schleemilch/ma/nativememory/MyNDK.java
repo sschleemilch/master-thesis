@@ -11,4 +11,5 @@ public class MyNDK {
     native public void memoryAccess();
     native public void mmapBinExec(String path);
     native public void writingOwnOAT();
+    native public void crashApp();
 }
