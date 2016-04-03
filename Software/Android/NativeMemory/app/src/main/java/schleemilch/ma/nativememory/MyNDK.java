@@ -12,4 +12,5 @@ public class MyNDK {
     native public void mmapBinExec(String path);
     native public void writingOwnOAT();
     native public void crashApp();
+    native public void eggHunting();
 }

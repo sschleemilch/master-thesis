@@ -8,6 +8,9 @@
 extern "C" {
 #endif
 
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_eggHunting
+        (JNIEnv *, jobject);
+
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_crashApp
         (JNIEnv *, jobject);
 /*

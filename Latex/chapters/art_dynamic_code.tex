@@ -566,7 +566,7 @@ Being able to write to memory in general is a necessary precondition for advance
 \section{Utilizations}
 The question is how those gathered methods of dynamically loading code can be
 used practically. A few examples of how those dynamic code methods can be used
-are shown here that are meant to inspire the reader for even more thought-through 
+are shown here that are meant to inspire the reader for even more thought-through
 advanced solutions.
 
 \subsection{Licensing Improving}
@@ -596,24 +596,24 @@ shared library, binary). However, if those additional App parts are being
 downloaded successfully, with root rights they can be pulled out of the
 device so that an advanced attacker could again circumvent the licensing
 mechanism for several devices after purchasing the App once and then patching
-the license/code fetching calls. 
+the license/code fetching calls.
 A possible remedy for that could be continuous license checking calls in the
 background implemented as a service whenever there is an Internet connection
 present (like every 10 minutes). That service could not only try to delete
-files that should not be present at its device but could also lead to an 
-App crash with a meaningless message in case of not being licensed. 
+files that should not be present at its device but could also lead to an
+App crash with a meaningless message in case of not being licensed.
 
 A simple way of crashing an application is to trigger a SIGSEV for instance
-by accesssing the NULL-pointer. In C/C++ that is no challenge since pointers
-do exist (see \autoref{crash_app_sigsev}).  
+by accessing the NULL-pointer. In C/C++ that is no challenge since pointers
+do exist (see \autoref{crash_app_sigsev}).
 \begin{lstlisting}[language=C++, caption=crashApp(), label=crash_app_sigsev]
 unsigned char *p = 0x00000000;
 *p = 1;
 \end{lstlisting}
 That will cause an Android GUI message ``<AppName> has stopped working'' while
-the ADB interface will reveal the actual cause `` Fatal signal 11 (SIGSEGV), code 1, fault addr 0x0 in tid 25271 (ma.nativememory)''.
+the ADB interface will reveal the actual cause ``Fatal signal 11 (SIGSEGV), code 1, fault addr 0x0 in tid 25271 (ma.nativememory)''.
  \begin{table}[htb]
-   \caption[ADB Debug SIGSEV Fingerprint]{ADB Debug SIGSEV Fingerprint}
+   \caption[ADB SIGSEV Debugging]{ADB SIGSEV Debugging}
    \label{tab:sigsev_debug}
    %\centering
    \texttt{
@@ -637,11 +637,119 @@ the ADB interface will reveal the actual cause `` Fatal signal 11 (SIGSEGV), cod
    \end{tabular}
    }
  \end{table}
-Additionally there will be printed debug information about all the CPU
+Additionally, there will be printed debug information about all the CPU
 registers and their contents as well as the program counters (pc) and
 their corresponding methods that lead to the crash (output is shown in
-\autoref{tab:sigsev_debug})
+\autoref{tab:sigsev_debug}). With this information, an attacker can find
+the entry-point (=the method) that leads to the crash from a Java perspective
+(\code{onCreate() -> MyNDK.crashApp()}) as well as from a native perspective
+(library ``libMemory.so'' and function name ``Java\_...\_crashApp()'').
+So in turn, he could again try to patch
+those function calls in order to prevent the App from crashing.
+Therefore it is kind of a race between attacker and protector of an App who can come up with the smarter solution.
 
+\subsection{String Encryption}
+Another idea of an dynamic code application would be the encryption of strings
+that are used inside of an App which makes the content unreadable.
+For decryption, two different concepts will be explored.
+
+First it will be investigated if those strings can be decrypted on the
+fly using native code after fetching the secret key from a trusted source
+(like via HTTPS, a SE or something else).
+A precondition to that concept is being able to locate those defined strings
+in the process memory and access them using the NDK and therefore C/C++.
+The main idea is to define a prior known value (``egg value'') right before the actual string to locate them like shown in \autoref{egg_definition} at Java
+layer (since a string in the end are just bytes and can not be identified by
+itself).
+\begin{lstlisting}[language=Java, caption=Egg Value Defining, label=egg_definition]
+int egg = 0x11223344;
+String anyString = "toBeEncrypted";
+\end{lstlisting}
+To find the egg value, again all the mapped areas can be swept to find
+out their current addresses triggering for investigation purpose for
+the egg value as well as for the actual string. The implementation is
+shown in \autoref{egg_string_sweep} where the mapped frame has to be
+parsed out to find the memory range to sweep over.
+
+\begin{lstlisting}[language=C++, caption=Egg Value and String Memory Sweep, label=egg_string_sweep]
+char adress[9];
+FILE* fp;
+char line[2048];
+
+fp = fopen("/proc/self/maps", "r");
+if (fp == NULL){
+        LOGE("Could not open /proc/self/maps");
+        return;
+    }
+long long int mp;
+void* vp;
+char* lowerLimit;
+char* upperLimit;
+while (fgets(line, 2048, fp) != NULL) {
+    if(strstr(line, "rw-p") != NULL){
+        strncpy(adress,line,8);
+        adress[8] = '\0';
+        mp = (long long int)strtoll(adress, NULL, 16);
+        vp = (void*)mp;
+        lowerLimit = (char*) vp;
+
+        strncpy(adress,line+9,8);
+        adress[8] = '\0';
+        mp = (long long int)strtoll(adress, NULL, 16);
+        vp = (void*)mp;
+        upperLimit = (char*) vp;
+
+        for (char* i = lowerLimit; i < upperLimit - 4; i++){
+
+            if (i[0] == 0x44 && i[1] == 0x33 && i[2] == 0x22 && i[3] == 0x11){
+                LOGD("FOUND EGG at %p",i);
+                LOGD("%s",line);
+            }
+        }
+        for (char* i = lowerLimit; i < upperLimit - 13; i++){
+            if (i[0] == 't' && i[1] == 'o' && i[2] == 'B' && i[3] == 'e' && i[4] == 'E' && i[5] =='n' && i[6] =='c' && i[7] =='r' &&
+                i[8] =='y' && i[9] =='p' && i[10] =='t' && i[11] =='e' &&
+                i[12] =='d'){
+                    LOGD("############ FOUND A STRING ############ at %p",i);
+                    LOGD("%s",line););
+            }
+        }
+    }
+}
+fp->_close;
+\end{lstlisting}
+It makes sense only triggering for regions that are marked as ``\code{rw-p}''.
+Since values are stored as Little Endian, the egg value bytes have to be
+reverted. It appears that the string itself can not be found this way
+(also considering Little and Big Endian).
+A reason could be the encoding type how strings are being stored
+after the conversion step of \code{dex2oat}. However, that can be
+circumvented by using a byte array to store the string
+(``\code{byte[] strBytes = "toBeEncrypted".getBytes();}'').
+When doing so and running the program, the output will look like
+shown in \autoref{tab:egg_string_output}.
+
+ \begin{table}[htb]
+   \caption[Egg String Hunting Output]{Egg String Hunting Output}
+   \label{tab:egg_string_output}
+   %\centering
+   \texttt{
+   \begin{tabular}{l}
+  \toprule
+FOUND EGG at 0x12c41390 \\
+12c00000-12de3000 rw-p 00000000 00:04 7019 /dev/ashmem/dalvik-main space (deleted) \\
+FOUND STRING at 0x12d3b22c \\
+12c00000-12de3000 rw-p 00000000 00:04 7019 /dev/ashmem/dalvik-main space (deleted) \\
+  \bottomrule
+   \end{tabular}
+   }
+ \end{table}
+It makes clear that the address difference between the egg value
+and the string is huge.
+Additionally, the difference between those addresses is not stable when
+rerunning the program so that the egg value misses its purpose completely
+(most likely due to Address Space Layout Randomization (ASLR) that
+is completely implemented in Android since version 4.1).
 
 
 
@@ -658,11 +766,3 @@ their corresponding methods that lead to the crash (output is shown in
 % is only legit for the specific device (by checking its IMEI, MAC address, or
 % ANDROID\_ID that is a random 64 Bit number created by Android at the first user setup that might change after a factory reset)?
 
-
-
-\begin{itemize}
-\item Native Code Licensing -> SIGSEV when not licensed/patched licensing
-\item Native Code String Encryption/Decryption
-\item Dynamic Native Code to alter Program flow
-\item DEX part encrypting with device specific key -> key changes daily/weekly
-\end{itemize}

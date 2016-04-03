@@ -29,6 +29,72 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_crashApp (JNIEnv *
 unsigned char * p = 0x00000000;
 *p = 5;
 }
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_eggHunting (JNIEnv *env, jobject obj){
+    char adress[9];
+    FILE* fp;
+    char line[2048];
+
+    //find all stack regions...
+    fp = fopen("/proc/self/maps", "r");
+    if (fp == NULL){
+        LOGE("Could not open /proc/self/maps");
+        return;
+    }
+    long long int mp;
+    void* vp;
+    char* lowerLimit;
+    char* upperLimit;
+    char *egg_end = 0;
+    while (fgets(line, 2048, fp) != NULL) {
+        if(strstr(line, "rw-p") != NULL){
+            //LOGD("%s", line);
+            strncpy(adress,line,8);
+            adress[8] = '\0';
+            mp = (long long int)strtoll(adress, NULL, 16);
+            vp = (void*)mp;
+            lowerLimit = (char*) vp;
+
+            strncpy(adress,line+9,8);
+            adress[8] = '\0';
+            mp = (long long int)strtoll(adress, NULL, 16);
+            vp = (void*)mp;
+            upperLimit = (char*) vp;
+            //LOGD("Range: %p - %p -> %s", lowerLimit, upperLimit, line);
+            char* egg_a = 0;
+            char* string_a = 0;
+            for (char* i = lowerLimit; i < upperLimit - 4; i++){
+
+                if (i[0] == 0x44 && i[1] == 0x33 && i[2] == 0x22 && i[3] == 0x11){
+                    LOGD("############ FOUND EGG ############ at %p",i);
+                    LOGD("%s",line);
+                    egg_a = i;
+                }
+            }
+            for (char* i = lowerLimit; i < upperLimit - 13; i++){
+                if (i[0] == 't' && i[1] == 'o' && i[2] == 'B' && i[3] == 'e' && i[4] == 'E'
+                    && i[5] =='n' && i[6] =='c' && i[7] =='r' && i[8] =='y' && i[9] =='p'
+                    && i[10] =='t' && i[11] =='e' && i[12] =='d'){
+                    LOGD("############ FOUND A STRING ############ at %p",i);
+                    LOGD("%s",line);
+                    i[0] = 'S';
+                    string_a = i;
+                    LOGD("Difference: %02x", string_a-egg_a);
+                }
+            }
+        }
+    }
+    fp->_close;
+
+    /*
+    for (int i = 0; i < 48; i+=16){
+        LOGD("%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x,%02x", egg_end[i],
+             egg_end[i+1],egg_end[i+2],egg_end[i+3],egg_end[i+4],egg_end[i+5],egg_end[i+6],
+             egg_end[i+7],egg_end[i+8],egg_end[i+9],egg_end[i+10],egg_end[i+11],egg_end[i+12],egg_end[i+13]
+        ,egg_end[i+14],egg_end[i+15]);
+    }
+     */
+
+}
 
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIEnv *env, jobject obj){
 
@@ -39,13 +105,12 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIE
             LOGE("Could not open /proc/self/maps");
             return;
         }
-        LOGD("All\n");
         while (fgets(line, 2048, fp) != NULL) {
-            //if(strstr(line, "base.odex") != NULL){
+            if(strstr(line, "rw-") != NULL){
                 LOGD("%s", line);
-            //}
+            }
         }
-        fp->_close;
+    fp->_close;
     /*
     fp = fopen("/proc/self/maps", "r");
     if (fp == NULL){

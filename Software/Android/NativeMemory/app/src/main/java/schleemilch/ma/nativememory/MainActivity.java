@@ -4,6 +4,9 @@ import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -11,21 +14,49 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static String TAG = "MainActivity";
+    public static String TAG = "NDK-Logging";
+
+    int egg = 0x11223344;
+    static byte[] eggBytes = {0x11, 0x22, 0x33, 0x44};
+    static byte[] cbytes = "toBeEncrypted".getBytes();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        MyNDK ndk = new MyNDK();
+        final MyNDK ndk = new MyNDK();
 
-        File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "sl");
-        Log.d(TAG, internalStoragePath.getAbsolutePath());
+        //Log.d(TAG,Arrays.toString(anyString.getBytes()));
 
+        //File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "sl");
+        //Log.d(TAG, internalStoragePath.getAbsolutePath());
+
+
+        final TextView eggText = (TextView)findViewById(R.id.textView);
+        eggText.setText(new String(cbytes, StandardCharsets.UTF_8));
+
+        Button eggButton = (Button) findViewById(R.id.btn_change_egg);
+        eggButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ndk.eggHunting();
+                //eggText.setText(new String(cbytes, StandardCharsets.UTF_8));
+                finish();
+                startActivity(getIntent());
+            }
+        });
+
+
+
+        /*
         BufferedInputStream bis = null;
         OutputStream soWriter = null;
         final int BUF_SIZE = 8 * 1024;
@@ -43,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        */
         //ndk.mallocFile(internalStoragePath.getAbsolutePath());
         //ndk.mmapFile(internalStoragePath.getAbsolutePath());
         //ndk.showSelfProc();
@@ -51,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         //ndk.memoryAccess();
         //ndk.mmapBinExec(internalStoragePath.getAbsolutePath());
         //ndk.writingOwnOAT();
-        ndk.crashApp();
+        //ndk.crashApp();
+
     }
 }
