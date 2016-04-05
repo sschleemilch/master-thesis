@@ -1,2 +1,2 @@
-APP_MODULES := Memory Anmemdlopen
-APP_ABI := all
+APP_MODULES := Memory opencrypto_static
+APP_ABI := armeabi-v7a

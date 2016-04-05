@@ -11,24 +11,145 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include "openssl/aes.h"
 
 #define LOG_TAG "NDK-Logging"
 
 #define LOGD(...) __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
 
-typedef struct {
-    void * data;
-    int size;
-    int current;
-} lib_t;
-
-lib_t libdata;
+uint8_t iv[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                   0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10};
+uint8_t inputslength;
 
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_crashApp (JNIEnv *env, jobject obj){
 unsigned char * p = 0x00000000;
 *p = 5;
 }
+
+JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_encrypt (JNIEnv *env, jobject obj, jstring str, jstring jkey){
+    const char *input = env->GetStringUTFChars(str, NULL);
+    const char *tkey = env->GetStringUTFChars(jkey, NULL);
+    int keylength = env->GetStringLength(jkey)*8;
+    uint8_t key[keylength/8];
+    memcpy(key, tkey, keylength/8);
+
+    uint8_t aes_key[keylength/8];
+    memset(aes_key, 0, keylength/8);
+    inputslength = env->GetStringLength(str);
+    uint8_t aes_input[inputslength];
+    memcpy(aes_input,input,inputslength);
+
+    uint8_t iv_enc[AES_BLOCK_SIZE];
+    uint8_t iv_dec[AES_BLOCK_SIZE];
+    memcpy(iv_enc,iv,AES_BLOCK_SIZE);
+    memcpy(iv_dec,iv,AES_BLOCK_SIZE);
+
+    const size_t encslength = ((inputslength + AES_BLOCK_SIZE) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
+    unsigned char enc_out[encslength];
+    unsigned char dec_out[inputslength];
+    memset(enc_out, 0, sizeof(enc_out));
+    memset(dec_out, 0, sizeof(dec_out));
+
+    AES_KEY enc_key, dec_key;
+    AES_set_encrypt_key(aes_key, keylength, &enc_key);
+    AES_cbc_encrypt(aes_input, enc_out, inputslength, &enc_key, iv_enc, AES_ENCRYPT);
+
+    AES_set_decrypt_key(aes_key, keylength, &dec_key);
+    AES_cbc_encrypt(enc_out, dec_out, encslength, &dec_key, iv_dec, AES_DECRYPT);
+
+    jbyteArray ret = env->NewByteArray(AES_BLOCK_SIZE);
+    env->SetByteArrayRegion(ret,0,AES_BLOCK_SIZE, reinterpret_cast<jbyte *>(enc_out));
+    return ret;
+}
+
+JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_decrypt (JNIEnv *env, jobject obj, jbyteArray jencrypted, jstring jkey){
+    const char *tkey = env->GetStringUTFChars(jkey, NULL);
+    int keylength = env->GetStringLength(jkey)*8;
+    uint8_t key[keylength/8];
+    memcpy(key, tkey, keylength/8);
+
+    uint8_t aes_key[keylength/8];
+    memset(aes_key, 0, keylength/8);
+
+    uint8_t iv_dec[AES_BLOCK_SIZE];
+    memcpy(iv_dec,iv,AES_BLOCK_SIZE);
+
+    unsigned char dec_out[inputslength];
+    memset(dec_out, 0, sizeof(dec_out));
+
+    const size_t encslength = ((inputslength + AES_BLOCK_SIZE) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
+    unsigned char enc_out[env->GetArrayLength(jencrypted)];
+    env->GetByteArrayRegion(jencrypted,0, sizeof(enc_out), reinterpret_cast<jbyte*>(enc_out));
+
+    AES_KEY dec_key;
+    AES_set_decrypt_key(aes_key, keylength, &dec_key);
+    AES_cbc_encrypt(enc_out, dec_out, encslength, &dec_key, iv_dec, AES_DECRYPT);
+
+    jbyteArray ret = env->NewByteArray(sizeof(dec_out));
+    env->SetByteArrayRegion(ret,0, sizeof(dec_out), reinterpret_cast<jbyte *>(dec_out));
+    return ret;
+}
+
+
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_eggDecryption (JNIEnv *env, jobject obj){
+    char adress[9];
+    FILE* fp;
+    char line[2048];
+
+    //find all stack regions...
+    fp = fopen("/proc/self/maps", "r");
+    if (fp == NULL){
+        LOGE("Could not open /proc/self/maps");
+        return;
+    }
+    long long int mp;
+    void* vp;
+    char* lowerLimit;
+    char* upperLimit;
+    char *egg_end = 0;
+    while (fgets(line, 2048, fp) != NULL) {
+        if(strstr(line, "rw-p") != NULL){
+            strncpy(adress,line,8);
+            adress[8] = '\0';
+            mp = (long long int)strtoll(adress, NULL, 16);
+            vp = (void*)mp;
+            lowerLimit = (char*) vp;
+
+            strncpy(adress,line+9,8);
+            adress[8] = '\0';
+            mp = (long long int)strtoll(adress, NULL, 16);
+            vp = (void*)mp;
+            upperLimit = (char*) vp;
+            for (char* i = lowerLimit; i < upperLimit - 4; i++){
+                if (i[0] == 0x11 && i[1] == 0x22 && i[2] == 0x33 && i[3] == 0x44){
+                    LOGD("############ FOUND EGG ############ at %p",i);
+                    LOGD("Decrypting...");
+                    int strSize = i[4];
+
+                    unsigned char input[strSize];
+                    memcpy(input,i+5,strSize);
+                    unsigned char output[strSize];
+                    //AES...
+                    int keylength = 128;
+                    uint8_t key[16] = {'s','e','c','r','e','t','k','e','y',
+                    'x','x','x','x','x','x','x'};
+
+                    AES_KEY dec_key;
+                    AES_set_decrypt_key(key,keylength,&dec_key);
+                    AES_decrypt(input,output,&dec_key);
+
+                    LOGD("%d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d",
+                    output[0],output[1],output[2],output[3],output[4],output[5],output[6],output[7],
+                         output[8],output[9],output[10],output[11],output[12]);
+                }
+            }
+        }
+    }
+    fp->_close;
+
+}
+
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_eggHunting (JNIEnv *env, jobject obj){
     char adress[9];
     FILE* fp;
@@ -64,7 +185,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_eggHunting (JNIEnv
             char* string_a = 0;
             for (char* i = lowerLimit; i < upperLimit - 4; i++){
 
-                if (i[0] == 0x44 && i[1] == 0x33 && i[2] == 0x22 && i[3] == 0x11){
+                if (i[0] == 0x11 && i[1] == 0x22 && i[2] == 0x33 && i[3] == 0x44){
                     LOGD("############ FOUND EGG ############ at %p",i);
                     LOGD("%s",line);
                     egg_a = i;
@@ -151,7 +272,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_showSelfProc (JNIE
     */
 
 }
-
+/*
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv *env, jobject obj, jstring inpath){
 
     const char *path = env->GetStringUTFChars(inpath, NULL);
@@ -199,7 +320,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_mallocFile(JNIEnv 
     }
     fp->_close;
 }
-
+*/
 char* mmapFile(const char* path){
     struct stat sb;
     char* addr;

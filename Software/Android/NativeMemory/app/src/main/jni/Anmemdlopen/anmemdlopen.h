@@ -1,8 +1,0 @@
-//
-// Created by basti on 3/7/16.
-//
-
-#ifndef NATIVEMEMORY_SOURCE_FILE_H
-#define NATIVEMEMORY_SOURCE_FILE_H
-
-#endif //NATIVEMEMORY_SOURCE_FILE_H

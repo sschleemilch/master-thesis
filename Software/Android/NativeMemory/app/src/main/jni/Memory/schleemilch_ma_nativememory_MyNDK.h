@@ -8,6 +8,15 @@
 extern "C" {
 #endif
 
+JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_decrypt
+        (JNIEnv *, jobject, jbyteArray, jstring);
+
+JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_encrypt
+        (JNIEnv *, jobject, jstring, jstring);
+
+JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_eggDecryption
+        (JNIEnv *, jobject);
+
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_eggHunting
         (JNIEnv *, jobject);
 

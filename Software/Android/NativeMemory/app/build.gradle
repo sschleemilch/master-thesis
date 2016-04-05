@@ -15,7 +15,7 @@ android {
             moduleName "Memory"
         }
         sourceSets.main {
-            jni.srcDirs = ["Anmemdlopen","Memory"]
+            jni.srcDirs = ["Memory"]
             jniLibs.srcDir "src/main/libs"
         }
 

@@ -651,7 +651,6 @@ Therefore it is kind of a race between attacker and protector of an App who can 
 \subsection{String Encryption}
 Another idea of an dynamic code application would be the encryption of strings
 that are used inside of an App which makes the content unreadable.
-For decryption, two different concepts will be explored.
 
 First it will be investigated if those strings can be decrypted on the
 fly using native code after fetching the secret key from a trusted source
@@ -700,7 +699,6 @@ while (fgets(line, 2048, fp) != NULL) {
         upperLimit = (char*) vp;
 
         for (char* i = lowerLimit; i < upperLimit - 4; i++){
-
             if (i[0] == 0x44 && i[1] == 0x33 && i[2] == 0x22 && i[3] == 0x11){
                 LOGD("FOUND EGG at %p",i);
                 LOGD("%s",line);
@@ -710,8 +708,10 @@ while (fgets(line, 2048, fp) != NULL) {
             if (i[0] == 't' && i[1] == 'o' && i[2] == 'B' && i[3] == 'e' && i[4] == 'E' && i[5] =='n' && i[6] =='c' && i[7] =='r' &&
                 i[8] =='y' && i[9] =='p' && i[10] =='t' && i[11] =='e' &&
                 i[12] =='d'){
-                    LOGD("############ FOUND A STRING ############ at %p",i);
+                    LOGD("FOUND STRING  at %p",i);
                     LOGD("%s",line););
+                    //Change something:
+                    i[0] = 'S';
             }
         }
     }
@@ -721,10 +721,10 @@ fp->_close;
 It makes sense only triggering for regions that are marked as ``\code{rw-p}''.
 Since values are stored as Little Endian, the egg value bytes have to be
 reverted. It appears that the string itself can not be found this way
-(also considering Little and Big Endian).
-A reason could be the encoding type how strings are being stored
-after the conversion step of \code{dex2oat}. However, that can be
-circumvented by using a byte array to store the string
+(considered Little and Big Endian UTF-8, UTF-16 and Unicode).
+A reason could be that strings on Java layer as well as at C++
+are no primitive data types and there is also the conversion step of \code{dex2oat}.
+However, that can be circumvented by using a byte array to store the string
 (``\code{byte[] strBytes = "toBeEncrypted".getBytes();}'').
 When doing so and running the program, the output will look like
 shown in \autoref{tab:egg_string_output}.
@@ -750,6 +750,95 @@ Additionally, the difference between those addresses is not stable when
 rerunning the program so that the egg value misses its purpose completely
 (most likely due to Address Space Layout Randomization (ASLR) that
 is completely implemented in Android since version 4.1).
+Since a byte array is used, the egg value can be integrated into the array
+just by merging them.
+So how to apply changes of the found string bytes
+to the Android App? Changing in C++ should be no challenge by just using
+array indexing (e.g \code{i[0] = `S'} when the string is being found).
+Back in Java there are two options of applying the changes of used strings
+in \code{TextViews} and so on.
+The first one is calling the \code{setText()} function
+manually of every changed item and the second one is restarting the whole
+activity after the change via \code{finish()} and \code{startActivity(getIntent())}. The second option would need variables that are initialized
+as \code{static} to persist after the activity recreation. Otherwise those
+changes being made would be overwritten. \autoref{native_string_change}
+shows a Java App implementation of a string that will be changed through
+native code like shown in \autoref{egg_string_sweep}
+(=function \code{eggHunting()}) and updated afterwards.
+
+\begin{lstlisting}[language=Java, caption=Native Code String Change, label=native_string_change]
+public class MainActivity extends AppCompatActivity {
+    byte[] cbytes = "toBeEncrypted".getBytes();
+    //static byte[] cbytes = "toBeEncrypted".getBytes();
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        final MyNDK ndk = new MyNDK();
+        final TextView eggText = (TextView)findViewById(R.id.textView);
+        try{
+            eggText.setText(new String(cbytes,"UTF-8"));
+        } catch (UnsupportedEncodingException e){
+            e.getMessage();
+        }
+        Button eggButton = (Button) findViewById(R.id.btn_change_egg);
+        eggButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ndk.eggHunting();
+                try{
+                    eggText.setText(new String(cbytes,"UTF-8"));
+                } catch (UnsupportedEncodingException e){
+                    e.getMessage();
+                }
+                //Alternatively...
+                //finish();
+                //startActivity(getIntent());
+            }
+        });
+    }
+}
+\end{lstlisting}
+The cornerstone for an implementation is being set.
+So the next thing to deal with is the encryption itself that can be
+implemented very differently. Strings defined on Java layer could be
+encrypted in the Java world using for instance the \code{Cipher}
+module and AES. After the encryption, the egg bytes would need to
+be added so that the native code can find those encrypted bytes
+decrypting them on the fly. That concept however is a great detour and
+creates issues like different AES implementations in Java/C++ as well as
+changing byte array sizes at Java layer since AES produces encrypted data
+that is always a multiple of the AES block size but the payload would be
+smaller or greater. So the Java array sizes won't match in the NDK world
+after the decryption and therefore the concept would overall be very fault-prone.
+
+Instead, another approach would be to perform the whole encryption/decryption
+in native code while programming the logic in Java. The work flow for the developer would be like this: Strings are being defined as byte arrays by initializing them by calling the corresponding NDK method for encrypting
+returning the encrypted bytes. App objects of the App can use those bytes
+as they were strings by using a ``\code{new String(bytes)}'' call.
+After checking the license of the App, those byte arrays can be replaced
+with bytes returned by the NDK decryption method.
+
+\begin{lstlisting}[language=Java, caption=NDK Encryption/Decryption, label=ndk_enc_dec]
+static final MyNDK ndk = new MyNDK();
+public class MainActivity extends AppCompatActivity {
+    byte[] cbytes = ndk.encrypt("toBeEncrypted","secretkeyxxxxxxx".getBytes());
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        final TextView eggText = (TextView)findViewById(R.id.textView);
+        eggText.setText(new String(cbytes));
+
+        //license check
+        if (licensed){
+            eggText.setText(ndk.decrypt(cbytes),"secretkeyxxxxxxx".getBytes());
+        }
+    }
+}
+\end{lstlisting}
+
+
 
 
 
