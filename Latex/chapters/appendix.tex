@@ -120,4 +120,112 @@ sourceSets.main {
 	jniLibs.srcDir "src/main/libs"
 }
 \end{lstlisting}
+
+
+\chapter{NDK AES Implementation}\label{chapter:ndk_aes_implementation}
+\begin{lstlisting}[language=C++, caption=AES Encrypt(), label=nkd_aes_encrypt]
+#include "openssl/aes.h"
+uint8_t iv[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                   0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10};
+uint8_t inputslength;
+
+JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_encrypt (JNIEnv *env, jobject obj, jstring str, jstring jkey){
+    const char *input = env->GetStringUTFChars(str, NULL);
+    const char *tkey = env->GetStringUTFChars(jkey, NULL);
+    int keylength = env->GetStringLength(jkey)*8;
+    uint8_t key[keylength/8];
+    memcpy(key, tkey, keylength/8);
+
+    uint8_t aes_key[keylength/8];
+    memset(aes_key, 0, keylength/8);
+    inputslength = env->GetStringLength(str);
+    uint8_t aes_input[inputslength];
+    memcpy(aes_input,input,inputslength);
+
+    uint8_t iv_enc[AES_BLOCK_SIZE];
+    memcpy(iv_enc,iv,AES_BLOCK_SIZE);
+
+    const size_t encslength = ((inputslength + AES_BLOCK_SIZE) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
+    unsigned char enc_out[encslength];
+    memset(enc_out, 0, sizeof(enc_out));
+
+    AES_KEY enc_key, dec_key;
+    AES_set_encrypt_key(aes_key, keylength, &enc_key);
+    AES_cbc_encrypt(aes_input, enc_out, inputslength, &enc_key, iv_enc, AES_ENCRYPT);
+
+    jbyteArray ret = env->NewByteArray(AES_BLOCK_SIZE);
+    env->SetByteArrayRegion(ret,0,AES_BLOCK_SIZE, reinterpret_cast<jbyte *>(enc_out));
+    return ret;
+}
+\end{lstlisting}
+\begin{lstlisting}[language=C++, caption=AES Decrypt(), label=nkd_aes_decrypt]
+JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_decrypt (JNIEnv *env, jobject obj, jbyteArray jencrypted, jstring jkey){
+    const char *tkey = env->GetStringUTFChars(jkey, NULL);
+    int keylength = env->GetStringLength(jkey)*8;
+    uint8_t key[keylength/8];
+    memcpy(key, tkey, keylength/8);
+
+    uint8_t aes_key[keylength/8];
+    memset(aes_key, 0, keylength/8);
+
+    uint8_t iv_dec[AES_BLOCK_SIZE];
+    memcpy(iv_dec,iv,AES_BLOCK_SIZE);
+
+    unsigned char dec_out[inputslength];
+    memset(dec_out, 0, sizeof(dec_out));
+
+    const size_t encslength = ((inputslength + AES_BLOCK_SIZE) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
+    unsigned char enc_out[env->GetArrayLength(jencrypted)];
+    env->GetByteArrayRegion(jencrypted,0, sizeof(enc_out), reinterpret_cast<jbyte*>(enc_out));
+
+    AES_KEY dec_key;
+    AES_set_decrypt_key(aes_key, keylength, &dec_key);
+    AES_cbc_encrypt(enc_out, dec_out, encslength, &dec_key, iv_dec, AES_DECRYPT);
+
+    jbyteArray ret = env->NewByteArray(sizeof(dec_out));
+    env->SetByteArrayRegion(ret,0, sizeof(dec_out), reinterpret_cast<jbyte *>(dec_out));
+    return ret;
+}
+\end{lstlisting}
+
+\begin{figure}[htb]
+  \dirtree{%
+.1 jni/.
+.2 Memory/.
+.3 armeabi-v7a/.
+.4 lib/.
+.5 libcrypto.a.
+.5 libcrypto.so.
+.5 libssl.a.
+.5 libssl.so.
+.3 openssl/.
+.4 aes.h.
+.4 \ldots.
+.3 x86/.
+.3 Android.mk.
+.3 memory.cpp.
+.3 schleemilch\_ma\_nativememory\_MyNDK.h.
+.2 Android.mk.
+.2 Application.mk.
+}
+\caption[NDK AES Implementation JNI Tree]{NDK AES Implementation JNI Tree}
+\label{fig:ndk_aes_impl_tree}
+\end{figure}
+\begin{lstlisting}[language=make, caption=Memory/Android.mk, label=nkd_aes_make, numbers=left]
+LOCAL_PATH := $(call my-dir)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := opencrypto_static
+LOCAL_SRC_FILES := $(TARGET_ARCH_ABI)/lib/libcrypto.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := Memory
+LOCAL_SRC_FILES := memory.cpp
+LOCAL_LDLIBS := -llog
+LOCAL_C_INCLUDES:= openssl
+LOCAL_SHARED_LIBRARIES := opencrypto_static
+include $(BUILD_SHARED_LIBRARY)
+\end{lstlisting}
+
 \end{appendices}

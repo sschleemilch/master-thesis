@@ -41,22 +41,15 @@ JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_encrypt (JNI
     memcpy(aes_input,input,inputslength);
 
     uint8_t iv_enc[AES_BLOCK_SIZE];
-    uint8_t iv_dec[AES_BLOCK_SIZE];
     memcpy(iv_enc,iv,AES_BLOCK_SIZE);
-    memcpy(iv_dec,iv,AES_BLOCK_SIZE);
 
     const size_t encslength = ((inputslength + AES_BLOCK_SIZE) / AES_BLOCK_SIZE) * AES_BLOCK_SIZE;
     unsigned char enc_out[encslength];
-    unsigned char dec_out[inputslength];
     memset(enc_out, 0, sizeof(enc_out));
-    memset(dec_out, 0, sizeof(dec_out));
 
     AES_KEY enc_key, dec_key;
     AES_set_encrypt_key(aes_key, keylength, &enc_key);
     AES_cbc_encrypt(aes_input, enc_out, inputslength, &enc_key, iv_enc, AES_ENCRYPT);
-
-    AES_set_decrypt_key(aes_key, keylength, &dec_key);
-    AES_cbc_encrypt(enc_out, dec_out, encslength, &dec_key, iv_dec, AES_DECRYPT);
 
     jbyteArray ret = env->NewByteArray(AES_BLOCK_SIZE);
     env->SetByteArrayRegion(ret,0,AES_BLOCK_SIZE, reinterpret_cast<jbyte *>(enc_out));

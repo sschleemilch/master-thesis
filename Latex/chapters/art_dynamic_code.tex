@@ -810,19 +810,25 @@ creates issues like different AES implementations in Java/C++ as well as
 changing byte array sizes at Java layer since AES produces encrypted data
 that is always a multiple of the AES block size but the payload would be
 smaller or greater. So the Java array sizes won't match in the NDK world
-after the decryption and therefore the concept would overall be very fault-prone.
+after the decryption and therefore the concept would overall be very fault-prone. The principle is being shown in \autoref{fig:enc_dec_ndk}.
+\begin{figure}[htb]
+  \centering
+  \includegraphics[scale=0.4]{figures/enc_dec_ndk}
+  \caption[Dynamic Content Decryption using Eggs]{Dynamic Content Decryption using Eggs}
+  \label{fig:enc_dec_ndk}
+\end{figure}
 
 Instead, another approach would be to perform the whole encryption/decryption
 in native code while programming the logic in Java. The work flow for the developer would be like this: Strings are being defined as byte arrays by initializing them by calling the corresponding NDK method for encrypting
 returning the encrypted bytes. App objects of the App can use those bytes
 as they were strings by using a ``\code{new String(bytes)}'' call.
 After checking the license of the App, those byte arrays can be replaced
-with bytes returned by the NDK decryption method.
-
+with bytes returned by the NDK decryption method. \autoref{ndk_enc_dec}
+shows the example App and the corresponding NDK calls to show their signature.
 \begin{lstlisting}[language=Java, caption=NDK Encryption/Decryption, label=ndk_enc_dec]
 static final MyNDK ndk = new MyNDK();
 public class MainActivity extends AppCompatActivity {
-    byte[] cbytes = ndk.encrypt("toBeEncrypted","secretkeyxxxxxxx".getBytes());
+    byte[] cbytes = ndk.encrypt("toBeEncrypted","secretkeyxxxxxxx");
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -831,27 +837,47 @@ public class MainActivity extends AppCompatActivity {
         eggText.setText(new String(cbytes));
 
         //license check
-        if (licensed){
-            eggText.setText(ndk.decrypt(cbytes),"secretkeyxxxxxxx".getBytes());
+        if (isLicensed()){
+            eggText.setText(ndk.decrypt(cbytes,"secretkeyxxxxxxx"));
         }
     }
 }
 \end{lstlisting}
+\autoref{ndk_enc_dec} makes clear that again one call (\code{isLicensed()}) is
+responsible for transforming an App to have readable content since the key
+is hard-coded in this case and would therefore be again the weak spot. AES
+was used for encryption/decryption which is a symmetric method for a proof of concept. To make this technique more secure, one could fetch the decryption
+key inside of the \code{isLicensed()} method so that even by avoiding that
+license call, the text still would remain encrypted. This can be achieved
+by using an asymmetric encryption technique for instance ``ElGamal''.
+The encryption key could then be hard-coded since the private counterpart
+to decrypt would be missing. Another solution would be to not even encrypt
+those strings in source code but with another program/script and only inserting the outcome - the encrypted bytes.
+Then also a symmetric technique like AES can be used
+after fetching the decryption key when being licensed. In the authors opinion
+that would be the most secure solution since the string to be encrypted
+would not even appear anywhere in the DEX or in memory as clear text
+(sweeping over the memory reveals that the to encrypted string in assignment
+\code{ndk.encrypt("toBeEncrypted","secretkeyxxxxxxx");'')} is being present
+in memory and could also be present in the DEX).
+The downside of course is a bit of comfort for the developer since he would
+call an encryption script for every string he does want to use and copying
+those bytes into his Java source code.
+The NDK C++ AES encryption/decryption methods can be found in \autoref{chapter:ndk_aes_implementation}. OpenSSL libraries are present in Android but are
+not intended to be used by the NDK. So it can either be built manually
+like explained in \parencite{openssl_building} or using a pre-compiled version
+for instance from \parencite{openssl_precompiled}. Android Studio's makefiles
+need to be adapted in order to link those libraries.
+The AES implementations shown in \autoref{chapter:ndk_aes_implementation} are
+using the pre-compiled version (it's only pre-compiled for armeabi-v7a as
+well as for x86).
 
-
-
-
-
-% If those parts are downloaded after the licensing
-% check, it is not needed to implement the licensing mechanism in native code or
-% obfuscate it in any other way.
-% Even if an attacker manages to fake the App into being licensed, he still would
-% not be able to execute the App properly since core parts would be missing.
-% That parts could be dynamically loaded from a DEX file like explained in
-% \autoref{section:dynamic_code_loading}. A crucial part here is that it should
-% be focused on preventing the App usage even if the licensing call is somehow
-% circumvented. An attacker could try to copy those one time downloaded parts and distribute a new App concluding them, so that it will not be that big of
-% a challenge. But what about also encrypting those parts locally with a key that
-% is only legit for the specific device (by checking its IMEI, MAC address, or
-% ANDROID\_ID that is a random 64 Bit number created by Android at the first user setup that might change after a factory reset)?
-
+Overall, string encryption can be implemented quite secure. The question is
+if strings are really a crucial part of an App that needs to be protected.
+On the other side, this technique is not limited to strings but can also
+be applied to any other App content. Doing crucial parts in native code
+like fetching decryption keys or doing the actual encryption/decryption
+should increase the reverse code engineering resistance. Due to time
+constraints this evaluation can not be performed. Of course the NDK is not
+mandatory for such a encryption/decryption technique but can add another
+layer of complexity from an attacker's point of view.
