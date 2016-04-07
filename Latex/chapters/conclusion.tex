@@ -13,7 +13,7 @@ Dynamic obfuscation techniques regarding DEX files are still applicable although
 it has to keep in mind that there is a conversion step in between loading that 
 file and the actual execution that could lead to performance issues depending 
 on the file size. The possibility of using C/C++ via the Android NDK is a 
-powerful tool of dynamically modify the own code or side-loading additional
+powerful tool of dynamically modify the own code or loading additional
 content. Shared object loading out of a file can be accomplished using Java or 
 the NDK as well as executing an external binary. For security reasons it
 would be interesting to dynamically load code directly out of memory instead
@@ -29,10 +29,14 @@ an App to work. Content like shown as an example with strings can be
 encrypted and decrypted afterwards with a key fetched inside of that
 license call. Trusted execution environments are a great idea that lacks 
 in terms of usability for everyday developers but could be used for instance
-to make a safe license call or stream content out of it.
+to make a safe license call or stream content out of it if the developer 
+has access to even writing trusted Apps. 
 So to achieve a secure copy protection mechanism, individual solutions
 using dynamic code or encrypting content are promising as long as the 
 corresponding key fetching mechanisms as well as the storage is chosen wisely.
+It has to keep also in mind that obfuscation techniques especially those that 
+are dynamically loading code can be abused also by malware to hide its true
+intention from static malware analysis tools.
 
 \section{Future Work}\label{section:future_work}
 To provide a secure copy protection mechanism, of course some more work has to
