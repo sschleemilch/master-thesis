@@ -2,7 +2,7 @@
 \parencite{anti_piracy} introduces an anti-piracy mechanism that is based on class
 separation and dynamic loading at a Java level. The main concept is to separate the app source code into an ``Incomplete Main Application'' (IMA) and a ``Seperate Essential Class'' (SEC) that gets downloaded at first use of the app and decrypted after a authentication. For loading, common \code{DexClassLoading} is being used like shown in
 \autoref{section:dynamic_code_loading}. This method is still possible after the ART transition but still has the downside of reverse code engineering the additional SEC 
-element after a one time App execution and should be vulnerable versus dynamic reverse engineering.
+element after a one time App execution and should be vulnerable versus dynamic reverse code engineering.
 
 \parencite{grab_n_run} addresses the problem of developers implementing a unsafe variant of dynamic code loading techniques by calling common Android APIs like \code{dexClassLoader} so the result is a wrapper (\code{SecureDexClassLoader}) for dynamic code loading techniques again at Java layer that includes security checks for fetching code from an URL, storing the code in app-private directory, proof integrity and developer authenticity of the code, and finally load it. It is a useful practical tool for developers who are not very familiar with all kind of security risks when using dynamic code loading techniques. In the scope of copy protection mechanisms, it is not that revolutionary though but could of course be used when implementing a dynamic code loading mechanism on Java layer.
 
