@@ -35,8 +35,41 @@ built in feature depends on the device and might not make use of ARM
 TrustZone features. Bouncy Castle on the other hand can provide even stronger 
 security guarantees.
 
-Since the Google Play Store assumes to be nearly malware free introducing the Google Bouncer that rejects malicious Apps, \parencite{divide_and_conquer}
-shows that it can be surpassed using a technique called ``Divide-and-Conquer''.
+Since the Google Play Store aims to be malware free using the Google Bouncer that scans new Apps for malicious code, \parencite{divide_and_conquer}
+shows that it can be surpassed using a technique called ``Divide-and-Conquer''
+that is basically built on using dynamic code loading. The authors are concluding
+that neither static nor dynamic analysis is sufficient since attackers can write
+malware that behaves differently in analysis environments. They are called 
+``split-personality'' malware. Anti virus scanner can not detect them at runtime
+since monitoring of third party Apps at runtime is not possible. 
+
+Already in 2008 there was a concept quite similar to todays TEEs that is described in the paper \parencite{flicker} and is called ``Flicker''.
+A system is introduced that offers complete isolation (also from a hardware perspective) while trusting a very small code base. It can be seen like a predecessor to TEEs.
+
+``VirtualSwindle'' is an App described in \parencite{virtualswindle} that
+aims to automatically attack in-app purchasing with the goal of using the 
+content to be paid for free. A specific implementation of purchasing mechanism
+is being attacked in a Dalvik environment. Instead of revers engineering Apps to be patched, it is developed a system that can inject arbitrary code into a process. The introduced app runs in the background and attacks every App using
+the in-app billing mechanism. Authors do make clear that their App does not show
+a weakness in Google's in-app billing mechanism but lazy implementations of developers. However, since it has been developed for Dalvik byte-code, it should no more be possible under ART. 
+
+In \parencite{obfucsation_vs_code_analysis} it gets analyzed how effective obfuscation
+techniques are in comparison to its counterpart, the code analysis and if it can 
+keep up in its developing pace. It makes clear that it is still an arms race between 
+software developers and code analysts. A result indicates that the effectiveness of 
+obfuscation depends highly on the analyst and its available resources (computational and
+financial). So the arms race between those two groups persists and obfuscation versus 
+a human analyst is challenging. If an attacker has enough time and resources he will
+reveal the actual program flow and intention pretty sure. 
+
+Root checks are a possibility to add an additional layer of security by preventing App installations when a device is rooted. Despite the fact that it may offend power users,
+\parencite{root_checks} shows possible circumventions for those root checks. ``AndroPoser'' gets introduced that can suppress root checks and can rooted devices to be appear as
+non-rooted. Root checks often rely on path checks of tools that are only present when a device is rooted (like the tool ``su''). One very simple solution is to just rename that ``su'' binary and also other root check methods and their circumventions are being described. 
+
+
+
+
+
 
 
 
