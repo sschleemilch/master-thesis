@@ -12,7 +12,7 @@ With C/C++ there should be multifarious possibilities if sandboxing/permission c
 A complete documentation and starting guide about the NDK can be found at \parencite{ndk} and a guide to the integration into Android Studio at \parencite{ndk_integration}.
 There is more than one way to integrate the NDK into Android Studio. The one described
 in this thesis uses the platform build tools script \code{ndk-build}. Another possible
-integration is the use of the gradle experimental plugin and is described in \parencite{gradle_experimental}.
+integration is the use of the Gradle experimental plugin and is described in \parencite{gradle_experimental}.
 The NDK allows to embed compiled C/C++ in an application. It can be installed via Android Studio which is the default and recommended IDE for Android development.
 The result of compiled C/C++ code is of course CPU dependent. Therefore the library has to be cross compiled for
 every possible CPU supported by Android. Possible architectures supported by the NDK are so far:
@@ -59,8 +59,8 @@ C/C++ has the ability to load shared objects (\code{*.so}) with a method called
 \begin{lstlisting}[language=C++, caption=dlopen() Signature, label=dlopen_sig]
 void *dlopen(const char *path, int flag)
 \end{lstlisting}
-Obviously, a path to the library file is needed as well as a flag that defines the binding of variables and methods (lazy, global, \ldots see dlopen()-reference for more information).
-But what path should and can be used in the context of apps? A path inside of the APK
+Obviously, a path to the library file is needed as well as a flag that defines the binding of variables and methods (lazy, global, \ldots see \code{dlopen()}-reference for more information).
+But what path should and can be used in the context of Apps? A path inside of the APK
 for instance is not reference-able as a path string. So generally apps can use different storage options that are listed and shortly described and can also be looked up in
 \parencite{storage_options}.
 \begin{itemize}
@@ -176,7 +176,7 @@ code. Like shown in \autoref{section:ndk_integration}, a static call of
 \code{System.loadLibrary("MyLib")} does the heavy lifting of invoking the library.
 The \code{loadLibrary()} function however does only check specific paths for the given
 library name which are specified in \code{java.library.path}, containing
-\code{/vendor/lib} and \code{/system/lib} as well as the path of the app's APK lib
+\code{/vendor/lib} and \code{/system/lib} as well as the path of the App's APK lib
 folder. So for dynamic loading, this loading method is not suitable since these
 locations can't be accessed unless with root rights. Fortunately there is another
 loading function \code{System.load(String s)} that accepts an absolute path to
@@ -869,7 +869,7 @@ like explained in \parencite{openssl_building} or using a pre-compiled version
 for instance from \parencite{openssl_precompiled}. Android Studio's makefiles
 need to be adapted in order to link those libraries.
 The AES implementations shown in \autoref{chapter:ndk_aes_implementation} are
-using the pre-compiled version (it's only pre-compiled for armeabi-v7a as
+using the precompiled version (it's only precompiled for armeabi-v7a as
 well as for x86).
 
 Overall, string encryption can be implemented quite secure. The question is

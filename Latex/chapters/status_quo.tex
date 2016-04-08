@@ -5,7 +5,8 @@ This chapter will first provide some detailed information about the ART runtime 
 applicable to ART. A great focus will of course rely on the DEX format since
 it is still the distribution format of every App (inside of an APK named as
 \code{classes.dex}). Unless explicitly written otherwise, investigations performed do rely on an AOSP and device version running Android 5.1.1 and may therefore vary on different Android versions since Google applies changes
-at runtime layer very frequently.
+at runtime layer very frequently. Those changes usually do not affect App developers
+who are writing code at Java layer but may also affect NDK developers. 
 
 \section{ART Internals}
 \label{section:art_internals}
@@ -17,9 +18,6 @@ gets created by ``dex2oat'' during the installation time of an App,
 described in \autoref{section:app_installation}.
 Since ART does use AOT compilation, the file format is expected
 to be an executable or at least a native code container.
-%A lot of copy protection mechanisms are based on the use of native
-%code because it is supposed to be more secure from reverse code
-%engineering (which is an assumption so far).
 Therefore it's worth to have closer look at that file format
 especially since Google does not provide any further information
 about it's content and it might have the potential of
@@ -35,7 +33,7 @@ called OAT file from now on.
 ELF originally was originally specified by UNIX System Laboratories
 (USL) and later by Tool Interface Standards (TIS) and is a common
 standard for executables, object code and shared libraries on UNIX
-systems. It's a quite flexible format for different CPUs and
+systems. It is a quite flexible format for different CPUs and
 architectures and does serve as a container for different
 executable binary formats.
 
@@ -51,7 +49,7 @@ One have to differentiate the context of how the file is viewed.
 While a linker does care about sections, sections may be
 glued together to segments when executing the file.
 Meta data about the file can be read out of the ``ELF header''
-that starts at adress \code{0x00} and does contain
+that starts at address \code{0x00} and does contain
 information about the version, file type, target machine and
 offsets to the program- and section header tables.
 In ART, the file is marked as an shared object with LSB encoding
@@ -188,7 +186,7 @@ file format other than the source code itself
 (\code{art/runtime/oat[\_file].h[c]}). \parencite{hiding_behind_art}
 however gives a helpful introduction and an overview is given
 in \autoref{fig:oat_format} that shows the content of ``\code{oatdata}'' and
-``\code{oatexec}'' which are scattered among superordinated ELF sections.
+``\code{oatexec}'' which are scattered among the superordinate ELF sections.
 
 \begin{figure}[htb]
   \centering
@@ -214,7 +212,7 @@ of class, means how many methods in the class
 are compiled to native code (``all'', ``some'' or ``none'' but
 should be ``all'' in almost every case) and secondly
 the offsets to the native code begin of every compiled method.
-The actual code is located in a superordinated section
+The actual code is located in a superordinate section
 \code{.text}, as already said, labeled as ``\code{oatexec}'' which is separated but referenced from this one.
 
 \subsubsection{DEX File Format}
@@ -225,7 +223,8 @@ Before the introduction of ART, DEX was the last unit before
 execution of an App (besides ODEX which can be easily converted back to DEX). The DVM does however accept both formats and therefore it's possible to execute
 DEX files without the optimization step. As a consequence,
 DEX files can also be loaded dynamically at runtime which are not a part
-of the distributed App. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}. DEX as it is does not only contain
+of the distributed App. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}.
+DEX as it is does not only contain
 VM instructions but some meta data around that to locate
 higher abstraction level sections of the file like classes,
 methods and fields.
@@ -250,7 +249,6 @@ sections. A part that puts everything together is the ``class\_defs''
 section. Classes in this context stands for programming classes. They include methods which in turn include strings, fields and so on. Actual content like
 strings, VM instructions or arbitrary programming data, is being stored exclusively in the data section. In the end, executable instructions are referenced from encoded methods, defined in ``class\_data\_items'' which in turn are referenced from ``class\_defs''.
 
-%TODO: dex2oat nochmal gönnen!??
 
 \subsubsection{Conclusion}\label{section:andelf_format_conclusion}
 The runtime transition from DVM to ART of course had to result
@@ -296,7 +294,7 @@ can be missed out by distributing a minimal stub application
 followed by a dynamic native code injection at runtime?
 It is also interesting if and how common obfuscation
 techniques designed for Dalvik, described in \autoref{section:obfuscation_techniques}, can be applied to ART.
-Therefore a deep understanding for the App init and execution
+Therefore a deep understanding for the App initialization and execution
 process under ART is a precondition to answer those
 questions and has to be more detailed than previously described in
 \autoref{section:app_execution_simple}.
@@ -317,7 +315,7 @@ that it's a root shell. A ``\code{ps}'' command displays
 process information like its owning ``USER'', the numerical process id ``PID'',
 the process id of its parent ``PPID'' and of course the process name.
 Interesting entries for further inspection are being displayed in
-\autoref{tab:ps_entries}, showing the init, zygote, the chrome and
+\autoref{tab:ps_entries}, showing the \code{init}, Zygote, the chrome and
 a sample hello world application.
 
 \begin{table}[htb]
@@ -344,7 +342,7 @@ it has a parent with PPID ``0'' but which is the process scheduler at kernel
 level).
 It can be derived that every user and system App has either the process
 ``\code{zygote}'' or ``\code{zygote64}'' as its parent process depending
-if the App can be converted at the dexopt step to 32 or 64 bit.
+if the App can be converted at the \code{dexopt} step to 32 or 64 bit.
 That makes clear that Apps are forked from the Zygote process which in turn
 is a  fork of ``\code{/init}''.
 Even more detailed information about processes can be
@@ -487,7 +485,7 @@ pid = Zygote.forkAndSpecialize(parsedArgs.uid, parsedArgs.gid,
             parsedArgs.appDataDir);
 \end{lstlisting}
 \code{Zygote.java} is quite compact since it mainly defines the transition
-to native code where the actual forking is being applied on linux level. That's why
+to native code where the actual forking is being applied on Linux level. That's why
 a native version of the fork and specialize method is defined and executed
 which in turn returns the resulting PID after forking
 (\code{com\_android\_internal\_os\_Zygote.cpp}).
@@ -818,7 +816,7 @@ public class ToLoad{
 A Dex can be created with a ``\code{javac ToLoad.java}'' call followed by
 using the \code{dx} tool with ``\code{dx -{}-dex -{}-output="toload.dex"
 ToLoad.class}'' (Be sure to use a Java version < 1.8, otherwise the \code{dx}
-command will fail since Java 1.8 ist not yet officially supported by Android at the time
+command will fail since Java 1.8 is not yet officially supported by Android at the time
 of writing this thesis).
 The \code{dexPath} has to be readable by the App itself. Therefore
 the Dex should be stored in the private App data directory where dexPath should then

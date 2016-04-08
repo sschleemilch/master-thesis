@@ -1,9 +1,9 @@
 \chapter{Fundamentals/Basics}\label{chapter:android_basics}
 
 \section{Android Architecture}\label{section:android_architecture}
-To provide copy protection mechanisms for Android apps,
+To provide copy protection mechanisms for Android Apps,
 of course a deep understanding of the Android system itself
-is necessary. As mentioned in~\autoref{chapter:android_status_quo},
+is necessary or at least helpful.
 Android is built on the Linux kernel. Android does provide not
 only shell binaries (Linux kernel) but also a GUI environment
 as well as predefined frameworks and a complete environment
@@ -39,7 +39,7 @@ between Android and Linux.
 
 The Android specific frameworks are the core work that makes Android
 special. They simplify the creation process of applications massively.
-Developers can use the high level language Java rather than developing
+Developers can use the higher level language Java rather than developing
 in C/C++. Additionally, there is a rich set of APIs to solve most of
 programmers everyday problems.
 
@@ -48,22 +48,22 @@ which is quite similar to a Java Virtual Machine (JVM) but more simple (since
 mobile devices have limited computing power, especially in their early days).
 The DVM provides an interface between the operating system and
 the Java application world, after all the execution of Java written programs.
-The difference between DVM and JVM is the alternative form of bytecode
+The difference between the DVM and JVM is the alternative form of bytecode
 which gets executed in the VM. Another difference is that Dalvik is
-register-based in contrast to JVM'S stack based architecture.
+register-based in contrast to JVM's stack based architecture.
 DVM is optimized for mobile devices
 in terms of efficiency and sharing memory and is using the
 Dalvik Executable format (DEX) as bytecode which is device
-independent and one reason for chosing a VM design in the first place\parencite[p.11f]{levin}. These \code{.dex} files are being
+independent and one reason for choosing a VM design in the first place \parencite[p.11f]{levin}. These \code{.dex} files are being
 packed into Java libraries (JAR) or into Android Application Packages (APK)
 and will get created automatically by the official Android Studio IDE from Google out of Java code.
 
-A runtime's purpose is to provide
+A runtime's purpose in general is to provide
 interpretation of machine independent code, in other words,
 transforming Java byte-code into machine-code (pure 1's and 0's a CPU understands).
 With Android version 5.0, Google did introduce ART which is an
 alternative runtime. Like Dalvik it does use a VM but with a
-different concept.
+different compile timing concept.
 The prior Dalvik runtime does use Just-In-Time (JIT) compiling
 where executable machine code is created not until the App runtime.
 ART on the other hand does use Ahead-Of-Time (AOT) compilation
@@ -82,6 +82,7 @@ or to impede reverse engineering of the application code.
 Google does provide a Native Development Kit (NDK) to help
 developers creating native libraries ~\parencite{ndk} that includes
 cross compiling tool-chains for all supported Android architectures.
+The officially supported language for the NDK is C/C++.
 
 Bionic is the Android corresponding GlibC library which was created
 for license and simplicity reasons. Overall, it is more lightweight
@@ -91,7 +92,9 @@ Since Android is likely to run on a great variety of devices,
 it has to support a big amount of different hardware versions.
 The HAL addresses this problem and
 standardizes the interface by allowing hardware vendors
-to implement their own drivers \parencite[p.18f]{levin}.
+to implement their own drivers \parencite[p.18f]{levin}. It helps
+developers to use the same programming interface to hardware even when the
+device architecture and hardware components do differ. 
 
 \section{Android Apps}\label{section:android_apps}
 Apps are the most abstract level of the Android software stack.
@@ -102,10 +105,11 @@ the user Apps (\code{/data/apps/}). System Apps are included into the
 distributed OS whereas user-apps can be installed and updated
 via the Android Debug Bridge (ADB), App stores
 like the Google Play Store or directly on the device by opening
-downloaded App files (APKs).
+downloaded App files (APKs). The most common way for consumers is 
+downloading/installing Apps via an App Store. 
 
 Every App has its own sand-boxed environment. That means that
-apps can not access data from other Apps and they can only access
+Apps can not access data from other Apps and they can only access
 resources those permissions were granted during installation time.
 These are one of the basic Android security concepts,
 the Privilege separation and the principle of the least
@@ -117,25 +121,25 @@ Apps do have several components, the main ones are:
 \begin{itemize}
 \item Activities
 \item Services
-\item Content providers
-\item Broadcast receivers
+\item Content Providers
+\item Broadcast Receivers
 \end{itemize}
 
 Activities do represent a screen view in the UI ready for user
 interaction. They can be started independently even though one Activity
 is chosen to be the one that starts when the user clicks on the
-app icon. Services are purely functional and are not represented
+App icon. Services are purely functional and are not represented
 at the UI compared to Activities. Their utilization are mostly time
 consuming operations in the background of an App like server
 communication or computational tasks. Since Apps are sand-boxed,
 they can't access each others data which can be seen as a limitation
 if Apps should be able to communicate with each other.
-That's why Content providers do offer an interface to the App
+That's why Content Providers do offer an interface to the App
 data which is chosen to be exchanged.
 They use a lower level Inter Process Communication (IPC) protocol
 provided by the Android Stack which, like the name indicates, operates
 on process level in Linux.
-With Broadcast receivers, an App can react on system-wide events
+With Broadcast Receivers, an App can react on system-wide events
 (broadcasts) \parencite[ch.1]{securityinternals}.
 
 Apps are distributed in form of machine independent \code{.apk} files.
@@ -184,10 +188,11 @@ after extraction.
 The \code{AndroidManifest.xml} file holds meta-data information
 about the App like the package name, it's version, a list of
 activities (one of them is marked as the action \code{MAIN} activity) and required permissions. \code{resources.arsc}
-does contain pre-compiled resources like strings, styles
+does contain precompiled resources like strings, styles
 or binary XML. Developers can use the \code{assets/} folder
 to store raw data needed for the App like music files,
-fonts, additional DEX files and so on. If the App does make use of the JNI,
+fonts, additional DEX files and every other arbitrary file.
+If the App does make use of the JNI,
 the \code{lib/} folder does contain compiled library directories
 for every supported CPU architecture (armeabi, x86, \ldots).
 Every resource which is directly addressed from Android code
@@ -203,7 +208,7 @@ Kit (JDK) tool ``javac'' creates a JAR out of every inputted
  the transition from \code{.jar} to \code{.dex} ~\parencite{dxtool}.
  An \code{ApkBuilder} takes the DEX file, adding \code{.so} files and
  other resources and finally building the \code{base.apk} that gets signed
- afterwards by \code{jarsigner}.
+ afterwards by the \code{jarsigner}.
 
 \section{App Installation Process}\label{section:app_installation}
 As in \autoref{section:android_apps} described, Apps are distributed
@@ -219,7 +224,7 @@ needed resources for the App to run (layout, drawables, \ldots).
 The \code{lib/} directory is getting extracted and gets also copied
 into that path. \code{classes.dex} gets optimized by either ``dexopt''
 or ``dex2oat'' depending which runtime is present (DVM or ART).
-The out-coming file is in both cases no more machine independent
+The outcoming file is in both cases no more machine independent
 and lies at \code{/data/dalvik-cache/<arch>/} with the name
 \code{data@app@<packagename>.<appname>-1@base.apk@classes.dex}.
 That path however did change with Android version 6 to
@@ -272,29 +277,30 @@ This chapter is supposed to give a short introduction about the
 main concept of the App execution process without going into
 great detail about it. However, the detailed inspection will
 be performed in \autoref{section:app_execution_detail}.
-When describing the execution process of an app, again the
+When describing the execution process of an App, again the
 runtime must be considered (Dalvik or ART) since the execution process
 obviously differs. In both cases the entry-point of the App is the
 file stored at \code{/data/dalvik-cache/...@classes.dex} like in
-\autoref{section:app_installation} described. ``Zygote'' is
+\autoref{section:app_installation} described (Again differs depending on the Android version).
+``Zygote'' is
 the name of one of the first processes Android starts when booting.
 The process is responsible for loading more services and libraries
-of the Android framework and does hold pre-compiled resources that
+of the Android framework and does hold precompiled resources that
 nearly every App instance will need.
-By starting an app, it's therefore much more efficient to fork
+By starting an App, it's therefore much more efficient to fork
 the Zygote process at Linux layer and then including the App specific part
 rather than  creating a whole new process for every App.
 This will also be introduced in greater detail \parencite[ch.2]{hackershandbook}.
 
 \subsection{Dalvik}
 As in section \autoref{section:app_installation} described, an
-ODEX file is created at first startup of an app. Even though
+ODEX file is created at first startup of an App. Even though
 the pure DEX file is runnable in the DVM, it still gets optimized
 into ODEX to get the most performance out of the
 constraints of a VM.
 It then gets processed by the actual Dalvik runtime to produce
-native code that in the end is executable by the CPU (JIT).
-This native code additionally must be linked with libraries of the app
+native code (machine code) that in the end is executable by the CPU (JIT).
+This native code additionally must be linked with libraries of the App
 (\code{/data/app/<pkg>.<name>-1/lib/*.so}) implemented via the JNI
 and also with Android framework libraries to result in a complete
 executable that can be executed by the CPU. It does however

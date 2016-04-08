@@ -31,7 +31,7 @@ interaction and App variety but attracts also
 malware and virus developers as a reason to the resulting market
 size and therefore the most possible illegal profit.
 Although Google has established it's own App store
-``Google Play Store'' where Apps are getting inspected by Google,
+``Google Play Store'' where Apps are getting inspected by Google's Bouncer,
 it's possible to install Apps from so called ``unknown sources''
 like websites and alternative App stores.
 
@@ -50,10 +50,6 @@ the App into its source code to copy and adapt the App and releasing it by its o
 That form is crucial for Apps that do contain a lot of know-how in form of written code.
 
 
-%The first one is intellectual theft by extracting the source
-%code of an App (which is quite simple out of the delivered
-%package of an App), adapt and rerelease it with different credentials.
-
 \subsubsection*{Scenario 2: App Patching}\label{section:scenario_2}
 Many Apps these days are free of charge in their basic version and
 do offer ``In-App Purchases'' for additional content or services.
@@ -65,10 +61,9 @@ leads also to a financial loss for developers.
 \subsubsection*{Scenario 3: Malicious Code Injection}\label{section:scenario_3}
 Quite similar to scenario one the attacker chooses a popular App he wants to exploit 
 but this time the focus relies on getting sensitive data from users. So a good example
-would be a banking App where users can also do transactions and have to enter pins and TANS. To be able to sniff sensitive data, one possibility is to get the Apps source code
-like in scenario one, injecting own code that implements the malicious functionality, repacking it and try to trick users into installing the App (which Appears to be the
-official banking App) with common social engineering techniques since this App cannot be
-uploaded to an official App store if the original App is present. 
+would be a banking App where users can also do transactions and have to enter pins and TANS. To be able to sniff sensitive data, one possibility is to get the App's source code
+like in scenario one, injecting own code that implements the malicious functionality, repacking it and try to trick users into installing the App (which appears to be the
+official banking App) with common social engineering techniques since this App should not be able to be uploaded to an official App store if the original App is present. 
 
 
 %With the same technique the attacker could also inject malicious
@@ -77,4 +72,4 @@ uploaded to an official App store if the original App is present.
 %sensitive user data which can be exploited.
 
 Therefore there is an urgent need of copy protection mechanisms
-for Android Apps which basically means in most cases to prevent reverse code engineering of the distributed Application packages in order to hinder the repackaging of an app including malicious or generally altered code. 
+for Android Apps which basically means in most cases to prevent reverse code engineering of the distributed Application packages in order to hinder the repackaging of an App including malicious or generally altered code. 
