@@ -200,32 +200,31 @@ Kit (JDK) tool ``javac'' creates a JAR out of every inputted
 
 \section{App Installation Process}\label{section:app_installation}
 As in \autoref{section:android_apps} described, Apps are distributed
-in form of APK files. This chapter describes what happens next to
+in form of APK files. This chapter describes what happens next with
 the APK file.
 
 The APK file gets forwarded to the Android ``Package Manager''(pm)
 which then calls the \code{installPackage()} method for this
 APK. Among other things, the pm copies the original \code{*.apk}
 to the path \code{/data/app/<package>.<appname>-1/base.apk}.
-This location is used and accessed in order to get the
+This location is used in order to get the
 needed resources for the App to run (layout, drawables, \ldots).
-The \code{lib/} directory is getting extracted and gets also copied
-into that path. \code{classes.dex} gets optimized by either ``dexopt''
+The \code{lib/} directory is extracted and gets copied
+into that path. \code{classes.dex} is optimized by either ``dexopt''
 or ``dex2oat'' depending which runtime is present (DVM or ART).
-The outcoming file is in both cases no more machine independent
-and lies at \code{/data/dalvik-cache/<arch>/} with the name
+In both cases, the outcoming file is no more machine independent
+and is stored at \code{/data/dalvik-cache/<arch>/} with the name
 \code{data@app@<packagename>.<appname>-1@base.apk@classes.dex}.
 That path however did change with Android version 6 to
-\code{/data/app/oat/<pachagename>.<appname>/<arch>/base.odex} which
-is more straight forward since every the whole data of an App is being
+\code{/data/app/oat/<pachagename>.<appname>/<arch>/base.odex}. It
+is more straight forward since the whole data of an App is being
 stored at the same place (except for the internal storage an App can
 use, which is located at \code{/data/data/...}).
-It does represent the last stored unit of an App that then
-gets executed in the next step.
+It does represent the last stored unit of an App that will be executed in the next step.
 Attention should be paid to the file extension.
 It's the same (\code{.dex}) with both runtimes but is actually a totally
 different file format.
-Therefore the name of the file is just a reference to the path
+Therefore, the name of the file is just a reference to the path
 of its source when replacing the ``@'' characters with ``/'' (prior Android 6).
 Since Android 6, it became a little more convenient since the file extension changed to ``\code{.odex}'' which corresponds to its actual content since it is
 an optimized version of the DEX.
@@ -234,14 +233,14 @@ file format is ODEX (Optimized DEX) and in later versions
 ELF 32/64 (Executable Linking Format) although the responsible
 tool for that conversion step is called ``dex2oat''. Still, the file
 is named the same way and won't change to ``\code{.elf}'' so the naming
-convention is more like a semantic information rather than saying something
-about its content explicitly.
-This ELF file also gets analyzed in the course of this thesis
+convention is more like a semantic information rather than making an
+explicit statement about its content.
+This ELF file will be analyzed later in this thesis
 (it does however hold an ``OAT'' file among other things so that
 the tool name actually does makes sense).
 To give an App the possibility to
 store some data, a \code{/data/data/<appname>} directory is
-also created which is a storage whose permissions are limited to its owning
+finally created which is a storage whose permissions are limited to its owning
 App.
 
 Last but not least, the pm adds entries to the
@@ -261,48 +260,47 @@ relevant actions the pm performs.
 \end{figure}
 
 \section{App Execution Process}\label{section:app_execution_simple}
-This chapter is supposed to give a short introduction about the
+This chapter is supposed to give a short introduction to the
 main concept of the App execution process without going into
-great detail about it. However, the detailed inspection will
+great detail about it. However, a detailed inspection will
 be performed in \autoref{section:app_execution_detail}.
 When describing the execution process of an App, again the
 runtime must be considered (Dalvik or ART) since the execution process
 obviously differs. In both cases the entry-point of the App is the
-file stored at \code{/data/dalvik-cache/...@classes.dex} like in
-\autoref{section:app_installation} described (Again differs depending on the Android version).
+file stored at \code{/data/dalvik-cache/...@classes.dex} as described in
+\autoref{section:app_installation} (Again differs depending on the Android version).
 ``Zygote'' is
 the name of one of the first processes Android starts when booting.
 The process is responsible for loading more services and libraries
-of the Android framework and does hold precompiled resources that
+of the Android framework and holds precompiled resources that
 nearly every App instance will need.
 By starting an App, it's therefore much more efficient to fork
-the Zygote process at Linux layer and then including the App specific part
-rather than  creating a whole new process for every App.
-This will also be introduced in greater detail \parencite[ch.2]{hackershandbook}.
+the Zygote process on the Linux layer and to including the App specific parts afterwards rather than  creating a whole new process for every App.
+This will also be investigated in greater detail in \autoref{section:art_internals} \parencite[ch.2]{hackershandbook}.
 
 \subsection{Dalvik}
 As in \autoref{section:app_installation} described, an
-ODEX file is created at first startup of an App. Even though
+ODEX file is created at the first startup of an App. Even though
 the pure DEX file is runnable in the DVM, it still gets optimized
 into ODEX to get the most performance out of the
 constraints of a VM.
 It then gets processed by the actual Dalvik runtime to produce
 native code (machine code) that in the end is executable by the CPU (JIT).
-This native code additionally must be linked with libraries of the App
+This native code has to be linked with libraries of the App
 (\code{/data/app/<pkg>.<name>-1/lib/*.so}) implemented via the JNI
-and also with Android framework libraries to result in a complete
-executable that can be executed by the CPU. It does however
+and additionally with Android framework libraries to result in a complete
+executable that can be executed by the CPU. It does
 reference resources out of the corresponding \code{base.apk} file (layouts,
-drawables, assets, \ldots). The execution process is also painted
-at \autoref{fig:app_execution}.
+drawables, assets, \ldots). The execution process is also depicted
+in \autoref{fig:app_execution}.
 
 \subsection{ART}
 The difference of ART in comparison to Dalvik is the missing
-JIT compiling step since ART does that at installation time
-(AOT). Therefore the ELF file does contain the executable that
+JIT compiling step which ART performs at installation time
+(AOT). Therefore, the ELF file contains the executable that
 only needs to be extracted by the ART followed by the same
 linking steps that Dalvik does after JIT. \autoref{fig:app_execution}
-shows the direct comparison of those two runtimes.
+shows a direct comparison of those two runtimes.
 
 \begin{figure}[htb]
   \includegraphics[width=\textwidth]{figures/app_execution}

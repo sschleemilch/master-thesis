@@ -1,12 +1,12 @@
 \chapter{Copy Protection Status Quo}
 \label{chapter:copy_protection_status_quo}
 
-This chapter will first provide some detailed information about the ART runtime since the internal mechanics are a precondition to understand the more complex copy protection mechanisms and obfuscation techniques. The existing ones will be explained afterwards. Most of them are based on the Dalvik runtime. It will then be determined whether a specific method is also
-applicable to ART. A great focus will of course rely on the DEX format since
+This chapter will first provide some detailed information about the ART runtime since basic knowledge of the internal mechanics is a precondition to understand the more complex copy protection mechanisms and obfuscation techniques. Common existing techniques will be sketched afterwards. Most of them are based on the Dalvik runtime. It will then be determined whether a specific method is also
+applicable to ART. A great focus will rely on the DEX format since
 it is still the distribution format of every App (inside of an APK named as
-\code{classes.dex}). Unless explicitly written otherwise, investigations performed do rely on an AOSP and device version running Android 5.1.1 and may therefore vary on different Android versions since Google applies changes
-at runtime layer very frequently. Those changes usually do not affect App developers
-who are writing code at Java layer but may also affect NDK developers.
+\code{classes.dex}). Unless explicitly written otherwise, investigations performed do rely on an AOSP and device version running Android 5.1.1.
+Therefore, they may vary on different Android versions since Google applies changes at runtime layer very frequently. Those changes usually do not affect App developers who are writing code at Java layer but may affect developers
+using the NDK.
 
 \section{ART Internals}
 \label{section:art_internals}
@@ -18,7 +18,7 @@ gets created by ``dex2oat'' during the installation time of an App,
 described in \autoref{section:app_installation}.
 Since ART does use AOT compilation, the file format is expected
 to be an executable or at least a native code container.
-Therefore it's worth to have closer look at that file format
+Therefore, it's worth to have a closer look at that file format
 especially since Google does not provide any further information
 about it's content and it might have the potential of
 revolutionizing the available copy protection mechanisms for
@@ -34,7 +34,7 @@ ELF was originally specified by UNIX System Laboratories
 (USL) and later by Tool Interface Standards (TIS) and is a common
 standard for executables, object code and shared libraries on UNIX
 systems. It is a quite flexible format for different CPUs and
-architectures and does serve as a container for different
+architectures and serves as a container for different
 executable binary formats.
 
 \begin{figure}[htb]
@@ -45,18 +45,18 @@ executable binary formats.
 \end{figure}
 
 \autoref{fig:elf_format} shows the file structure.
-One have to differentiate the context of how the file is viewed.
+One has to differentiate how this file is viewed based on its context.
 While a linker does care about sections, sections may be
 glued together to segments when executing the file.
 Meta data about the file can be read out of the ``ELF header''
-that starts at address \code{0x00} and does contain
+that starts at address \code{0x00} and contains
 information about the version, file type, target machine and
 offsets to the program- and section header tables.
 In ART, the file is marked as an shared object with LSB encoding
 and not as an executable which makes clear that this file is not
 supposed to get executed directly but to be linked first
-(An open question remains so far which process is then starting
-the App).
+(An open question that remains so far is which process is responsible
+for the App start).
 Segments are referenced by the program header table and sections
 by the section header table. For an execution process, only the header
 and the information out of the program header table is needed
@@ -65,7 +65,7 @@ and the information out of the program header table is needed
 Let's first have a look at the used sections in case of the specific
 Android implementation, the OAT file:
 \autoref{tab:section_headers} shows the output of
-``\code{readelf -S <ELF-App-File>}'', listening all available sections
+``\code{readelf -S <ELF-App-File>}'', listing all available sections.
 
 
 \begin{table}[htb]
@@ -96,39 +96,38 @@ It does follow a short description of sections that are implemented
 \parencite{life_of_binaries}:
 \begin{itemize}
     \item \code{.dynsym} holds a dynamic linking symbol table that
-    does contain information for locating and relocating a program's
-    symbol definitions and references. It does contain ``oatdata'',
+    contains information for locating and relocating a program's
+    symbol definitions and references. It contains ``oatdata'',
     ``oatexec'' and ``oatlastword'' in case of an OAT file.
-    \item \code{.dynstr} does hold strings for dynamic linking,
+    \item \code{.dynstr} holds strings for dynamic linking,
     mostly names that are referenced by \code{.dynsym}.
     \item \code{.hash} is a hash table that supports symbol table access
-    \item \code{.rodata} stands for ``Read-Only data'' and does
-    contain arbitrary data whose interpretation is solely
+    \item \code{.rodata} stands for ``Read-Only data'' and contains arbitrary data whose interpretation is solely
     determined by the program itself. We will
     see that in case of Android it does hold the actual OAT file
     that will be further described in \autoref{section:oat_file}.
     \item \code{.text} is the only region that is marked as
-    executable and therefore it does hold the main body of
+    executable and holds the main body of
     program code.
     \item \code{.dynamic} includes dynamic linking information.
     \item \code{.shstrtab} stands for ``Section header string
-    table'' and therefore contains the previous described
+    table'' and contains the previous described
     section names including its own (e.g. ``\code{.shstrtab}'').
 \end{itemize}
 
-\autoref{tab:program_headers} shows the alternative view of the
+\autoref{tab:program_headers} shows the alternative view on the
 file by having a look at segments (``\code{readelf -l <ELF-App-File>}'')
 . Type ``PHDR'' stands for ``Program header''. Segments with type
 ``LOAD'' are supposed to be loaded from disk into memory while
 a ``DYNAMIC'' segment is a part of a ``LOAD'' segment and is equal
 to the ``\code{.dynamic}'' section. The mapping of ``LOAD'' segments
 into memory is performed by respecting the alignment of \code{0x1000}
-means that only chunks of that size (or a multiple) are being read
+which means that only chunks of that size (or a multiple) are being read
 (e.g. reading the segment at \code{0x3000} will copy the content
 from \code{0x3000-0x4000} even if the size only equals \code{0x340}).
-The difference between ``FileSiz'' that obviously stands for the file
-size and ``MemSiz'' that stands for memory size is the space that
-gets reserved for uninitialized variables.
+The difference between ``FileSiz'' which stands for the file
+size and ``MemSiz'' which stands for memory size, is the space that
+is reserved for uninitialized variables.
 
 \begin{table}[htb]
   \caption[ELF program headers]{ELF program headers}
@@ -172,19 +171,19 @@ mapping of sections to segments
 \end{table}
 
 It's interesting to note that the Android usage of ELF for Apps
-is very minimalistic and does contain very few sections/segments
+is very minimalistic and contains very few sections/segments
 compared to a common program written in C/C++ (\code{helloWorld.c}
 does include over 30 sections). As described before,
-\code{.dynsym} does contain entries which tell us where to find
+\code{.dynsym} contains entries which tell us where to find
 the OAT data, specifically the ``oatdata''(equals \code{.rodata})
 and the ``oatexec'' (equals \code{.text})
-section that will now be analyzed.
+section that will be analyzed now.
 
 \subsubsection{OAT File}\label{section:oat_file}
 Google does not provide any official documentation about the OAT
 file format other than the source code itself
 (\code{art/runtime/oat[\_file].h[c]}). \parencite{hiding_behind_art}
-however gives a helpful introduction and an overview is given
+however gives a helpful introduction. An overview is given
 in \autoref{fig:oat_format} that shows the content of ``\code{oatdata}'' and
 ``\code{oatexec}'' which are scattered among the superordinate ELF sections.
 
@@ -198,34 +197,32 @@ in \autoref{fig:oat_format} that shows the content of ``\code{oatdata}'' and
 Important attributes that the ``OAT Header'' contains are the
 checksum over itself,
 the instruction set (ARM, ARM64, MIPS, \ldots), the native code
-offset relative to the begin of ``\code{oatdata}'' (located in
+offset relative to the beginning of ``\code{oatdata}'' (located in
 ``\code{oatexec}'') and the quantity of embedded
 DEX files (in case of Apps it always equals one, other system files like
-``boot.oat'' may contain several DEX files). It does follow the
+``boot.oat'' may contain several DEX files). It follows the
 ``OAT Dex Header'', containing
 the absolute path of its ``source'' file (=input file of \code{dex2oat},
 means DEX), the checksum, the
 embedded DEX file's offset as well as
 an offset to the ``OAT Class Headers''. Those ``OAT Class Headers''
-do offer information about defined classes. It does include the type
-of class, means how many methods in the class
+do offer information about defined classes. It includes the type
+of class, indicating how many methods in the class
 are compiled to native code (``all'', ``some'' or ``none'' but
-should be ``all'' in almost every case) and secondly
-the offsets to the native code begin of every compiled method.
+should be ``all'' in almost every case) and additionally
+the offsets from the beginning of native code of every compiled method.
 The actual code is located in a superordinate section
-\code{.text}, as already said, labeled as ``\code{oatexec}'' which is separated but referenced from this one.
+\code{.text}, as already explained, labeled as ``\code{oatexec}'' which is separated but referenced from ``\code{oatdata}''.
 
 \subsubsection{DEX File Format}
 \label{section:dex_file_format}
-To be complete, a description and explanation to the DEX format is also given,
+For the sake of completeness, a description and explanation of the DEX format is also given,
 which is officially documented by Google \parencite{dex}.
 Before the introduction of ART, DEX was the last unit before
-execution of an App (besides ODEX which can be easily converted back to DEX). The DVM does however accept both formats and therefore it's possible to execute
-DEX files without the optimization step. As a consequence,
-DEX files can also be loaded dynamically at runtime which are not a part
-of the distributed App. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}.
+execution of an App (besides ODEX which can be easily converted back to DEX). The DVM however accepts both formats and therefore it's possible to execute
+DEX files without the optimization step. As a consequence, also DEX files which are not a part of the distributed App can be loaded dynamically at runtime. That enables new possibilities for dynamic code obfuscation techniques that will be described in \autoref{section:obfuscation_techniques}.
 DEX as it is does not only contain
-VM instructions but some meta data around that to locate
+VM instructions but also some meta data to locate
 higher abstraction level sections of the file like classes,
 methods and fields.
 \autoref{fig:dex_format} shows the file layout.
@@ -238,39 +235,42 @@ methods and fields.
 The header again includes a checksum of the whole file (checksum
 field excluded), the overall size as well as the offsets and sizes
 of every section. Sections with ``ids'' ending are arrays of
-id items of their type and do reference
+id type items and reference
 a data item in the ``data'' section or are specifying
-an index into another ``ids'' section. A ``string\_id'' item for
-instance does just contain an offset from file beginning
+an index to another ``ids'' section. A ``string\_id'' item for
+instance just contains an offset from the file beginning
 that should be located in ``data'' whereas the ``type\_id'' item
 includes an index into the ``string\_ids'' field. So every
-attribute that can be described as a string is concentrated in ``string\_ids'' The principle of the file structure is therefore a architecture of referencing
-sections. A part that puts everything together is the ``class\_defs''
-section. Classes in this context stands for programming classes. They include methods which in turn include strings, fields and so on. Actual content like
-strings, VM instructions or arbitrary programming data, is being stored exclusively in the data section. In the end, executable instructions are referenced from encoded methods, defined in ``class\_data\_items'' which in turn are referenced from ``class\_defs''.
+attribute that can be described as a string is concentrated in
+``string\_ids''. The principle of the file structure is therefore a architecture of referencing
+sections.
+
+A part that puts everything together is the ``class\_defs''
+section. Classes in this context stand for programming classes. They include methods which in turn include strings, fields and so on. Actual content like
+strings, VM instructions or arbitrary programming data, is being stored exclusively in the data section. In the end, executable instructions are referenced from encoded methods and defined in ``class\_data\_items'' which in turn are referenced from ``class\_defs''.
 
 
 \subsubsection{Conclusion}\label{section:andelf_format_conclusion}
-The runtime transition from DVM to ART of course had to result
-in a new file that gets interpreted/executed when an App starts.
+The runtime transition from DVM to ART had to result
+in a new file that is interpreted/executed when an App starts.
 However, the change is not as smooth as expected since
 the new file format is not pure executable code but, as
-discovered, a combination of compiled native code
+explained, a combination of compiled native code
 and embedded DEX code as well as a new OAT file format
 which references parts of the native code. Also, there is some
-confusion for what part the name ``OAT file'' stands. On the
+confusion for what part the name ``OAT file'' stands for. On the
 one hand, Google's documentation files and the naming
-convention of the``dex2oat'' tool are giving the impression
+convention of the ``dex2oat'' tool are giving the impression
 that the file as a whole is an ``OAT file''. On
 the other hand, the file is a valid implementation of the
 well known ELF format and contains a section that starts
 with bytes known by MIME types with ``.oat'' as file format
-(.rodata section). Additional, the ``oatexec'' section
-is controlled via the greater ELF format. Therefore, ``OAT file'' stands most likely for both of those meanings, the
+(.rodata section). Additionally, the ``oatexec'' section
+is controlled via the hierarchically higher ELF format. Therefore, ``OAT file''most likely stands for for both, the
 Android App specific and minimalistic implementation of the ELF
 as well as the combination of the ``oatdata'' and ``oatexec''
-section to a file alike entity. \autoref{fig:andelf_format} does
-provide an overall view of the file format of ART App executables.
+section to a file alike entity. \autoref{fig:andelf_format}
+provides an overall view of the file format of ART App executables.
 
 \begin{figure}[htb]
   \centering
@@ -279,29 +279,29 @@ provide an overall view of the file format of ART App executables.
   \label{fig:andelf_format}
 \end{figure}
 
-The awareness of the detailed executable file format does pop
-new questions about the ART internal functionality.
-Since the file is marked as an shared object, it won't get
-executed as a standalone program but most likely will be
+The awareness of the detailed executable file format pops
+new questions about the ART internal functioning.
+Since the file is marked as an shared object, it won't be
+executed as a standalone program but most likely
 invoked in a forked Zygote process like in the Dalvik runtime.
 However it is not clear which parts of the OAT file are
 needed to run an App adequately. Is the embedded DEX for instance
 mandatory for the App to work correctly? As it will be described
-in a following chapter, DEX files are
+in a later chapter, DEX files are
 a crucial part of applications to protect. What if that part
-can be missed out by distributing a minimal stub application
+can be left out by distributing a minimal stub application
 followed by a dynamic native code injection at runtime?
-It is also interesting if and how common obfuscation
+It would also be interesting to elaborate if and how common obfuscation
 techniques designed for Dalvik, described in \autoref{section:obfuscation_techniques}, can be applied to ART.
-Therefore a deep understanding for the App initialization and execution
+A deep understanding for the App initialization and execution
 process under ART is a precondition to answer those
-questions and has to be more detailed than previously described in
-\autoref{section:app_execution_simple}.
-
+questions. Therefore, a more detailed explanation of that process
+than previously described in
+\autoref{section:app_execution_simple} follows.
+%GLORIA KORREKTUR-----------------------------------------<
 \subsection{App Execution}\label{section:app_execution_detail}
 To get behind the scenes of the App execution, one can start at
-the resulting Linux process that exists for every running App at
-the end of the day.
+the resulting Linux process that exists for every running App.
 The Linux tool ``\code{ps}'' can be used to display
 running processes and therefore running Apps.
 To investigate the App execution a root shell at the target device
@@ -311,7 +311,7 @@ device prompt (``\code{shell@flounder:/ \$}''), where \code{adb}
 is the Android Debug Bridge to interact with connected devices.
 The prompt will change to ``\code{root@flounder:/ \#}'' signaling
 that it's a root shell. A ``\code{ps}'' command displays
-process information like its owning ``USER'', the numerical process id ``PID'',
+process information like its ``USER'', the numerical process id ``PID'',
 the process id of its parent ``PPID'' and of course the process name.
 Interesting entries for further inspection are being displayed in
 \autoref{tab:ps_entries}, showing the \code{init}, Zygote, the chrome and
@@ -337,15 +337,15 @@ a sample hello world application.
 \end{table}
 
 The process ``\code{/init}'' is the first process of Android (although
-it has a parent with PPID ``0'' but which is the process scheduler at kernel
+it has a parent with PPID ``0'' which is the process scheduler at kernel
 level).
 It can be derived that every user and system App has either the process
-``\code{zygote}'' or ``\code{zygote64}'' as its parent process depending
+``\code{zygote}'' or ``\code{zygote64}'' as its parent process
 if the App can be converted at the \code{dexopt} step to 32 or 64 bit.
 That makes clear that Apps are forked from the Zygote process which in turn
 is a  fork of ``\code{/init}''.
 Even more detailed information about processes can be
-pulled out of the ``\code{/proc}'' directory (obviously an abbreviation for
+pulled out of the ``\code{/proc}'' directory (an abbreviation for
 ``process'').
 The directory offers an interface to the kernel space and does contain a folder for every process, named after its PID \parencite{proc}. The most attractive attribute for this investigation purpose of that folder is the
 ``\code{exe}'' attribute which is a symbolic link to the executable that started the process. Since Apps are a fork of Zygote, they should also point
@@ -374,33 +374,30 @@ to the same executable, which they do (see \autoref{tab:process_executables}).
   }
 \end{table}
 
-An executable named ``\code{app\_process32/64}'' seems like to be the entry-point for Apps (or at least Zygote) to get started.
+An executable named ``\code{app\_process32/64}'' seems to be the entry-point for Apps (or at least Zygote) to get started.
 The responsible program of that executable
 can be found in the Android Open Source Project (AOSP) where
 ``\code{app\_main.cpp}'' is the name of the source code file that gets
 compiled into the 32 or 64 bit version
 and can be found at ``\code{/frameworks/base/cmds/app\_process/}''.
 Although its implementation allows Apps to get started directly without
-Zygote, they are not supposed to, means it's not the common way
+Zygote, they are not supposed to, meaning it's not the common way
 when a user clicks on an App icon. Instead, it will get clear that Zygote
-is capable of forking and specializing itself into a new App.
+is capable of forking and transforming itself into a new App.
 The App process is therefore responsible for starting Zygote and other system
-related App-like processes.
+related processes that have a similar structure like Apps.
 The ``\code{/init}'' process arranges the start of Zygote via an
 ``\code{app\_process}'' program start with specific parameters for a Zygote start
-(init is responsible for far more, like starting native daemons system services and other things).
+(init is responsible for far more, like starting native daemon system services and other things).
 
-A common way to analyze source code is to start at its
+A common way to analyze source code is to start with its
 ``\code{main()}'' method.
 One of the first things the program does is
 creating a new ``\code{AppRuntime runtime}'' object that inherits from the
-\code{AndroidRuntime} class but does override a few functions. As parameters it will expect the \code{argv[0]}
+\code{AndroidRuntime} class but overwrites a few functions. As parameters it will expect the \code{argv[0]}
 which is the program name itself as well as the total length of arguments.
-Finally, the program will transfer the flow control to this object by calling
-\code{runtime.start(com.android.internal.os.ZygoteInit, args)} in case of a
-Zygote start.
-``\code{args}'' contains whether to start the system server and an ABI
-list as well as remaining arguments that were not used for the \code{app\_process} program. The runtime \code{start()} method does initialize
+In case of a Zygote start, the program will transfer the flow control to this object by calling \code{runtime.start(com.android.internal.os.ZygoteInit, args)}.
+``\code{args}'' contains information about whether to start the system server,an ABI list as well as remaining arguments that were not used for the \code{app\_process} program. The runtime \code{start()} method initializes
 a VM and finally calls the main method of the \code{ZygoteInit.java}
 program in case of a Zygote start. So there is a first transition into the Java programmed system.
 
@@ -408,17 +405,17 @@ program in case of a Zygote start. So there is a first transition into the Java 
 \code{ZygoteInit's} main starts with parsing arguments such as if a system
 server should get started, the ABI list and the socket name that Zygote will
 create. That defined socket (\code{LocalServerSocket sServerSocket}) is a core functionality of Zygote whose purpose
-is to listen on a socket for App start requests and finally fork Zygote and specialize it afterwards. After registering that socket a preloaded method loads classes
+is to listen to a socket for App start requests and finally fork Zygote and specialize it. After registering that socket a preloaded method loads classes
 resources, OpenGL and shared libraries and a explicit garbage collection
 \code{gc()} will be performed to clean up after startup. After the optional start of the system server, the program will enter its main loop
-\code{runSelectLoop(abiList)}. Garbage collection gets explicitly called
-after \code{GC\_LOOP\_COUNT} iterations. Right before the loop an array list for file descriptors (\code{ArrayList<FileDescriptor> fds}) as well as for socket connections (\code{ArrayList<ZyogteConnection> peers}) is being
+\code{runSelectLoop(abiList)}. Garbage collection is called explicitly
+after \code{GC\_LOOP\_COUNT} iterations. Right before entering a loop, an array list for file descriptors (\code{ArrayList<FileDescriptor> fds}) as well as for socket connections (\code{ArrayList<ZyogteConnection> peers}) are being
 created and \code{fds} gets filled with the server socket file descriptor.
 \autoref{zygote_init_loop} displays the logic of the main loop.
 
 \lstinputlisting[language=Java, caption=ZygoteInit main loop, label=zygote_init_loop,firstline=773, lastline=795]{"code/ZygoteInit.java"}
 
-First the file descriptor list is converted to an array and index gets
+First the file descriptor list is converted to an array and the index gets
 filled with a readable file descriptor. If that index is zero,
 a new \code{ZygoteConnection} is established which is listening
 on its defined socket and accepting pending connections.
@@ -428,14 +425,13 @@ The \code{acceptComandPeer()} method does
 call the \code{ZygoteConnection} constructor with \code{sServerSocket.accept()}
 as transfer parameter which is an extension to the \code{LocalSocket}
 implementation. Its \code{accept()} method accepts a new connection
-to the socket and blocks until a new socket arrives.
+to the socket and is blocking processes until a new socket arrives.
 Therefore the next iteration delivers an index greater than zero so that
-the last \code{else} branch of \autoref{zygote_init_loop} is executed within
-a \code{ZygoteConnection} object of \code{peers} at that index calls
+the last \code{else} branch of \autoref{zygote_init_loop} is executed.
+The \code{ZygoteConnection} object of \code{peers} located at that index calls
 the \code{runOnce()} method and gets removed out of the array lists afterwards.
 Finally the \code{runOnce()} method will call \code{Zygote.forkAndSpecialize()}
-that forks a child within an exception is being called to invoke the child's
-\code{main()}.
+that forks a child within an exception which is being called to invoke the child's \code{main()}.
 But first the given arguments from the command socket must be parsed with the
 aid of an \code{Arguments} class. Attributes that are needed for the later \code{fork()} call are shown in \autoref{tab:argument_class_attributes}.
 
@@ -468,11 +464,11 @@ aid of an \code{Arguments} class. Attributes that are needed for the later \code
   \end{tabular}
 \end{table}
 
-Then, all the defined security policies are being applied. To avoid bad file
-descriptor messages after forking a child, a native code has to close them before (\code{sServerSocket} and the local socket \code{mSocket} of the
+Afterwards, all the defined security policies are being applied. To avoid bad file
+descriptor messages after forking a child, a native code has to close the open sockets before (\code{sServerSocket} and the local socket \code{mSocket} of the
 \code{ZygoteConnection} class whose FDs are written into an \code{fdsToClose}
 array).
-Now all prerequisites of forking are fulfilled and the static method
+Now all prerequisites for forking are fulfilled and the static method
 \code{forkAndSpecialize} of the \code{Zygote.java} file can be called
 (see \autoref{zygote_fork}) returning the new process PID.
 \begin{lstlisting}[language=Java, caption=Zygote Fork Call, label=zygote_fork]
@@ -484,33 +480,33 @@ pid = Zygote.forkAndSpecialize(parsedArgs.uid, parsedArgs.gid,
             parsedArgs.appDataDir);
 \end{lstlisting}
 \code{Zygote.java} is quite compact since it mainly defines the transition
-to native code where the actual forking is being applied on Linux level. That's why
-a native version of the fork and specialize method is defined and executed
+to native code whereas the actual forking is being applied on Linux level. That's why
+a native version of the fork and specialize method are defined and executed
 which in turn returns the resulting PID after forking
 (\code{com\_android\_internal\_os\_Zygote.cpp}).
 The native implementation does finally call the effective \code{fork()} method
 that copies the actual Linux process. Afterwards, the child is being
 specialized (selected by the resulting PID of \code{fork()}).
-Transfered FDs get closed and capability boundaries are applied.
+Transfered FDs are closed and capability boundaries are applied.
 UID and GID are being set (Linux \code{setresgid/setresuid}) and resource limits are added via \code{strlimit(2)}.
 If necessary, a native bridge will be initialized and scheduler policies
-are being set. SELinux properties are applied and the thread name gets
-changed to a name other than ``app\_process'', mostly the package name of the App.
+are being set up. SELinux properties are applied and the thread name gets
+changed to a name other than ``app\_process'', usually the package name of the App.
 
 Back in the Java world \code{Zygote\allowbreak Connection} checks the returned PID and either calls \code{handleChildProc()} in case of the child or
 \code{handleParentProc()} in case of the parent (Zygote itself).
-These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level (since the child should not listen on sockets like the parent Zygote) and remaining arguments are being evaluated. When forking an App, a class name will be defined at that time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters. The class loader \code{cloader} is defined as
-either with \code{PathClassLoader()} or \code{ClassLoader()} constructor whether a classpath is
+These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level (since the child should not listen on sockets like the parent Zygote) and remaining arguments are being evaluated. When forking an App, a class name will be defined at the same time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters. The class loader \code{cloader} is defined
+either with the \code{PathClassLoader()} or \code{ClassLoader()} constructor depending on if a classpath is
 given (path to APK or raw *.dex) where \code{PathClassLoader} is a specialized version of \code{ClassLoader}.
-However when looking into the class loading code at this point, it becomes clear that the DEX file of an App is used to represent a class and later finding its main method within, so that
+However when looking into the class loading code at this point, it becomes clear that the DEX file of an App is used to represent a class and later finding its main method, so that
 it can be said for sure that an App's DEX file is needed at least as an entry point under ART.
 
-The \code{invokeStaticMain()} loads the specified class via the \code{className} string and furthermore searches for the main method within, storing it as a Java \code{Method} object and finally throwing an
+The \code{invokeStaticMain()} loads the specified class via the \code{className} string and furthermore searches for the main method, storing it as a Java \code{Method} object and finally throwing an
 \code{MethodAnd\allowbreak ArgsCaller()} exception. This exception gets caught by the main method of \code{Zygote\allowbreak Init}.
-Remember that the Zygote itself is ``trapped'' in a loop whereas the child process can escape from by throwing that exception. So as a result, Zygote will remain in the loop offering a socket to fork itself again (=starting a new App) while the child process (=the App to start) escapes from that loop invoking the main method of the class specified over the socket
-connection in the next step.
+Remember that the Zygote itself is ``trapped'' in a loop whereas the child process can escape from it by throwing that exception. So as a result, Zygote will remain in the loop offering a socket to fork itself again (=starting a new App) while the child process (=the App to start) escapes from that loop invoking the main method of the class specified over the socket
+connection.
 To clarify the program flow, \autoref{fig:zygote_forking} displays
-the object and therefore file interaction during the forking process.
+the object and file interaction during the forking process.
 
 \begin{figure}[htb]
   \centering
@@ -520,25 +516,24 @@ the object and therefore file interaction during the forking process.
 \end{figure}
 
 
-The current child process state discussed is right after the main loop
-breakout of \code{ZygoteInit} induced by the exception. The exception
-is actual defined as a class that extends \code{Exception} and implements
+The current state of the child process is the one right after the main loop breakout of \code{ZygoteInit} induced by the exception. The exception
+is actually defined as a class that extends \code{Exception} and implements
 \code{Runnable}. Therefore it is viable to call the exception callers
 \code{run()} method (see \autoref{child_breakout}, taken out of the main
 method of Zygote).
 
 \lstinputlisting[language=Java, caption=Zygote Child Loop Breakout Exception, label=child_breakout,firstline=697, lastline=703]{"code/ZygoteInit.java"}
 
-Invocation means basically injecting the code of a method in the current process. That is the next and final thing that will be performed and it won't
-be explored in great detail what happens.
+Invocation means basically injecting the code of a method into the current process. That is the next and final thing that will be performed and it won't
+be explained in greater detail what happens.
 
 Since most of the steps are performed
 in Java and class loaders are being used to represent the class and main method
 to be loaded, it is pretty clear that the DEX file is mandatory to locate the
 native code methods even at ART.
-If the reader is interested of checking the AOSP by himself,
+If the reader is interested in checking the AOSP by himself,
 \autoref{tab:aosp_files} shows the explained source files and their paths
-inside of the AOSP branch of version six in this case.
+inside of the AOSP branch of Android version 6 in this case.
 
 \begin{table}[htb]
   \caption[Zygote/App Start AOSP(6.0) Files]{Zygote/App Start AOSP(6.0) Files}
@@ -560,8 +555,8 @@ inside of the AOSP branch of version six in this case.
   }
 \end{table}
 
-So what does actually happen when a user clicks on an App icon?
-The Launcher App that gets packaged with the AOSP takes care of the interface
+So what actually happens when a user clicks on an App icon?
+The Launcher App that is packaged with the AOSP takes care of the interface
 responsible for showing App icons, the home screen and so on. The App icon click will call the corresponding \code{onClick()} method that will in turn
 call \code{startActivity()} of the Activity Manager service through the Android Binder. The service will start \code{startViaZygote()} which
 opens a socket to the Zygote process requesting to start the new Activity/App
@@ -609,34 +604,34 @@ opens a socket to the Zygote process requesting to start the new Activity/App
 
 
 \section{DEX Disassembly and Repackaging}
-Like introduced in \autoref{chapter:android_status_quo} there
+As explained in \autoref{chapter:android_status_quo} there
 are different goals of copy protection mechanisms starting from
 preventing reverse code engineering to protect intellectual property
 and reaching to hinder patching to get prohibited access.
-The common denominator of those goals is the protection of
-the DEX file of every App since every distributed App does include
-it. A variety of tools do exist that
+The common ground of those goals is the protection of
+the DEX file of every App since every distributed App includes
+it. A variety of tools exist that
 are able to transform DEX into different readable formats,
 modify it and repack it again since the DEX contains
-a lot of meta data for its contents (classes, methods, \ldots)
+a lot of meta data about its contents (classes, methods, \ldots)
 \parencite{dex}.
-Generally there do exist two possible outcomes of DEX disassembling
+Generally there are two possible outcomes of DEX disassembling
 - Java code (\code{*.java}) and Smali code (\code{*.smali}).
 Since the DEX format is more or less just a different mapping of a
-JAR and its containing \code{.class} files, the transition to JAR
+JAR and its containing \code{.class} files, the transformation to JAR
 is quite simple \parencite{dvminternals}. One of many tools that is able to
 perform this step is ``dex2jar'' \parencite{dex2jartool}.
 Along with this JAR, standard Java decompilers like ``JD-GUI''
 \parencite{jdtool} can be used to produce the \code{*.java} source code.
-If the \code{*.java} is supposed to change and repacked, it can
-again be compiled into JAR with Oracle's ``javac'' \parencite{javactool}
+If the \code{*.java} is supposed to change and to be repacked, it can
+be compiled into JAR with Oracle's ``javac'' \parencite{javactool}
 followed by Google's ``dx'' tool \parencite{dxtool}
 to produce the new manipulated DEX.
 
 An alternative way is the use of the ``smali/baksmali'' tool
 \parencite{smalitool} which is a direct assembler and disassembler
 for DEX files rather than taking the Java code detour. There is also
-a tool included that can convert the ODEX back to DEX (which was interesting
+a tool included that can convert the ODEX back to DEX (which is interesting
 for Dalvik Runtime systems).
 
 Overall, the disassembly of unchanged DEX is quite easy and
@@ -659,51 +654,48 @@ is generally the term for hardening an application against
 reverse code engineering techniques. It can be achieved by different methods
 that can be separated in two main groups, static and dynamic obfuscation.
 Static means that the obfuscation technique is applied to code units (source
-code, binaries, ...) while the application is not executed. Therefore an
-attacker could possibly successful analyze the application without executing it
-if he manages to break this obfuscation. An upside of static techniques in general is that they are independent of the following runtime if two compared runtimes are using the same input files (which they do in case of Android with
-its DEX formatted files).
+code, binaries, ...) while the application is not being executed. Therefore an
+attacker could possibly successfully analyze the application without executing it if he manages to break this obfuscation. An upside of static techniques in general is that they are independent of the used runtime if two compared runtimes are using the same input files which they do in case of Android with
+its DEX formatted files.
 Applications that are dynamically obfuscated on the other hand, are much harder to analyze. The behavior
-of the application is not decided until its execution. An attacker needs to connect to the process of the running application followed by a just in time inspection. Dynamical methods do have the downside that they are highly dependent on the runtime.
+of the application is not determined until its execution. An attacker needs to connect to the process of the running application followed by a just-in-time inspection. Dynamical methods have the downside that they are highly dependent on the runtime.
 
-It does follow a list of common static and dynamic obfuscation techniques
+It follows a list of common static and dynamic obfuscation techniques
 for Android applications. However, this list is mainly focused on
 the Dalvik runtime since ART has been released quite recently.
-Where static obfuscation techniques do show the same behavior in both
-runtimes, the dynamic solutions do possibly not since the execution process
+Where static obfuscation techniques show the same behavior in both
+runtimes, the dynamic solutions don't necessarily since the execution process
 of Apps in ART differs (described in \autoref{section:app_execution_detail}).
 The impact of those techniques to ART will get analyzed at every specific case.
 
 
 \subsection{Static}
 \subsubsection{Common Source Code Obfuscation}
-The most common and simple way of harden source code is to remove any kind of meta data
-that has been added during the development process. Means destroying/modifying
+The most common and simple way to harden source code is to remove any kind of meta data
+that has been added during the development process. This means destroying/modifying
 information that originally was present in the source code.
-Possible prospects to do this are the renaming of string identifiers of
-classes, variables, methods and functions, to artificially insert
-irreducible code, create artificial parallelization, perform method inlining/outlining, to unroll loops, encoding strings or changing the control flow in
-order to confuse code analysts by keeping the original behavior
+Possible approaches of doing this are the renaming of string identifiers of
+classes, variables, methods and functions, artificially inserting
+irreducible code, creating artificial parallelization, performing method inlining/outlining, unrolling loops, encoding strings or changing the control flow in order to confuse code analysts by keeping the original behavior
 \parencite[p.87]{lvl_imp}.
 
 Popular tools for that purpose are Google's ``ProGuard''
 \parencite{proguardtool} which is included in the Android build system and
 can be enabled easily as well as ``DexGuard'' by GuardSquare
 \parencite{dexguardtool}. ``ProGuard'' does
-operate on source code level where ``DexGuard'' operates on DEX.
+operate on source code level while ``DexGuard'' operates on DEX.
 Since the first ``layer'' of Android applications is Java code, classical Java
 obfuscators also can be used.
-Since those tools do operate on the DEX file layer, they can be applied at ART without restrictions.
+Those tools do operate on the DEX file layer, meaning that they can be applied at ART without restrictions.
 
 \subsubsection{Junk-Byte-Insertion}
 Junk-Byte-Insertion's goal is to prohibit the use of program analyzing
-disassembling tools. It does work for tools using the
+disassembling tools. It works for tools using the
 ``linear sweep'' method to analyze a program. That means
 the tools are processing every instruction from the entry-point
 till the end without interpreting them (e.g. not following jumps).
 That examining technique can be exploited to break the disassembling
-procedure. Let's assume we do have the following DVM instructions (Example taken out of \parencite[p.67]{lvl_imp}).
-\autoref{junk_byte_listening}
+procedure. Let's assume we do have the DVM instructions shown in \autoref{junk_byte_listening}(Example taken out of \parencite[p.67]{lvl_imp}).
   \begin{lstlisting}[language={[x64]Assembler}, caption=Junk-Byte-Insertion, label=junk_byte_listening, numbers=left]
     if "true" goto line 4
     load_array_into v1, line_3
@@ -713,26 +705,21 @@ procedure. Let's assume we do have the following DVM instructions (Example taken
     add v1, v2, v4
     return v4
   \end{lstlisting}
-
-Because of the if statement that performs a jump to line four, the \code{array\_size 10} command will never be reached.
+Because of the if-statement that performs a jump to line four, the \code{array\_size 10} command will never be reached.
 Since ``linear sweep'' does not perform jumps, the analyzing tool
 will interpret the ten following bytes of that array initialization as payload and will therefore not be able to disassemble the actual instructions.
 
 Enhanced tools will use the ``recursive traversal'' technique to analyze a
 program which is capable of detecting dead branches and conditional jumps like in the example above.
-These tools also may be tricked by choosing a more complicated condition for
-if-conditions that can only be evaluated at runtime and therefore the
-whole conditional branch (including the breaking byte sequence) would also tried to be evaluated (Actually this technique could already be counted to dynamic obfuscation) \parencite[p.68]{lvl_imp}.
+These tools also may be tricked by choosing a more complicated condition in the
+if-conditions that can only be evaluated at runtime. This would result in the tool trying to evaluate the whole conditional branch (including the breaking byte sequence). Actually this technique could already be counted to dynamic obfuscation \parencite[p.68]{lvl_imp}.
 
 
-This example is based on DVM instructions and was therefore designed for Dalvik and
-Android prior version five.
+This example is based on DVM instructions and was therefore designed for Dalvik/Android prior version five.
 The Junk-Byte Insertion will no more be possible in ART. Why?
 Even if one would insert Junk-Bytes into the DEX file, there is still a conversion
-step into the new OAT format introduced in ART, which compiles into native code so
-that any form of inserted bytes wont be adopted. So Junk-Bytes can of course still
-be inserted into DEX to prevent an attacker to perform disassembling of DEX but those
-Junk-Bytes will not apply to the compiled code. However, since the compiled code
+step into the new OAT format applied in ART, which compiles into native code so
+that none of the inserted bytes will be adopted. In summary, Junk-Bytes can still be inserted into DEX to prevent an attacker from disassembling of DEX but those Junk-Bytes will not apply to the compiled code. However, since the compiled code
 is native code and therefore not that easy to disassemble, Junk-Bytes might still be
 usefull at DEX layer.
 
@@ -741,21 +728,20 @@ usefull at DEX layer.
 In \parencite[p.82f]{lvl_imp} a technique is described to hide a whole method
 in \code{.dex} files. This hiding method is highly dependent on the DEX specification from Google \parencite{dex} that has been described in
 \autoref{section:dex_file_format}.
-It does base on the fact that the actual instructions of methods residing
+It is based on the fact that the actual instructions of methods residing
 in the \code{data} section of a DEX are referenced but not parsed directly
-by sweeping over that file area so that the metadata section of methods
+by sweeping over that file area so that the meta data section of methods
 includes an offset to its actual instructions.
-These references (which are offsets into the data section) can be manipulated
+These references (which are offsets in the data section) can be manipulated
 to hide specific methods when the DEX gets parsed. Like shown in
  \autoref{fig:hidden_method_invocation} one could manipulate
  an offset pointer (in this example the offset from method one)
 to hide its implementation.
-In order to achieve this effect, a few bytes obviously need to be changed
-(the offset value).
+In order to achieve this effect, the offset value needs to be changed.
 Since the DEX format includes a checksum to be resistant
 against transmission errors, a revaluation is necessary.
 After that hiding step, the method is invisible for static analyzing tools
-but of course also for the DVM itself, means it is no more runnable.
+but of course also for the DVM itself, meaning it can't be run anymore.
 Thats why the changes to the DEX need to be reversed at runtime.
 
 \begin{figure}[htb]
@@ -767,44 +753,46 @@ Thats why the changes to the DEX need to be reversed at runtime.
 
 A precondition for the Hidden Methods Invocation technique is the
 possibility to load DEX files dynamically at runtime in order to revert
-those changes. Otherwise a manipulation of the DVM bytes in a running App in RAM would be necessary to revert them. The next section deals with dynamic
+those changes. Otherwise a manipulation of the DVM bytes in a running App in RAM would be necessary to revert them.
+
+The next section deals with dynamic
 code loading in general and will therefore cover the feasibility for Dalvik
 and ART.
 
 \subsubsection{Dynamic Code Loading}\label{section:dynamic_code_loading}
 The principle of Dynamic Code Loading is to reveal the actual program code
-not before running the application. This behavior can be achieved by
+only after running the application. This behavior can be achieved by
 implementing a stub code that will then load the actual application
-followed by execution. The format of that distributed application is
-obviously the DEX, at least in Dalvik. If DEX still can be used
-for ART has to be determined. In \parencite{dexfileclass} a practical
+followed by its execution. The format of that distributed application is
+in DEX format, at least in Dalvik. If DEX still can be used
+in combination with ART, has to be determined.
+In \parencite{dexfileclass} a practical
 sample implementation for Dalvik is given.
 To provide a copy protection benefit, an additional application file can either be distributed encrypted within the App stored in the \code{assets} folder or it can be fetched from a server.
-Android does provide a public method within
+Android provides a public method within
 the \code{DexFile} class to dynamically load DEX files
 (\code{loadDex(String sourceName, String outputName, int flags)})
 and loading included classes. The \code{sourceName} parameter accepts
 a path to a JAR or an APK and \code{outputPathName} specifies
-the file in which the optimized DEX version will get saved (ODEX in Dalvik).
-That behavior however is a problem because the created ODEX will persist
+the file in which the optimized DEX version will be saved (ODEX in Dalvik).
+That behavior however is a problem, because the created ODEX will still persist
 also after closing the App and therefore can be analyzed after a one time
-execution. Unfortunately it also can't be deleted cause of missing permissions.
-In \parencite{code_protection},
-a circumvention to that problem is described by using the JNI.
-The \code{libdvm.so} library does offer a private method to open DEX files
-that does accept DEX content in form of a byte array.
+execution. Unfortunately it also can't be deleted because of missing writing permissions. In \parencite{code_protection},
+a circumvention for that problem is described by using the JNI.
+The \code{libdvm.so} library offers a private method to open DEX files
+that accepts DEX content in form of a byte array.
 By establishing this own JNI implementation of
 \code{openDexFile(byte[]content)} the loaded dex file is only present
 in volatile memory and does not create an ODEX \parencite{code_protection}
-which does make that method very robust. So the big question here is if
+which makes that method very robust. So the big question here is if
 that method also can be applied to ART since \code{libdvm} has been replaced
 with \code{libart}.
 
 First it will be tried to load a DEX in ART with given Java APIs.
-Like mentioned, \code{loadDex()} is a possible method but should be called
-through a \code{DexClassLoader()}. It does expect a \code{dexPath} String where to look for Dex files, an \code{optimizedDirectory} String specifying a path to store the optimized version as well as a \code{parent} ClassLoader.
-Like mentioned, the Dex to load can be shipped within the assets folder.
-So at first a Dex is needed. For simplicity reasons a simple Java class will be used, showed in \autoref{java_class_to_load}.
+As mentioned, \code{loadDex()} is a possible method but should be called
+through a \code{DexClassLoader()}. The method expects a \code{dexPath} String which defines where to look for DEX files, an \code{optimizedDirectory} String specifying a path to store the optimized version as well as a \code{parent} ClassLoader.
+The DEX to being load can be shipped within the assets folder.
+So to begin with, a DEX is needed. For simplicity reasons a simple Java class will be used, shown in \autoref{java_class_to_load}.
 \begin{lstlisting}[language=Java, caption=Java Class to load, label=java_class_to_load, numbers=left]
 public class ToLoad{
     public int exampleMulMethod(int a, int b){
@@ -812,39 +800,36 @@ public class ToLoad{
     }
 }
 \end{lstlisting}
-A Dex can be created with a ``\code{javac ToLoad.java}'' call followed by
+A DEX can be created with a ``\code{javac ToLoad.java}'' call followed by
 using the \code{dx} tool with ``\code{dx -{}-dex -{}-output="toload.dex"
-ToLoad.class}'' (Be sure to use a Java version < 1.8, otherwise the \code{dx}
-command will fail since Java 1.8 is not yet officially supported by Android at the time
-of writing this thesis).
-The \code{dexPath} has to be readable by the App itself. Therefore
-the Dex should be stored in the private App data directory where dexPath should then
-search for, same for the optimized directory.
-\code{getDir()} can create a private folder with a given name
-and privileges. With \code{getAssets().open()}, the Dex can be
-copied out of assets to the new data location by using buffered Java streams (see \autoref{dex_internal_storage}).
+ToLoad.class}''. Be sure to use a Java version < 1.8, otherwise the \code{dx}
+command will fail since Java 1.8 is not yet officially supported by Android at the time of writing this thesis.
+The \code{dexPath} has to be readable by the App itself. Therefore,
+the DEX should be stored in the private App data directory where dexPath should then
+search for it. Same goes for the optimized directory.
+\code{getDir()} can create a private folder with a chosen name
+and privileges. With \code{getAssets().open()}, the DEX can be
+copied out of the assets folder to the new data location by using buffered Java streams (see \autoref{dex_internal_storage}).
 \lstinputlisting[language=Java, caption=Dex Internal Storage, label=dex_internal_storage,firstline=27, lastline=41]{"code/DexLoading.java"}
-Now the \code{DexClassLoader()} constructor can be called with the recently
+Now, the \code{DexClassLoader()} constructor can be called with the recently
 created paths and the context class loader. After that, the class can be loaded
-by its name as well as getting the method with defining its argument classes.
-Finally, \code{invoke()} can be called with a reference of the object to call
-on (\code{null} if method is static, \code{newInstance()} if not) and its
-arguments (\autoref{dex_method_invocation}).
+using its name and the method can be received together with defining its argument classes.
+Finally, \code{invoke()} can be called with a reference of the object of being called from (\code{null} if method is static, \code{newInstance()} if not) and its arguments (\autoref{dex_method_invocation}).
 \lstinputlisting[language=Java, caption=Dex Method Invocation, label=dex_method_invocation,firstline=45, lastline=54]{"code/DexLoading.java"}
-The optimized output file is given in OAT format.
-So the dynamic DEX loading is generally possible in ART with purely official
+The optimized output file is in OAT format.
+This way, the dynamic DEX loading is generally possible in ART with purely official
 Android Java methods. However, the execution of code loaded that way should
-be very slow since the Dex file gets optimized in an ART way (=compilation
+be very slow since the DEX file is optimized in an ART way (=compilation
 into native code) and it doesn't really fit into the ART AOT compilation
-philosophy. Of course when using this method initializing an App right after installation once, it is still useful.
+philosophy. Of course, when using this method to initialize an App right after installation, it still might be useful for copy protection applications.
 With that in mind, it should be clear that it is not possible
-to load a Dex file into a byte array and execute it directly like it was
+to load a DEX file into a byte array and execute it directly like it was
 possible at Dalvik using the ``\code{libdvm}'' library via JNI.
-The reason should be clear since ART does not operate on DVM byte-codes and therefore cannot execute those DVM instructions by design.
+The reason should be clear, since ART does not operate on DVM byte-code and therefore cannot execute those DVM instructions.
 So in the scope of copy protection mechanisms
 with ART, dynamic code loading at Java layer is not that useful anymore
 but can still be used to dynamically load App parts in general.
-Instead it needs to get analyzed how code can be loaded dynamically in ART which will be determined in \autoref{chapter:android_dynamic_native_code}.
+Nevertheless it needs to be analyzed how code can be loaded dynamically in ART which will be explained in \autoref{chapter:android_dynamic_native_code}.
 To come to the point right away: Dynamically loading code is possible, mainly
 by using native code and therefore JNI functionalities.
 
@@ -852,14 +837,13 @@ by using native code and therefore JNI functionalities.
 Quite similar to dynamic code loading described in
 \autoref{section:dynamic_code_loading} is self modifying code with the goal
 of altering the instructions of an App during runtime.
-Instead of loading additional code snippets, the focus relies on
+Instead of loading additional code snippets, the focus lies on
 manipulating the executing Dalvik byte code stream directly.
 The DVM is limited in terms of instructions for modifying byte code
-and therefore it has to be bypassed with native code via the JNI.
-To find the position in byte code that should be changed, a predefined
+and therefore the byte code world has to be bypassed with native code using the JNI. To find the position in the byte code that should be changed, a predefined
 value must be set in order to be recognized by the native code function.
 That value is often called ``egg'' and the search process ``egg-hunting''.
-Let's assume we do have the code snippet shown in \autoref{self_modifying_code} that exists in the context of an Android App activity
+Let's assume we have the code snippet shown in \autoref{self_modifying_code} that exists in the context of an Android App activity
 \parencite{code_protection}.
  \begin{lstlisting}[language=Java, caption=Self Modifying Code Example, label=self_modifying_code]
     ...
@@ -876,16 +860,14 @@ and sweeps over the process memory (detectable by evaluating
 \code{/proc/self/maps})
 in order to find the egg value. After skipping the assignment of
 the egg value, the next instruction is responsible for allocating
-the \code{toChange} variable which in this case is ``\code{0x13 0x21}''
+the \code{toChange} variable. In this case, it is ``\code{0x13 0x21}''
 and does stand for the mnemonic ``\code{const/16 vAA, \#+BBBB}''
 \parencite{bytecode_format}. Therefore the next byte specifies the
-register to save followed by two bytes of the signed integer value
-(``\code{0x05 0x00}'' in our case). By changing the ``\code{0x05}'' to
+register that needs to be saved followed by two bytes of the signed integer value (``\code{0x05 0x00}'' in our case). By changing the ``\code{0x05}'' to
 ``\code{0x09}'' the goal of dynamically changing the value at runtime
-is hereby fulfilled.
+is fulfilled.
 
 This example was again for DVM instructions and is described in \parencite{code_protection}. So an interesting question is if code manipulation on the fly
-is still possible at ART and will get analyzed in great detail in the next chapter.
-What should be clear by now is that the dynamic code loading or manipulation on the
-fly can only be done in native code so that there might also be a way to dynamically
+is still possible at ART. It will get analyzed in great detail in the next chapter. What should be clear by now is that the dynamic code loading or manipulation on the
+fly can only be done in native code so that there might be a way to dynamically
 load whole code snippets.
