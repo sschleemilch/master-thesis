@@ -228,4 +228,160 @@ LOCAL_SHARED_LIBRARIES := opencrypto_static
 include $(BUILD_SHARED_LIBRARY)
 \end{lstlisting}
 
+\begin{lstlisting}[language=C++, caption=Decompiled AES Encrypt(), label=dec_aes_encrypt]
+int32_t Java_schleemilch_ma_nativememory_MyNDK_encrypt(struct struct_6 a1, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6, int32_t a7, int32_t a8, int32_t a9, int32_t a10, int32_t a11) {
+    struct struct_6 v1; // 0x1560_7
+    struct struct_6 v2; // 0x1594_8
+    g32 = a4;
+    struct struct_6 * v3;
+    g34 = (int32_t)&v3;
+    g35 = *(int32_t *)0x6f78;
+    g33 = a3;
+    g29 = 0;
+    g2 = false;
+    g4 = true;
+    _ZN7_JNIEnv17GetStringUTFCharsEP8_jstringPh((struct struct_6 *)a1.e0, (char *)a3);
+    g2 = false;
+    g4 = true;
+    int32_t v4 = g31; // 0x1552
+    _ZN7_JNIEnv17GetStringUTFCharsEP8_jstringPh((struct struct_6 *)v4, (char *)g32);
+    g26 = v4;
+    int32_t v5 = g31; // 0x155e
+    v1 = (struct struct_6){
+        .e0 = 0,
+        .e1 = 0
+    };
+    v1.e0 = v5;
+    _ZN7_JNIEnv15GetStringLengthEP8_jstring(v1, g32, g5);
+    g32 = v5;
+    int32_t v6 = v5 + 7 & -8; // 0x156c
+    g36 = v6;
+    int32_t v7 = g37 - v6; // 0x1572
+    memcpy((char *)(v7 + 8), (char *)g26, v5);
+    int32_t v8 = v7 - g36; // 0x157c
+    g37 = v8;
+    int32_t v9 = v8 + 8; // 0x1580
+    g26 = v9;
+    int32_t v10 = g32; // 0x1584
+    g2 = false;
+    g4 = true;
+    memset((char *)v9, g5, v10);
+    int32_t v11 = g33; // 0x158e
+    int32_t v12 = g31; // 0x1590
+    g33 = 0x59e0;
+    v2 = (struct struct_6){
+        .e0 = 0,
+        .e1 = 0
+    };
+    v2.e0 = v12;
+    _ZN7_JNIEnv15GetStringLengthEP8_jstring(v2, v11, v10);
+    int32_t v13 = g33 + 0x159c; // 0x1598
+    g33 = v13;
+    int32_t v14 = *(int32_t *)v13; // 0x159a
+    g33 = v14;
+    int32_t v15 = v12 % 256; // R11
+    *(char *)v14 = (char)v12;
+    int32_t v16 = g37 - (v15 + 7 & 504); // 0x15ac
+    int32_t v17 = v16 + 8; // 0x15b2
+    g36 = v17;
+    memcpy((char *)v17, (char *)v3, v15);
+    int32_t v18;
+    int32_t v19 = &v18; // 0x15c0_0
+    int32_t v20 = *(int32_t *)0x6f80; // 0x15ca
+    g35 = v19;
+    int32_t v21 = v20; // 0x15d2
+    // branch -> 0x15d2
+    while (true) {
+        int32_t v22 = v21 + 8; // 0x15d4
+        *(int32_t *)v19 = *(int32_t *)v21;
+        *(int32_t *)(v19 + 4) = *(int32_t *)(v21 + 4);
+        int32_t v23 = v19 + 8; // 0x15de
+        g28 = v23;
+        g23 = v23;
+        if (v22 == v20 + 16) {
+            int32_t v24 = v15 + 16 & 496; // 0x15ec
+            int32_t v25 = v16 - v24; // 0x15f0
+            g37 = v25;
+            int32_t v26 = v25 + 8; // 0x15f4
+            g27 = v26;
+            memset((char *)v26, g5, v24);
+            g25 = 8 * g32;
+            int32_t v27;
+            int32_t v28 = &v27; // 0x1600_0
+            g32 = v28;
+            g24 = g26;
+            g29 = v28;
+            AES_set_encrypt_key();
+            g29 = (int32_t)*(char *)g33;
+            *(int32_t *)(g37 + 4) = 1;
+            g30 = v28;
+            *(int32_t *)g37 = g35;
+            AES_cbc_encrypt(g36, g27);
+            int32_t v29 = g31; // 0x1620
+            g25 = 16;
+            g2 = false;
+            g4 = false;
+            g24 = v29;
+            int32_t v30 = *(int32_t *)(*(int32_t *)v29 + 704); // 0x1626
+            g30 = v30;
+            g23 = 0x162d;
+            ((int32_t (*)())(v30 & -2))();
+            int32_t v31 = g31; // 0x162c
+            g29 = 0;
+            int32_t v32 = *(int32_t *)(*(int32_t *)v31 + 832); // 0x1634
+            g33 = v32;
+            g30 = 16;
+            g2 = false;
+            g4 = false;
+            int32_t v33 = g24; // 0x163a
+            g32 = v33;
+            g24 = v31;
+            g25 = v33;
+            g23 = 0x1643;
+            ((int32_t (*)())(v32 & -2))();
+            int32_t v34 = g34; // 0x1642
+            int32_t v35 = *(int32_t *)(v34 + 4); // 0x1642
+            g25 = v35;
+            uint32_t v36 = *(int32_t *)(v34 + 268); // 0x1644
+            g29 = v36;
+            g24 = g32;
+            int32_t v37 = *(int32_t *)v35; // 0x164a
+            g30 = v37;
+            uint32_t v38 = -2 - v37 + v36; // 0x164c
+            g3 = ((v38 ^ v36) & (v38 ^ -v37)) < 0;
+            g2 = v36 - v37 < 0;
+            g4 = v36 == v37;
+            g1 = v38 <= v36;
+            int32_t v39; // 0x1654
+            if (v36 != v37) {
+                // 0x1650
+                __stack_chk_fail();
+                v39 = g34;
+                // branch -> 0x1654
+            } else {
+                v39 = v34;
+            }
+            // 0x1654
+            g31 = *(int32_t *)(v39 + 276);
+            g32 = *(int32_t *)(v39 + 280);
+            g33 = *(int32_t *)(v39 + 284);
+            g34 = *(int32_t *)(v39 + 288);
+            g35 = *(int32_t *)(v39 + 292);
+            g36 = *(int32_t *)(v39 + 296);
+            g26 = *(int32_t *)(v39 + 300);
+            g27 = *(int32_t *)(v39 + 304);
+            g37 = v39 + 312;
+            ((int32_t (*)())*(int32_t *)(v39 + 308))();
+            return *(int32_t *)(g31 + g34);
+        }
+        // 0x15d2
+        v19 = v23;
+        v21 = v22;
+        // branch -> 0x15d2
+    }
+}
+\end{lstlisting}
+
+
+
 \end{appendices}

@@ -683,7 +683,7 @@ So in turn, he could again try to patch
 those function calls in order to prevent the App from crashing.
 Therefore it is kind of a race between attacker and protector of an App who can come up with the smarter solution.
 
-\subsection{String Encryption}
+\subsection{String Encryption}\label{section:string_encryption}
 Another idea of an dynamic code application would be the encryption of strings
 that are used inside of an App which makes the content unreadable.
 
@@ -916,3 +916,72 @@ should increase the reverse code engineering resistance. Due to time
 constraints this evaluation can not be performed. Of course the NDK is not
 mandatory for such a encryption/decryption technique but can add another
 layer of complexity from an attacker's point of view.
+
+\section{Decompilation}\label{section:decompilation}
+From an attacker's point of view it is interesting if and how
+those dynamic code loading techniques can be decompiled.
+One of the best decompilers for ELF files and therefore
+theoretically for ART ODEXs as well as for shared libraries is the
+``Retargetable Decompiler'' from \parencite{retdec} developed from a PhD thesis.
+It is able to decompile machine code into assembly as
+well as into C and Python source code.
+Additionally, control flow graphs for every method can be viewed/downloaded.
+The author offers a web interface for uploading/decompiling
+files. However, the tool crashes when trying to
+decompile whole ART ODEX Apps. That said, it would
+also not be very useful since DEX decompiling
+is much more reliant to produce Java code to
+understand the main App structure (assuming it is not a pure native App).
+For native parts though, DEX decompiling will not be sufficient.
+But first, those machine code files (libraries, executables) need to
+be obtained from the device. If the NDK is is used and files to be
+reviewed are statically embedded, they can be pulled via the ADB
+and root rights by first copying those files to the \code{/sdcard/}
+path and finally using \code{adb pull}.
+
+The decompilation is good in general but naturally more time
+consuming to understand than its source code counterpart.
+Let's take a look at the ``\code{encrypt()}'' function
+introduced in \autoref{section:string_encryption} and printed
+in \autoref{chapter:ndk_aes_implementation}.
+It has been chosen as reference function since it uses the
+JNI as well the external AES library OpenSSL.
+\autoref{dec_fun_sig} shows the two signatures of the function
+in original/decompiled source code.
+\begin{lstlisting}[language=C++, caption=Original vs Decompiled JNI Method Signatures, label=dec_fun_sig]
+//Source...
+JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_encrypt (JNIEnv *env, jobject obj, jstring str, jstring jkey);
+//Decompiled...
+int32_t Java_schleemilch_ma_nativememory_MyNDK_encrypt(struct struct_6 a1, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6, int32_t a7, int32_t a8, int32_t a9, int32_t a10, int32_t a11);
+\end{lstlisting}
+The first thing that attracts attention is that method names are maintained
+completely offering semantic information. A different story is the
+signature itself. While the original function returns a byte array,
+the decompiled version only returns a 32-Bit integer value. Same thing
+holds for the transferring parameters which can not be recognized as
+strings. Structs handed over like ``\code{struct\_6}'' are defined
+on top of the file but then again only do contain several
+\code{int32\_t} values. CPU registers and flags are represented
+by global variables starting with a ``g'' and are associated
+with their names (R0, R1, LR, SP, \ldots).
+Since function names are present like the original ones,
+calls through ``\code{env}'' like ``\code{const char *input = env->GetStringUTFChars(str, NULL);}'' can be interpreted quite good,
+including its parameters.
+The same goes for library calls like ``\code{AES\_set\_encrpyt\_key()}''
+but in this case without parameters.
+The full decompilation of this native encrypt function can be
+also viewed in \autoref{chapter:ndk_aes_implementation}.
+
+So in general it is possible to understand those decompiled versions
+of source code especially if there were used a lot of function
+calls helping to interpret the overall semantic. Especially
+control flow graphs can help understanding the fundamental code intention.
+For untrained readers though, the decompiled version overall very messy
+juggling with registers. A well versed (maybe assembler programmer),
+might be able to understand the code much faster.
+
+To switch back to developers aiming for protecting their source codes,
+the author would suggest to prevent attackers to even
+obtain crucial files either by encryption or by dynamical loading.
+That might not be possible in every use case, especially if an App
+needs to work reliable without internet access.
