@@ -1,6 +1,7 @@
 package ma.schleemilch.dynlibjava;
 
 import android.content.Context;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -41,8 +42,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        long startTime = System.currentTimeMillis();
         MyNdk ndk = new MyNdk();
         System.load(internalStoragePath.getAbsolutePath());
         ndk.printSuccess();
+        long difference = System.currentTimeMillis() - startTime;
+        Log.d(TAG, "Took: " + difference + "ms");
     }
 }

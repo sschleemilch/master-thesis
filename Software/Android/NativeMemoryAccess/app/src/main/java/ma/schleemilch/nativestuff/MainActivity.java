@@ -27,14 +27,16 @@ public class MainActivity extends AppCompatActivity {
         MyNDK ndk = new MyNDK();
         //ndk.showProcSpace();
 
+
         File internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "mul.so");
+
         Log.d(TAG, internalStoragePath.getAbsolutePath());
 
         BufferedInputStream bis = null;
         OutputStream soWriter = null;
         final int BUF_SIZE = 8 * 1024;
         try {
-            bis = new BufferedInputStream(getAssets().open("mul64.so"));
+            bis = new BufferedInputStream(getAssets().open("mul32.so"));
             soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
             byte [] buf = new byte[BUF_SIZE];
 
@@ -49,7 +51,11 @@ public class MainActivity extends AppCompatActivity {
         }
         //System.load(internalStoragePath.getAbsolutePath());
 
+        long startTime = System.currentTimeMillis();
         //ndk.libExe(internalStoragePath.getAbsolutePath());
+        long difference = System.currentTimeMillis() - startTime;
+        //Log.d("TAG", "Took: " + difference + "ms");
+
 
         internalStoragePath = new File(getDir("dyn", Context.MODE_PRIVATE), "toExec");
 
@@ -59,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         bis = null;
         soWriter = null;
         try {
-            bis = new BufferedInputStream(getAssets().open("toExec"));
+            bis = new BufferedInputStream(getAssets().open("toExec32"));
             soWriter = new BufferedOutputStream(new FileOutputStream(internalStoragePath));
             byte [] buf = new byte[BUF_SIZE];
 
@@ -76,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
         /*
         try {
+            startTime = System.currentTimeMillis();
             Process nativeExe = Runtime.getRuntime().exec(internalStoragePath.getAbsolutePath());
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(nativeExe.getInputStream()));
@@ -86,13 +93,13 @@ public class MainActivity extends AppCompatActivity {
                 output.append(buffer, 0, read);
             }
             reader.close();
-
             // Waits for the command to finish.
             nativeExe.waitFor();
-
             String nativeOutput =  output.toString();
 
             Log.d(TAG, "nativeOut: " + nativeOutput);
+            difference = System.currentTimeMillis() - startTime;
+            Log.d("TAG", "Took: " + difference + "ms");
 
         } catch (IOException e){
             e.printStackTrace();
@@ -100,7 +107,11 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         */
+        startTime = System.currentTimeMillis();
         ndk.binExe(internalStoragePath.getAbsolutePath());
+        difference = System.currentTimeMillis() - startTime;
+        Log.d(TAG, "Took: " + difference + "ms");
+
         //ndk.callNativeActivity(internalStoragePath.getAbsolutePath());
     }
 }

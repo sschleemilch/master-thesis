@@ -61,7 +61,7 @@ void *dlopen(const char *path, int flag)
 \end{lstlisting}
 Obviously, a path to the library file is needed as well as a flag that defines the binding of variables and methods (lazy, global, \ldots see \code{dlopen()}-reference for more information).
 But what path should and can be used in the context of Apps? A path inside of the APK
-for instance is not reference-able as a path string. So generally apps can use different storage options that are listed and shortly described and can also be looked up in
+for instance is not reference-able as a path string. So generally Apps can use different storage options that are listed and shortly described and can also be looked up in
 \parencite{storage_options}.
 \begin{itemize}
 \item \textbf{Shared Preferences} can store data in form of key-value pairs
@@ -72,8 +72,7 @@ the manifest file.
 \item \textbf{SQLite Database} provides support for powerful private databases
 \item \textbf{Network Connection} can store data on the web
 \end{itemize}
-The most suitable option should be the internal storage since the App has unlimited read
-write rights and the content is safe from other sources rather then itself. For simplicity and demonstration reasons, the library to load will be stored in the
+The most suitable option should be the internal storage since the App has unlimited read/write rights and the content is safe from other sources rather then itself. For simplicity and demonstration reasons, the library to load will be stored in the
 \code{assets/} folder of the App that also only exists in the APK but is not
 reference-able through a path but can be opened through an Asset-Manager. It will therefore be copied into the internal storage first. \autoref{internal_init} shows the Java initialization of the path to the final library to load. The \code{getDir()} call generates a new folder within the internal App storage and a file container for the library to load gets created.
 \begin{lstlisting}[language=Java, caption=Internal Storage Initialization, label=internal_init]
@@ -157,7 +156,7 @@ a call of its \code{libExe()} to call and execute the library.
 To be able to load a shared object library like this, it obviously needs to be
 generated first. One could use an own cross compiler for that or just also use
 the NDK since it includes all necessary tool-chains.
-However some project structure changes have to be made to be able to compile two independent libraries. Each library to compile should have its own folder inside
+However, some project structure changes have to be made to be able to compile two independent libraries. Each library to compile should have its own folder inside
 of \code{jni/} with an \code{Android.mk} each. The greater \code{Android.mk} in
 \code{jni/} has to be changed to call all subsequent make files with
 ``\code{include \$(call all-subdir-makefiles)}'' and each module to build has to be
@@ -516,6 +515,42 @@ So in general, executing code out of memory is possible in Android ART but to be
 to use it productively, some more work has to be done in order to invoke whole shared
 objects or whole binaries instead of machine code chunks like shown here. Just implementing an ELF parser at runtime to extract all kind of defined methods would not be enough but additional alterations to the machine code needs to be done to adjust jump addresses to the specific manually allocated memory containing machine code.
 
+\section{Performance Comparison}\label{section:dyn_code_performance}
+\autoref{tab:dyn_code_performance} shows a performance comparison
+of described methods concerning dynamic code loading via DEX,
+shared objects and executables using Java and C/C++. While
+DEX and the shared object do rely on the same testing multiplication
+function, the tested executable implemented a \code{printf()}.
+That means that the measured values do not say anything about
+invoking executables versus shared objects and DEX files but
+something about the different implementation.
+\begin{table}[htb]
+  \caption[Dynamic Code Performance Comparison]{Dynamic Code Performance Comparison}
+  \label{tab:dyn_code_performance}
+  %\centering
+  \texttt{
+  \begin{tabular}{l c c c}
+  \toprule
+  Object to Load & Function & Loading Implementation & Time (ms)\\
+  \midrule
+  DEX & mul(int, int) & Java & 6-9 \\
+  Shared object & mul(int, int) & Java & 3-4 \\
+  Shared object & mul(int, int) & C/C++ & 2-4 \\
+  \midrule
+  Executable & printf() & Java & 23-27 \\
+  Executable & printf() & C/C++ & 24-26 \\
+  \bottomrule
+  \end{tabular}
+  }
+\end{table}
+Like expected, loading a method out of a DEX at runtime is significantly
+slower (takes nearly twice as long) than invoking from a shared object.
+The reason is the compiling step that has to be performed in order to produce the native code ODEX since ART can not execute DEX byte instructions.
+However, the language used for invocation does not matter at all. That
+also makes sense since Apps are being compiled by the ART VM at installation
+time and the output is native code in both cases (Java or C++). Differences
+should therefore only rely on the implementation of the transformation step -
+means the compiler.
 
 \section{General Memory Access}\label{section:general_mem_access}
 In general, an App can write every memory section that is mapped with writing permission like expected. To find writable locations in the mapped space, again the output of \code{/proc/self/maps} can be used with triggering for the permission triple ``\code{rw-p}'' string. \autoref{gen_mem_write} for instance triggers for the specific writable \code{/system/bin/linker} entry. The size of the memory region can be parsed out of that matching line. ``\code{strtoll}'' can be used to do the actual parsing from a

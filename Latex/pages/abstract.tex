@@ -6,8 +6,7 @@ even for online banking and other sensitive tasks. Therefore they need
 to be secured in terms of copy protection resistance as well as reverse
 engineering capabilities. Static and dynamic obfuscation is a common
 technique to provide some barriers for attackers. Google's concept of
-distributing Apps through machine independent code (Dalvik Executables) and using JIT compiling simplifies the reverse engineering of Apps massively and opens an enormous gate for patching/repackaging. Android's runtime architecture changes very frequently and recently from a Dalvik Virtual Machine JIT concept to a new Android Runtime (ART) using Ahead Of Time (AOT) compiling. Changes under the hood concerning DEX and its optimized native code
-version (OAT) are being investigated with regard to its copy protection domain.
+distributing Apps through machine independent code (Dalvik Executables, DEX) and using Just-In-Time (JIT) compiling simplifies the reverse engineering of Apps massively and opens an enormous gate for patching/repackaging. Android's runtime architecture changes very frequently and recently from a Dalvik Virtual Machine JIT concept to a new Android Runtime (ART) using Ahead-Of-Time (AOT) compiling. Changes under the hood concerning DEX and its optimized native code version (OAT) are being investigated with regard to its copy protection domain.
 A great part deals with dynamic code loading using JNI possibilities and its
 corresponding copy protection applications. Trusted Execution Environments
 are a great concept that do create a trusted world which is not accessible
@@ -15,5 +14,4 @@ by most developers and therefore not extraordinary useful for common copy
 protection techniques. The possibility of distributing native code like
 being routine in desktop environments will also be analyzed. A few application
 examples are given regarding dynamic code loading, natively as well as in the Java world addressing concrete solutions like string encryption and license
-improving. Concepts developed are not perfected in every detail and should
-serve as basic principles to work with.
+improving. The developed concepts are meant to provide a general understanding of the described copy protection approaches.

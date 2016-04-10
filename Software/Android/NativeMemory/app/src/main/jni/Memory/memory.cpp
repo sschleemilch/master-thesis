@@ -381,12 +381,11 @@ void* alloc_executable_memory(size_t size) {
 }
 void emit_code_into_memory(unsigned char* m) {
     unsigned char code[] = {
-            //0x09,0x00,0xa0,0xe3, //mov r0, #9
-            //0x1e,0xff,0x2f,0xe1, //bx  lr
-            //0x91, 0x00, 0x00, 0xe0,
-            //0x1e, 0xff, 0x2f, 0xe1,
-             0x00,0x01,0x02,0x03,0x04,
-             0x05,0x06,0x07,0x08,0x09
+            0x09,0x00,0xa0,0xe3, //mov r0, #9
+            0x1e,0xff,0x2f,0xe1, //bx  lr
+            0x91, 0x00, 0x00, 0xe0,
+            0x1e, 0xff, 0x2f, 0xe1,
+
     };
     memcpy(m, code, sizeof(code));
 }
@@ -429,7 +428,7 @@ JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryAccess (JNIE
     }
     char adline[2048];
     while (fgets(line, 2048, fp) != NULL) {
-        if(strstr(line, "rw-p 0001d000 b3:19 366") != NULL){
+        if(strstr(line, "rw-p") != NULL){
             LOGD("%s", line);
             break;
         }

@@ -10,6 +10,5 @@ public class MyNDK {
     public native void showProcSpace();
     public native void libExe(String libpath);
     public native void binExe(String binpath);
-
     public native void callNativeActivity(String actpath);
 }

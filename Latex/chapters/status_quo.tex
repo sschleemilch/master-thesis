@@ -6,7 +6,7 @@ applicable to ART. A great focus will of course rely on the DEX format since
 it is still the distribution format of every App (inside of an APK named as
 \code{classes.dex}). Unless explicitly written otherwise, investigations performed do rely on an AOSP and device version running Android 5.1.1 and may therefore vary on different Android versions since Google applies changes
 at runtime layer very frequently. Those changes usually do not affect App developers
-who are writing code at Java layer but may also affect NDK developers. 
+who are writing code at Java layer but may also affect NDK developers.
 
 \section{ART Internals}
 \label{section:art_internals}
@@ -30,7 +30,7 @@ tool it comes apparent that it's a particular ELF file (32 or 64 bit)
 called OAT file from now on.
 
 \subsubsection{ELF File Format}\label{section:elf_file_format}
-ELF originally was originally specified by UNIX System Laboratories
+ELF was originally specified by UNIX System Laboratories
 (USL) and later by Tool Interface Standards (TIS) and is a common
 standard for executables, object code and shared libraries on UNIX
 systems. It is a quite flexible format for different CPUs and
@@ -64,7 +64,7 @@ and the information out of the program header table is needed
 
 Let's first have a look at the used sections in case of the specific
 Android implementation, the OAT file:
-\autoref{tab:section_headers} does show the output of
+\autoref{tab:section_headers} shows the output of
 ``\code{readelf -S <ELF-App-File>}'', listening all available sections
 
 
@@ -228,7 +228,7 @@ DEX as it is does not only contain
 VM instructions but some meta data around that to locate
 higher abstraction level sections of the file like classes,
 methods and fields.
-\autoref{fig:dex_format} does show the file layout.
+\autoref{fig:dex_format} shows the file layout.
 \begin{figure}[htb]
   \centering
   \includegraphics[scale=0.3]{figures/dex_format}
@@ -266,8 +266,7 @@ the other hand, the file is a valid implementation of the
 well known ELF format and contains a section that starts
 with bytes known by MIME types with ``.oat'' as file format
 (.rodata section). Additional, the ``oatexec'' section
-is controlled via the greater ELF format. Therefore
-, ``OAT file'' stands most likely for both of those meanings, the
+is controlled via the greater ELF format. Therefore, ``OAT file'' stands most likely for both of those meanings, the
 Android App specific and minimalistic implementation of the ELF
 as well as the combination of the ``oatdata'' and ``oatexec''
 section to a file alike entity. \autoref{fig:andelf_format} does
@@ -391,7 +390,7 @@ The ``\code{/init}'' process arranges the start of Zygote via an
 ``\code{app\_process}'' program start with specific parameters for a Zygote start
 (init is responsible for far more, like starting native daemons system services and other things).
 
-A comman way to analyze source code is to start at its
+A common way to analyze source code is to start at its
 ``\code{main()}'' method.
 One of the first things the program does is
 creating a new ``\code{AppRuntime runtime}'' object that inherits from the

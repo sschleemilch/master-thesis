@@ -3,6 +3,7 @@ package ma.schleemilch.dyndex;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
 import java.io.BufferedInputStream;
@@ -18,10 +19,13 @@ import dalvik.system.DexClassLoader;
 
 public class MainActivity extends AppCompatActivity {
 
+    final static String TAG = "DEX-Loading";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         File dexInternalStoragePath = new File(getDir("dex",
                 Context.MODE_PRIVATE),"toload.dex");
@@ -41,6 +45,8 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        long startTime = System.currentTimeMillis();
         final File optimizedDexOutputPath = getDir("outdex", Context.MODE_PRIVATE);
         DexClassLoader dcl = new DexClassLoader(dexInternalStoragePath.
                 getAbsolutePath(),
@@ -63,5 +69,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (InvocationTargetException e){
             e.printStackTrace();
         }
+        long difference = System.currentTimeMillis() - startTime;
+        Log.d(TAG, "Took: " +difference +"ms");
     }
 }
