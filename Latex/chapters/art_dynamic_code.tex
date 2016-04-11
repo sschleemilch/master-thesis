@@ -109,7 +109,7 @@ A class ``\code{MyNDK}'' gets created and contains the native declaration of the
 ``\code{libExe(String path)}'' method as well as a static call of
 \code{System.loadLibrary(``MyLib'')} that takes care of the binding.
 The implementation of \code{libExe()} is shown in \autoref{libexe}.
-\begin{lstlisting}[language=C++, caption=Native libExe(), label=libexe, numbers=left]
+\begin{lstlisting}[language=C++, caption=Native libExe(), label=libexe]
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
         (JNIEnv * env, jobject jobj, jstring path){
         const char *libpath = env->GetStringUTFChars(path, NULL);
@@ -372,9 +372,9 @@ of the library are mapped, for reading, writing and executing each.
     \toprule
     address & perms & offset & dev & inode & pathname \\
     \midrule
-    b39f5000-b39f8000 & r-xp & 00000000 & b3:1c & 187593 & .../app/.../lib/arm/libMemory.so \\
-    b39f8000-b39f9000 & r--p & 00000000 & b3:1c & 187593 & .../app/.../lib/arm/libMemory.so \\
-    b39f9000-b39fa000 & rw-p & 00000000 & b3:1c & 187593 & .../app/.../lib/arm/libMemory.so \\
+    b39f5000-b39f8000 & r-xp & 00000000 & b3:1c & 187593 & .../lib/arm/libMemory.so \\
+    b39f8000-b39f9000 & r--p & 00000000 & b3:1c & 187593 & .../lib/arm/libMemory.so \\
+    b39f9000-b39fa000 & rw-p & 00000000 & b3:1c & 187593 & .../lib/arm/libMemory.so \\
     be0c3000-be8c2000 & rw-p & 00000000 & 00:00 & 0      &    [stack]\\
     b3940000-b39c0000 & rw-p & 00000000 & 00:00 & 0      &    [anon:libc\_malloc]\\
     \bottomrule
@@ -772,9 +772,9 @@ shown in \autoref{tab:egg_string_output}.
    \begin{tabular}{l}
   \toprule
 FOUND EGG at 0x12c41390 \\
-12c00000-12de3000 rw-p 00000000 00:04 7019 /dev/ashmem/dalvik-main space (deleted) \\
+12c00000-12de3000 rw-p 00000000 00:04 7019 /dev/ashmem/dalvik-main space \\
 FOUND STRING at 0x12d3b22c \\
-12c00000-12de3000 rw-p 00000000 00:04 7019 /dev/ashmem/dalvik-main space (deleted) \\
+12c00000-12de3000 rw-p 00000000 00:04 7019 /dev/ashmem/dalvik-main space \\
   \bottomrule
    \end{tabular}
    }

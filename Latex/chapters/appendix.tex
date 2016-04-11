@@ -111,7 +111,8 @@ APP_ABI := all
 \end{lstlisting}
 
 Just showing the adapted part inside of \code{defaultConfig\{\ldots\}}:
-\begin{lstlisting}[language=xml, caption=build.gradle, label=nkd_sample_gradle]
+\begin{lstlisting}[language=xml, caption=build.gradle, label=nkd_sample_gradle,
+numbers=left]
 ndk {
 	moduleName "schleemilch"
 }
@@ -123,7 +124,7 @@ sourceSets.main {
 
 
 \chapter{NDK AES Implementation}\label{chapter:ndk_aes_implementation}
-\begin{lstlisting}[language=C++, caption=AES Encrypt(), label=nkd_aes_encrypt]
+\begin{lstlisting}[language=C++, caption=AES Encrypt(), label=nkd_aes_encrypt, numbers=left]
 #include "openssl/aes.h"
 uint8_t iv[16] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                    0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10};
@@ -158,7 +159,8 @@ JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_encrypt (JNI
     return ret;
 }
 \end{lstlisting}
-\begin{lstlisting}[language=C++, caption=AES Decrypt(), label=nkd_aes_decrypt]
+\begin{lstlisting}[language=C++, caption=AES Decrypt(), label=nkd_aes_decrypt,
+numbers=left]
 JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_decrypt (JNIEnv *env, jobject obj, jbyteArray jencrypted, jstring jkey){
     const char *tkey = env->GetStringUTFChars(jkey, NULL);
     int keylength = env->GetStringLength(jkey)*8;
@@ -228,7 +230,7 @@ LOCAL_SHARED_LIBRARIES := opencrypto_static
 include $(BUILD_SHARED_LIBRARY)
 \end{lstlisting}
 
-\begin{lstlisting}[language=C++, caption=Decompiled AES Encrypt(), label=dec_aes_encrypt]
+\begin{lstlisting}[language=C++, caption=Decompiled AES Encrypt(), label=dec_aes_encrypt, numbers=left]
 int32_t Java_schleemilch_ma_nativememory_MyNDK_encrypt(struct struct_6 a1, int32_t a2, int32_t a3, int32_t a4, int32_t a5, int32_t a6, int32_t a7, int32_t a8, int32_t a9, int32_t a10, int32_t a11) {
     struct struct_6 v1; // 0x1560_7
     struct struct_6 v2; // 0x1594_8

@@ -493,7 +493,7 @@ If necessary, a native bridge will be initialized and scheduler policies
 are being set up. SELinux properties are applied and the thread name gets
 changed to a name other than ``app\_process'', usually the package name of the App.
 
-Back in the Java world \code{Zygote\allowbreak Connection} checks the returned PID and either calls \code{handleChildProc()} in case of the child or
+Back in the Java world \code{Zygote\allowbreak Connection} checks the returned PID and either calls \code{handle\allowbreak Child\allowbreak Proc()} in case of the child or
 \code{handleParentProc()} in case of the parent (Zygote itself).
 These methods are handling the post fork setup. In case of the child, sockets are being closed on Java level (since the child should not listen on sockets like the parent Zygote) and remaining arguments are being evaluated. When forking an App, a class name will be defined at the same time. Remaining arguments are copied to \code{mainArgs} and a class loader (\code{ClassLoader cloader}) is being defined before calling \code{invokeStaticMain()} of \code{ZygoteInit} with \code{cloader}, \code{className} and \code{mainArgs} as parameters. The class loader \code{cloader} is defined
 either with the \code{PathClassLoader()} or \code{ClassLoader()} constructor depending on if a classpath is
@@ -696,7 +696,7 @@ the tools are processing every instruction from the entry-point
 till the end without interpreting them (e.g. not following jumps).
 That examining technique can be exploited to break the disassembling
 procedure. Let's assume we do have the DVM instructions shown in \autoref{junk_byte_listening}(Example taken out of \parencite[p.67]{lvl_imp}).
-  \begin{lstlisting}[language={[x64]Assembler}, caption=Junk-Byte-Insertion, label=junk_byte_listening, numbers=left]
+  \begin{lstlisting}[language={[x64]Assembler}, caption=Junk-Byte-Insertion, label=junk_byte_listening]
     if "true" goto line 4
     load_array_into v1, line_3
     array_size 10
@@ -793,7 +793,7 @@ As mentioned, \code{loadDex()} is a possible method but should be called
 through a \code{DexClassLoader()}. The method expects a \code{dexPath} String which defines where to look for DEX files, an \code{optimizedDirectory} String specifying a path to store the optimized version as well as a \code{parent} ClassLoader.
 The DEX to being load can be shipped within the assets folder.
 So to begin with, a DEX is needed. For simplicity reasons a simple Java class will be used, shown in \autoref{java_class_to_load}.
-\begin{lstlisting}[language=Java, caption=Java Class to load, label=java_class_to_load, numbers=left]
+\begin{lstlisting}[language=Java, caption=Java Class to load, label=java_class_to_load]
 public class ToLoad{
     public int exampleMulMethod(int a, int b){
         return a * b;
@@ -810,12 +810,41 @@ search for it. Same goes for the optimized directory.
 \code{getDir()} can create a private folder with a chosen name
 and privileges. With \code{getAssets().open()}, the DEX can be
 copied out of the assets folder to the new data location by using buffered Java streams (see \autoref{dex_internal_storage}).
-\lstinputlisting[language=Java, caption=Dex Internal Storage, label=dex_internal_storage,firstline=27, lastline=41]{"code/DexLoading.java"}
+\begin{lstlisting}[language=Java, caption=Dex Internal Storage, label=dex_internal_storage]
+File dexInternalStoragePath = new File(getDir("dex", Context.MODE_PRIVATE), "toload.dex");
+BufferedInputStream bis = null;
+OutputStream dexWriter = null;
+final int BUF_SIZE = 8 * 1024;
+try {
+  bis = new BufferedInputStream(getAssets().open("toload.dex"));
+  dexWriter = new BufferedOutputStream(new FileOutputStream(dexInternalStoragePath));
+  byte[] buf = new byte[BUF_SIZE];
+  int len;
+  while ((len = bis.read(buf, 0, BUF_SIZE)) > 0){
+      dexWriter.write(buf, 0, len);
+  }
+  dexWriter.close();
+  bis.close();
+}catch (IOException e){
+  e.printStackTrace();
+}
+\end{lstlisting}
 Now, the \code{DexClassLoader()} constructor can be called with the recently
 created paths and the context class loader. After that, the class can be loaded
 using its name and the method can be received together with defining its argument classes.
 Finally, \code{invoke()} can be called with a reference of the object of being called from (\code{null} if method is static, \code{newInstance()} if not) and its arguments (\autoref{dex_method_invocation}).
-\lstinputlisting[language=Java, caption=Dex Method Invocation, label=dex_method_invocation,firstline=45, lastline=54]{"code/DexLoading.java"}
+\begin{lstlisting}[language=Java, caption=Dex Method Invocation, label=dex_method_invocation]
+final File optimizedDexOutputPath = getDir("outdex", Context.MODE_PRIVATE);
+DexClassLoader dcl = new DexClassLoader(dexInternalStoragePath.getAbsolutePath(), optimizedDexOutputPath.getAbsolutePath(), null, getClassLoader());
+Class classToLoad = null;
+Method m;
+try {
+  classToLoad = dcl.loadClass("ToLoad");
+  m = classToLoad.getDeclaredMethod("exampleMulMethod", int.class, int.class);
+  TextView textView = (TextView) findViewById(R.id.invokeResult);
+  textView.setText("8*9=" + m.invoke(classToLoad.newInstance(), 8, 9));
+} catch ...
+\end{lstlisting}
 The optimized output file is in OAT format.
 This way, the dynamic DEX loading is generally possible in ART with purely official
 Android Java methods. However, the execution of code loaded that way should

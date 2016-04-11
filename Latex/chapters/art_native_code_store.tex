@@ -40,12 +40,12 @@ mapped into the process (\autoref{tab:app_odex_mapping} shows an example).
   \texttt{
   \begin{tabular}{l l l l l l}
     \toprule
-    address & perms & offset & dev & inode & pathname \\
+    address & perms & offset & dev & inode & rel. pathname \\
     \midrule
-    a1d05000-a1fda000 & r--p & 00000000 & b3:1c & 171546 & /data/app/.../oat/arm/base.odex \\
-    a1fda000-a22ab000 & r-xp & 002d5000 & b3:1c & 171546 & /data/app/.../oat/arm/base.odex \\
-    a22ab000-a22ac000 & rw-p & 005a6000 & b3:1c & 171546 & /data/app/.../oat/arm/base.odex \\
-    a22ac000-a2327000 & r--p & 006ed000 & b3:1c & 171546 & /data/app/.../oat/arm/base.odex \\
+    a1d05000-a1fda000 & r--p & 00000000 & b3:1c & 171546 & app/.../oat/arm/base.odex \\
+    a1fda000-a22ab000 & r-xp & 002d5000 & b3:1c & 171546 & app/.../oat/arm/base.odex \\
+    a22ab000-a22ac000 & rw-p & 005a6000 & b3:1c & 171546 & app/.../oat/arm/base.odex \\
+    a22ac000-a2327000 & r--p & 006ed000 & b3:1c & 171546 & app/.../oat/arm/base.odex \\
     \bottomrule
   \end{tabular}
   }
