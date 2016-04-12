@@ -1,16 +1,15 @@
 \chapter{Trusted Execution Environments (TEEs)}\label{chapter:tee}
 
 Trusted Execution Environments do have a great potential for achieving a new
-security level of mobile devices. In \parencite{mobile_tee}, an introduction
+security level for mobile devices. In \parencite{mobile_tee}, an introduction
 to TEEs for the mobile domain is given and will be recapped at this point.
-TEEs do offer a parallel execution environment for applications including storage. A crucial part is the isolation of the TEE to its common counterpart, often called the Rich Execution Environment (REE) running on top of its underlying Rich OS (Android, Windows OS, Symbian OS). The main goal is to outsource sensitive operations from the REE to the TEE so that sensitive data won't leave
-the secure world and to prevent malicious code from the Rich OS to interfere with this secure part. Security applications often make usage of tokens (hardware
+TEEs offer a parallel execution environment for applications including storage. A crucial part is the isolation of the TEE from its counterpart, often called the Rich Execution Environment (REE) running on top of an underlying Rich OS (Android, Windows OS, Symbian OS). The main goal is to outsource sensitive operations from the REE to the TEE so that sensitive data won't leave
+the secure world and to prevent malicious code from the Rich OS to interfere with this secure environment. Security applications often make usage of tokens (hardware
 and software based, one-time tokens and two-factor authentication).
 TEEs do have the potential of replacing them also with an increase of usability
 for users.
-Today, even every smartphone includes a TEE. Since ARM CPUs are quite popular in mobile devices, it is likely to find an ARM TrustZone TEE but there also do exist implementations for Intel (TXT) and AMD (Secure Execution Environment) that do behave quite similar.
-A general TEE overview is shown in \autoref{fig:tee_structure} taken from the
-official ARM website. TEEs can therefore be seen as a direct copy of the common
+Today, even every smartphone includes a TEE. Since ARM CPUs are quite popular in mobile devices, it is likely to find an ARM TrustZone TEE but there also exist implementations for Intel (TXT) and AMD (Secure Execution Environment) that do behave quite similar.
+A general TEE overview is shown in \autoref{fig:tee_structure}. TEEs can therefore be seen as a direct copy of the common
 system, meaning that it has for instance also its own Thread and Handler modes.
 \begin{figure}[htb]
   \centering
@@ -18,18 +17,19 @@ system, meaning that it has for instance also its own Thread and Handler modes.
   \caption[General TEE Structure]{General TEE Structure taken from \parencite{tee_dev}}
   \label{fig:tee_structure}
 \end{figure}
-There do exist two main TrustZone technology concepts - the ARM TrustZone Technology for Cortex-A and Cortex-M Processors as well as the ARM TrustZone CryptoCell \parencite{trustzone}. Like mentioned before, the main concept of TEEs is the two separated worlds, for instance by choosing an own physical CPU for each of them. A switch between them can be applied by a secure monitor (application processor) or by hardware (microcontrollers). The separation however must not stop with CPU separation but can also be applied to memory and
-software itself. The CryptoCell expands the security possibilities by providing
-hardware support for security acceleration. It does include more efficient
-cryptographic engines, secure boot options as well as a root of trust element including key management. It acts as a complete separate functional block to a CPU. Let's summarize the buzzwords like proposed in \parencite{tee_guide}:
+
+There do exist two main TrustZone technology concepts - the ARM TrustZone Technology for Cortex-A and Cortex-M Processors as well as the ARM TrustZone CryptoCell \parencite{trustzone}. As mentioned before, the main concept of TEEs is to separate two worlds, for instance by choosing an own physical CPU for each of them. A switch between them can be applied using a secure monitor (application processor) or the hardware (microcontrollers). The separation however must not stop with CPU separation but can also be applied to memory and
+software itself. The CryptoCell expands the security possibilities by providing hardware support for the acceleration of security processes.
+It includes more efficient
+cryptographic engines, secure boot options as well as a root of trust element including key management. It acts as a completely separate functional block to a CPU. Let's summarize the buzzwords like proposed in \parencite{tee_guide}:
 
 \begin{itemize}
 \item \textbf{Rich OS} is the common environment/operating system of a mobile device which focuses on applications and functionality but with a secondary concern for security matters. It is therefore open for third party applications
 that can be downloaded by the user.
-\item \textbf{TEE} is built on top of the Rich OS and offers a trusted environment using software but most importantly also hardware to achieve that goal. Only trusted applications are allowed to execute code inside of that environment. Is is designed to overcome software attacks out of the Rich OS.
-\item \textbf{Secure Element (SE)} is a piece of hardware that is tamper-resistant within secure applications and secure data can be stored. It has very limited functionality while offering a high level of security.
+\item \textbf{TEE} is built on top of the Rich OS and offers a trusted environment using software but most importantly also hardware to achieve that goal. Only trusted applications are allowed to execute code inside of that environment. Is is designed to overcome software attacks which try to spread over from the Rich OS.
+\item \textbf{Secure Element (SE)} is a piece of hardware that is tamper-resistant within secure applications in which secure data can be stored. It has very limited functionality while offering a high level of security.
 \end{itemize}
-Some relations of using those technologies and their trade offs are shown in \autoref{tab:rich_os_tee_se}.
+Some relations between those technologies and their trade offs are shown in \autoref{tab:rich_os_tee_se}.
 \begin{table}[htb]
   \caption[Rich OS, TEE and SE Comparison]{Rich OS, TEE and SE Comparison taken from \parencite{tee_guide}}
   \label{tab:rich_os_tee_se}
@@ -54,12 +54,12 @@ Some relations of using those technologies and their trade offs are shown in \au
   \bottomrule
   \end{tabular}
 \end{table}
-The Rich OS of course is trimmed for usability and therefore it has the best
-user interface support, it's easy to develop Apps and the processing speed is as good as it can be on the specific hardware. What the TEE is lacking compared to the Rich OS is the ease of developing Apps and part of the user interface possibilities. However, the processing speed is quite the same since there is no additional abstraction layer but only a hardware separation.
+The Rich OS is trimmed for usability and therefore it has the best
+user interface support, it is easy to develop Apps and the processing speed is as good as it can be on the specific hardware. What the TEE is lacking compared to the Rich OS is the ease of developing Apps and part of the user interface possibilities. However, the processing speed is quite the same since there is no additional abstraction layer but only a hardware separation.
 The Secure Element cannot be controlled via an UI, it is not very intuitive
 to develop applications and the processing speed is limited to the SE hardware
-which has most like a worse performance. When looking from a security perspective, the Rich OS is as expected not as good as the comparing technologies that are designed especially for that purpose. So the attack resistance is compared to TEEs and SEs low and is limited to SE Linux and Android functionalities as well as the Access Control. Physical removability
-does of course makes no sense for an operating system as well as for TEEs but
+which has likely the worst performance. When looking from a security perspective, the Rich OS is as expected not as good as the comparing technologies that are designed especially for that purpose. So the attack resistance is  low compared to TEEs and SEs and is limited to SE Linux and Android functionalities as well as to the Access Control. Physical removability
+does not make sense for an operating system as well as for TEEs but
 is a benefit of SEs which are the most secure solution.
 
 TEEs are a great concept offering an environment that can be trusted for sure.
@@ -68,9 +68,7 @@ The crucial part is to be able to write trusted applications (TAs) that are
 allowed to be run in the TEE. Right now, a fee must be paid to receive the
 necessary framework for writing those Apps. So in theory it is a nice concept
 but practically it lacks in terms of usability for common developers due
-to the fee barrier. TEEs live on being sure that no malicious developer/App relies in its environment. However if TEEs will open to more and more developers, that will again be hard to guarantee.
-
-
+to the fee barrier. TEEs are based on ensuring that no malicious developer/App resides in its environment. However if TEEs will open up to more and more developers, that will again be hard to guarantee.
 
 
 %\begin{itemize}
