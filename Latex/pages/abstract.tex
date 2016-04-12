@@ -1,20 +1,33 @@
 \chapter*{\abstractname}
 Google's Android has grown into one of the most popular mobile operating systems on the market also due to the rapidly increasing smartphone usage
 over the past few years. So called ``Apps'' can be installed through
-online stores, the most popular ``Google Play Store'' is being installed by default on most devices.
+online stores; the most popular ``Google Play Store'' is being installed by default on most devices.
 Those Apps are being used for all kind of every day problems and
-even for online banking and other sensitive tasks. Therefore they need
-to be secured in terms of copy protection resistance as well as reverse
-engineering capabilities. Static and dynamic obfuscation is a common
+even for online banking and other sensitive tasks.
+In order to protect intellectual property of used algorithms or to
+prevent insertion of malicious code, these apps need to be secured
+in terms of copy protection resistance as well as reverse
+engineering capabilities.
+
+Static and dynamic obfuscation is a common
 technique to provide some barriers for attackers. Google's concept of
-distributing Apps through machine independent code (Dalvik Executables, DEX) and using Just-In-Time (JIT) compiling simplifies the reverse engineering of Apps massively and opens an enormous gate for patching/repackaging. Android's runtime architecture changes very frequently and recently from a Dalvik Virtual Machine JIT concept to a new Android Runtime (ART) using Ahead-Of-Time (AOT) compiling. Changes under the hood concerning DEX and its optimized native code version (OAT) are being investigated with regard to its copy protection domain.
+distributing Apps through machine independent code (Dalvik Executables, DEX) and using Just-In-Time (JIT) compiling, simplifies the reverse engineering of Apps massively and opens an enormous gate for patching and repackaging.
+
+This master's thesis presents new concepts in order to avoid App copying,
+patching and reverse engineering.
+
+Android's runtime architecture changes very frequently and recently from a Dalvik Virtual Machine JIT concept to a new Android Runtime (ART) using Ahead-Of-Time (AOT) compiling. Those changes are affecting the use of DEX and its optimized native code version (OAT). Therefore, they are investigated with regard to their copy protection domain.
+
 A great part deals with dynamic code loading using JNI possibilities and its
-corresponding copy protection applications. Trusted Execution Environments
-are a great concept that do create a trusted world which is not accessible
-by most developers and therefore not extraordinary useful for common copy
-protection techniques. The possibility of distributing native code like
-being routine in desktop environments will also be analyzed. A few application
-examples are given regarding dynamic code loading, natively as well as in the Java world addressing concrete solutions like string encryption and license
-improving. Since there is a AOT compiling step, the performance is nearly
+corresponding copy protection applications. It complicates the reverse code
+engineering of Apps enormously, but cannot avoid it completely.
+Another concept are Trusted Execution Environments
+that do create a trusted world. Unfortunately due to a high fee, it is not accessible for most developers and therefore not extraordinary useful for common copy protection techniques.
+
+The possibility of distributing native code, like being routine in desktop environments, will also be analyzed.
+
+This master's thesis provides application examples regarding dynamic code loading, natively as well as in the Java world. They address concrete solutions like string encryption and licensing improving.
+Since there is an AOT compiling step, the performance is nearly
 independent from its implemented language.
-Developed concepts are meant to provide a general understanding of the described copy protection approaches but are not meant to be complete.
+
+Developed concepts in this master's thesis provide a general understanding of different copy protection approaches in conjunction with ART.

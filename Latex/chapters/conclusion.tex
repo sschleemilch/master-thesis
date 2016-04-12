@@ -1,59 +1,54 @@
 \chapter{Conclusion}\label{chapter:conclusion}
 The runtime transition from the Android specialized virtual machine (Dalvik VM)
-to the Android Runtime ART introduced as an option in Android 4.3 did not change the difficulty of reverse code engineering of Android Apps. So they are in general still just as vulnerable to patching, theft and code injection as they were before.\\
+to the Android Runtime ART, introduced as an option in Android 4.3, did not change the difficulty of reverse code engineering Android Apps. So they are in general still just as vulnerable to patching, theft and code injection as they were before.
 
-However, internal mechanisms of ART do change the feasibility of copy protection
-mechanisms based on byte code interpreted by the virtual machine like hiding
-whole methods in the DEX format or Junk-Byte-Insertion.
+However, internal mechanisms of ART do change the feasibility of copy protection mechanisms which are based on byte code interpreted by the virtual machine, like hiding whole methods in the DEX or inserting Junk-Bytes.
+
 Since Apps still are distributed via the DEX
 format, the file format is still very present under ART.
-What did change, is the optimization
-step that now produces an ELF file with AOT compilation compared to the optimized
-DEX (ODEX) that relied on a JIT concept. Although ELFs can normally run by
-themselves or are getting linked in another executable, the invocation of methods still happens through DEX.
-Dynamic obfuscation techniques regarding DEX files are still applicable although
-it has to be kept in mind that there is a conversion step in between loading that
-file and the actual execution. That could lead to performance issues depending
-on the file size.\\
+What the runtime transition changed, is the optimization step, that now produces an ELF file with AOT compilation, compared to the optimized
+DEX (ODEX) that relied on JIT.
+Although ELFs can normally run by themselves or are getting linked in another executable, the invocation of methods still happens through DEX.
+Dynamic obfuscation techniques regarding DEX files are still applicable in general. But it has to be kept in mind, that there is a conversion step between loading that file and execution.
+That could lead to performance issues depending on the file size.
 
 The possibility of using C/C++ via the Android NDK is a
 powerful tool to dynamically modify the own code or loading additional
-content. Shared object loading out of a file as well as executing an external binary van be accomplished using Java or the NDK. For security reasons it
-would be interesting to dynamically load code directly out of memory instead
-of writing it to a file first. This is generally possible since memory can be allocated by the App as well as marking its content as executable.
-As shown, it can therefore be used to execute machine code directly. Instead invoking
-whole file formats is more complex since linker functionalities are missing
-and need to be implemented manually. One idea was to distribute only native code instead of the reverse engineering prune DEX format
-but did collapse due to missing permissions.\\
+content.
+Dynamic shared object loading from a file, as well as executing an external binary, can be accomplished using Java or the NDK.
+For security reasons, it
+would be interesting to dynamically load code directly out of memory, instead
+of writing it to a file first.
+This is generally possible since memory can be allocated by the App as well as marking its content as executable.
+As shown, that technique can be used to execute machine code directly. Invoking whole file formats is more complex, since linker functionalities are missing and need to be implemented manually.
+One idea was to distribute only native code instead of the reverse engineering prune DEX format. This concept did not work due to missing permissions.
 
-The NDK overall provides a great contribution to copy protection mechanisms
-by improving licensing concepts via making the license check mandatory to get
-an App to work. Content like strings can be
-encrypted and decrypted afterwards with a key fetched inside of that
-license call.\\
+The NDK provides a great contribution to copy protection mechanisms.
+Licensing can be improved by concepts that make the license call mandatory for the App to work properly.
+The license mechanism can include key fetching to decrypt App content.
 
 Trusted execution environments are a great idea that has disadvantages
-in terms of usability for everyday developers but could be used for instance
-to make a safe license call or stream content if the developer
-has access (paid the fee) to write trusted Apps.\\
+in terms of usability for everyday developers.
+However, the can be used to make safe license calls or to stream content.
+A paid fee is required to write trusted Apps.
 
-So to achieve a secure copy protection mechanism, individual solutions
-using dynamic code or encrypting content are promising as long as the
-corresponding key fetching mechanisms as well as the storage is chosen wisely.
-Nevertheless, it has to  be kept also in mind that obfuscation techniques, especially those that are dynamically loading code, can be abused also by malware to hide its true intention from static malware analysis tools.
+So, to achieve a secure copy protection mechanism, individual solutions
+using dynamic code or encrypting content are promising but key fetching mechanisms as well as the key storage have to be chosen wisely.
+
+Nevertheless, it has to be kept also in mind, that obfuscation techniques, especially those that are dynamically loading code, can be abused also by malware to hide its true intention from static analysis tools.
 
 \section{Future Work}\label{section:future_work}
 To provide a secure copy protection mechanism, some more work has to
 be done and it is an ongoing task. It could be analyzed in greater detail
-how the method invocation of ELF methods into the forked Zygote process works than described in \autoref{section:art_internals}. This may reveal new possibilities of circumventing
-the DEX format or of sparing out crucial parts that are not needed.\\
+than described in \autoref{section:art_internals},
+how the method invocation of ELF methods into the forked Zygote process works. This may reveal new possibilities of circumventing
+the DEX format or of sparing out crucial parts that are not needed.
 
-Possibilities of dynamic native code shown here are proof of concepts and would need to be
-used adequately. Especially more clever techniques regarding
+Possibilities of dynamic native code shown here are proof of concepts and would need to be used adequately. Especially more clever techniques regarding
 the licensing mechanism using cross-interlocking of native and Java code could be analyzed.
-Also asymmetric encryption as well as key handling needs more investigation.\\
+Also asymmetric encryption as well as key handling needs more investigation.
 
 A promising future work could include loading common files
 like executables right into memory and executing them. That would introduce
-a new layer of complexity from an attackers perspective since there won't be
+a new layer of complexity from an attackers perspective, since there won't be
 any files residing on the file-system. Finally, the security (reverse engineering capability) of Java calls compared to Java calls through the JNI also needs further evaluation.
