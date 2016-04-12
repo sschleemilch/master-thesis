@@ -4,33 +4,33 @@ separation and dynamic loading at Java level. The main concept is to separate th
 \autoref{section:dynamic_code_loading}. This method is still possible after the ART transition but shas the downside of enabling reverse code engineering of the additional SEC
 element after a one time App execution. It should be vulnerable versus dynamic reverse code engineering.
 
-\parencite{grab_n_run} addresses the problem of developers implementing a unsafe variant of dynamic code loading techniques by calling common Android APIs like \code{dexClassLoader} so the result is a wrapper (\code{SecureDexClassLoader}) for dynamic code loading techniques again at Java layer that includes security checks for fetching code from an URL, storing the code in app-private directory, proof integrity and developer authenticity of the code, and finally load it. It is a useful practical tool for developers who are not very familiar with all kind of security risks when using dynamic code loading techniques. In the scope of copy protection mechanisms, it is not that revolutionary though but could of course be used when implementing a dynamic code loading mechanism on Java layer.
+\parencite{grab_n_run} addresses the problem of developers implementing unsafe variants of dynamic code loading techniques by calling common Android APIs like \code{dexClassLoader}. The result is a wrapper (\code{SecureDexClassLoader}) for dynamic code loading techniques again at Java layer that includes security checks for fetching code from an URL, storing the code in an app-private directory, ensuring integrity and developer authenticity of the code, and finally load it. It is a useful practical tool for developers who are not familiar with all kinds of security risks associated with using dynamic code loading techniques. In the scope of copy protection mechanisms, it is not that revolutionary though but could be used when implementing a dynamic code loading mechanism on Java layer.
 
 Since dynamic DEX loading is still possible, Android Packers might still be a
 good choice of protecting intellectual property. In \parencite{android_packer}
-an introduction to Android Packers is given, carving out the difference between
+an introduction to Android Packers is given, explaining the difference between
 packers and obfuscation as well as introducing popular packers like ApkProtect,
-Bangcle and Iliami and future challenges in the packer domain.
+Bangcle and Iliami and addressing future challenges in the packer domain.
 \parencite{dexhunter} on the other side analyzes the major techniques
-used by the most common packers also addressing ART as wells as Dalvik.
-Their developed novel system ``DexHunter'' is able to recover most DEX files so
-their work indicates that packaging services are not that secure as they appear to be.
+used by the most common packers also addressing ART as well as Dalvik.
+The novel system ``DexHunter'' they developed is able to recover most DEX files so
+their work indicates that packaging services are not as secure as they appear to be.
 
-Regarding the protection of intellectual property, \parencite{forensic_mark}
+Talking about the protection of intellectual property, \parencite{forensic_mark}
 shows a concept of inserting a forensic mark to an App that inserts buyers
-information right into the \code{classes.dex}. It also includes the technique
-of verifying the app license with the mark as a foundation. This technique could
-also be added to a license mechanism to increase its robustness.
+information right into the \code{classes.dex}. It then describes a technique
+of verifying the app license with the mark as a foundation. This technique could be added to a license mechanism to increase its robustness.
+
 \parencite{visual_exploration} proposes a visual method of analyzing Android
 executable files including ART to reveal patterns. Although it focusses mainly
-on finding anomalies of malicious Apps, it could also be used to classify
+on finding anomalies in malicious Apps, it could also be used to classify
 common Apps and possibly gain additional information with less effort compared
 to other reverse code engineering techniques. The authors are parsing the
-DEX file and coloring its file structure transfering the gained information
+DEX file and coloring its file structure, transfering the gained information
 to its corresponding binary.
 
 \parencite{key_storage} explores secure key storage options in Android that are needed for instance for encryption/decryption scenarios. It compares the built in
-feature as well as the Bouncy Castle key storage solution. The security of the
+feature to the Bouncy Castle key storage solution. The security of the
 built in feature depends on the device and might not make use of ARM
 TrustZone features. Bouncy Castle on the other hand can provide even stronger
 security guarantees.
@@ -40,31 +40,27 @@ shows that it can be surpassed using a technique called ``Divide-and-Conquer''
 that is basically built on using dynamic code loading. The authors are concluding
 that neither static nor dynamic analysis is sufficient since attackers can write
 malware that behaves differently in analysis environments. They are called
-``split-personality'' malware. Anti virus scanner can not detect them at runtime
+``split-personality'' malware. Anti-virus scanners can not detect them at runtime
 since monitoring of third party Apps at runtime is not possible.
 
 Already in 2008 there was a concept quite similar to todays TEEs that is described in the paper \parencite{flicker} and is called ``Flicker''.
-A system is introduced that offers complete isolation (also from a hardware perspective) while trusting a very small code base. It can be seen like a predecessor to TEEs.
+A system is introduced that offers complete isolation from the Rich OS (also from a hardware perspective) while trusting a very small code base. It can be seen like a predecessor to TEEs.
 
 ``VirtualSwindle'' is an App described in \parencite{virtualswindle} that
-aims to automatically attack in-app purchasing with the goal of using the
-content to be paid for free. A specific implementation of purchasing mechanism
-is being attacked in a Dalvik environment. Instead of revers engineering Apps to be patched, it is developed a system that can inject arbitrary code into a process. The introduced app runs in the background and attacks every App using
-the in-app billing mechanism. Authors do make clear that their App does not show
-a weakness in Google's in-app billing mechanism but lazy implementations of developers. However, since it has been developed for Dalvik byte-code, it should no more be possible under ART.
+aims at automatically attacking in-app purchasing with the goal of accessing the content the user should purchase for free. A specific implementation of purchasing mechanism is being attacked in a Dalvik environment. Instead of revers engineering Apps to be patched, a system is developed that can inject arbitrary code into a process. The introduced app runs in the background and attacks every App using
+the in-app billing mechanism. Authors do make clear that their App does not reveal a weakness in Google's in-app billing mechanism but in lazy implementations of developers. However, since it has been developed for Dalvik byte-code, it should not be possible to use it under ART anymore.
 
-In \parencite{obfucsation_vs_code_analysis} it gets analyzed how effective obfuscation
-techniques are in comparison to its counterpart, the code analysis and if it can
-keep up in its developing pace. It makes clear that it is still an arms race between
+In \parencite{obfucsation_vs_code_analysis} it is analyzed how effective obfuscation
+techniques are in comparison to their counterpart, the code analysis and if it can
+keep up with its developing pace. It makes clear that it is still an arms race between
 software developers and code analysts. A result indicates that the effectiveness of
-obfuscation depends highly on the analyst and its available resources (computational and
+obfuscation highly depends on the analyst and his available resources (computational and
 financial). So the arms race between those two groups persists and obfuscation versus
-a human analyst is challenging. If an attacker has enough time and resources he will
-reveal the actual program flow and intention pretty sure.
+a human analyst is an ongoing challenge. If an attacker has enough time and resources he will very likely be able to reveal the actual program flow and intention.
 
 Root checks are a possibility to add an additional layer of security by preventing App installations when a device is rooted. Despite the fact that it may offend power users,
-\parencite{root_checks} shows possible circumventions for those root checks. ``AndroPoser'' gets introduced that can suppress root checks and can rooted devices to be appear as
-non-rooted. Root checks often rely on path checks of tools that are only present when a device is rooted (like the tool ``su''). One very simple solution is to just rename that ``su'' binary and also other root check methods and their circumventions are being described.
+\parencite{root_checks} shows possible circumventions for those root checks. The tool ``AndroPoser'' is introduced which can suppress root checks and can make rooted devices appear as if they were
+non-rooted devices. Root checks often rely on path checks of tools that are only present when a device is rooted (like the tool ``su''). One very simple solution is to just rename that ``su'' binary. Other root check methods and their circumventions are being described.
 
 
 
