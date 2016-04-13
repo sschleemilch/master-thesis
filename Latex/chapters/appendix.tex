@@ -93,7 +93,7 @@ JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
         LOGD("My native message: %s", msg);
 }
 \end{lstlisting}
-
+\newpage
 \begin{lstlisting}[language=make, caption=Android.mk, label=nkd_sample_make]
 LOCAL_PATH := $(call my-dir)
 
@@ -158,6 +158,7 @@ JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_encrypt (JNI
     return ret;
 }
 \end{lstlisting}
+\newpage
 \begin{lstlisting}[language=C++, caption=AES Decrypt(), label=nkd_aes_decrypt]
 JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_decrypt (JNIEnv *env, jobject obj, jbyteArray jencrypted, jstring jkey){
     const char *tkey = env->GetStringUTFChars(jkey, NULL);
@@ -211,6 +212,7 @@ JNIEXPORT jbyteArray JNICALL Java_schleemilch_ma_nativememory_MyNDK_decrypt (JNI
 \caption[NDK AES Implementation JNI Tree]{NDK AES Implementation JNI Tree}
 \label{fig:ndk_aes_impl_tree}
 \end{figure}
+\newpage
 \begin{lstlisting}[language=make, caption=Memory/Android.mk, label=nkd_aes_make]
 LOCAL_PATH := $(call my-dir)
 

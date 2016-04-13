@@ -26,7 +26,7 @@ every possible CPU supported by Android. Currently possible architectures suppor
 \item \textbf{x86\_64}
 \end{itemize}
 The common way is that Android compiles every native source code into shared libraries
-(\code{*.so}) that can then be loaded from Java code. Theoretically it is also possible to build executable binaries with NDK. Entry point for the build process is an \code{ndk-build} script inside of the installed \code{ndk-bundle/} folder that takes care of calling the cross-compiling toolchains. It can be controlled by Android makefiles (\code{Android.mk}) and requires a specific folder structure to work which is partially created when using Android Studio. An additional \code{jni/} folder has to be created that will hold all the native source code (right click on \code{app/} and choose \code{New->Folder->JNI Folder}).
+(\code{*.so}) that can then be loaded from Java code. Theoretically, it is also possible to build executable binaries with NDK. Entry point for the build process is an \code{ndk-build} script inside of the installed \code{ndk-bundle/} folder that takes care of calling the cross-compiling toolchains. It can be controlled by Android makefiles (\code{Android.mk}) and requires a specific folder structure to work which is partially created when using Android Studio. An additional \code{jni/} folder has to be created that will hold all the native source code (right click on \code{app/} and choose \code{New->Folder->JNI Folder}).
 
 The compiled library can be loaded from Java by using a
 \code{System.loadLibrary("MyLib")} call.
@@ -97,14 +97,14 @@ try {
     e.printStackTrace();
 }
 \end{lstlisting}
-Now the program is ready to transform the transition into the native (C/C++) world.
+Now, the program is ready to transform the transition into the native (C/C++) world.
 The signature of the native method to call contains at least the path to
 the internal stored file as a string that can be printed with a \code{getAbsolutePath()} call via the
-\code{internalStoragePath} file object. Remember that \code{dlopen()} needs that path to load the actual library.
+\code{internalStoragePath} file object. Remember, that \code{dlopen()} needs that path to load the actual library.
 A class ``\code{MyNDK}'' is created and contains the native declaration of the
 ``\code{libExe(String path)}'' method as well as a static call of
 \code{System.loadLibrary(``MyLib'')} that takes care of the binding.
-The implementation of \code{libExe()} is shown in \autoref{libexe}.
+The implementation of \code{libExe()} is shown in \autoref{libexe}.\newpage
 \begin{lstlisting}[language=C++, caption=Native libExe(), label=libexe]
 JNIEXPORT void JNICALL Java_ma_schleemilch_nativestuff_MyNDK_libExe
         (JNIEnv * env, jobject jobj, jstring path){
@@ -385,7 +385,7 @@ the mapped ranges of the library and memory allocations by the \code{malloc()} a
 
 \subsection{Code Execution}\label{section:code_execution}
 So which function (malloc or mmap) is more suitable for just-in-time (JIT) code execution?
-Like explained in \parencite{jit_intro}, one should go with \code{mmap()} over \code{malloc()}. This is because of protection bits that can only be set at memory page boundaries.
+As explained in \parencite{jit_intro}, one should go with \code{mmap()} over \code{malloc()}. This is because of protection bits that can only be set at memory page boundaries.
 The reason behind that is that with \code{malloc()} it needs to be ensured manually that the allocation is aligned at a page boundary. If this is not the case, a \code{mprotect()} call will have the side effect of disabling/enabling more memory than actually required.
 Since \code{mmap()} is designed for mapping whole files, it will take care of that issue by default.
 
@@ -413,7 +413,7 @@ int mul(int a, int b){
 }
 \end{lstlisting}
 This time, a cross-compiler and its included tools like \code{objdump} are useful.
-For this explicit purpose, the \code{arm-none-eabi} tool-chain was used in
+For this explicit purpose, the \code{arm-none-eabi} toolchain was used in
 combination with an Arch Linux 64 Bit system.
 It contains a \code{gcc} to compile C-Code as well as \code{objdump} to analyze object files.
 A ``\code{arm-none-eabi-gcc -O3 -c machineCodeMul.c -o machineCodeMul.o}'' call outputs an object file with a C source input.
@@ -441,7 +441,7 @@ to memory have to be reordered (\code{0xe0000091 turns to 0x910000e0}) before
 execution.
 
 At first, a memory location will be needed and allocated.
-For that purpose a function is written which takes the regions size as an input as shown in \autoref{alloc_exe_mem}.
+For that purpose a function is written which takes the regions size as an input as shown in \autoref{alloc_exe_mem}.\newpage
 \begin{lstlisting}[language=C++, caption=alloc\_executable\_memory(), label=alloc_exe_mem]
 void* alloc_executable_memory(size_t size) {
     void* ptr = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -475,7 +475,7 @@ A \code{typedef} is used to specify the function's signature matching the C sour
 It can be initialized by pointing to the allocated memory region the way it does when writing a function the common way. The function name is then a pointer to the process region, including the actual machine code.
 After that, all that's left to do is calling it like a common function.
 \autoref{exec_mach_code} shows the actual implementation via JNI C++ using the predefined methods from before and showing some additional output information about
-the allocated memory spots.
+the allocated memory spots.\newpage
 \begin{lstlisting}[language=C++, caption=executeMachineCode(), label=exec_mach_code]
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_executeMachineCode (JNIEnv *env, jobject obj){
     typedef int (*JittedFunc)(int, int);
@@ -501,12 +501,12 @@ If the original C function does not contain any external library calls, the exec
 of machine code directly out of memory is pretty straight forward, at least for one
 specific function like demonstrated above for a multiplication. When library calls are performed inside of that method, it gets much more complicated. Even for function calls
 within the same C file it is not a simple task since the linker functionality is
-completely missing. Therefore, addresses to jump to
+completely missing. Therefore, addresses to jump to,
 have to be adapted by hand.
 
 So in general, executing code out of memory is possible in Android ART but to be able
 to use it productively, some more work has to be done in order to invoke whole shared
-objects or whole binaries instead of machine code chunks. Just implementing an ELF parser at runtime to extract all kinds of defined methods would not be enough but additional alterations to the machine code need to be done to adjust jump addresses to point to the the manually allocated memory address containing the machine code.
+objects or whole binaries instead of machine code chunks. Just implementing an ELF parser at runtime to extract all kinds of defined methods, would not be enough but additional alterations to the machine code need to be done to adjust jump addresses to point to the the manually allocated memory address containing the machine code.
 
 \section{Performance Comparison}\label{section:dyn_code_performance}
 \autoref{tab:dyn_code_performance} shows a performance comparison
@@ -514,7 +514,7 @@ of described methods with regards to dynamic code loading via DEX,
 shared objects and executables using Java and C/C++. While
 DEX and the shared object rely on the same testing multiplication
 function, the tested executable implemented a \code{printf()}.
-That means that the measured values do not make any statement about
+That means, that the measured values do not make any statement about
 invoking executables versus invoking shared objects and DEX files but
 instead about the different implementation.
 \begin{table}[htb]
@@ -548,7 +548,7 @@ should therefore only occur due to the implementation of the transformation step
 In general, an App can write into every memory section which is mapped with writing permission. To find writable locations in the mapped space, the output of \code{/proc/self/maps} can be used via triggering the permission triple ``\code{rw-p}'' string. \autoref{gen_mem_write} for instance triggers the specific writable \code{/system/bin/linker} entry. The size of the memory region can be parsed from the matching line. ``\code{strtoll}'' can be used to do the actual parsing from a
 hexadecimal char sequence to its ``\code{long long int}'' number to be casted to a pointer (=memory address) at the next step.
 Usually a char pointer is used for the actual reading/writing process
-since char always has the size of one byte. This way, when using array notation, each byte of the memory can be easily accessed.
+since char always has the size of one byte. This way, when using array notation, each byte of the memory can be easily accessed.\newpage
 \begin{lstlisting}[language=C++, caption=memoryWriting(), label=gen_mem_write]
 JNIEXPORT void JNICALL Java_schleemilch_ma_nativememory_MyNDK_memoryWriting
  (JNIEnv *env, jobject obj){
@@ -621,7 +621,7 @@ background and which are implemented as a service whenever there is an Internet 
 files that should not be present on a certain device but could also lead to an
 App crash with a meaningless message in case of a missing legitimate license.
 
-A simple way of crashing an application is to trigger a segmentation fault (SIGSEV) for instance by writing to the NULL-pointer. In C/C++ that is simple since pointers do exist (see \autoref{crash_app_sigsev}).
+A simple way of crashing an application is to trigger a segmentation fault (SIGSEV) for instance by writing to the NULL-pointer. In C/C++ that is simple since pointers do exist (see \autoref{crash_app_sigsev}).\newpage
 \begin{lstlisting}[language=C++, caption=crashApp(), label=crash_app_sigsev]
 unsigned char *p = 0x00000000;
 *p = 1;

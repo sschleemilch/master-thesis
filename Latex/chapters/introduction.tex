@@ -10,15 +10,15 @@ followed by Apple's iOS with 13.9\% and Microsoft's Windows
 Phone with 2.6\%. See \parencite{marketshare} for a full list
 of mobile operating system market shares. While the smartphone
 market is still growing, Android did also adapt to new
-rising platforms like wearables, TV's, cars and general
-embedded devices. Android is built on a Linux kernel
+rising platforms like wearables, TV's, cars and to
+embedded devices in general. Android is built on a Linux kernel
 and because of that, Android is open source and freely
 available. Everyone is allowed to adopt it to it's own needs
 (except Android Wear) which is another reason for it's
 rising popularity.
 
 The daily use of smartphones and therefore Android is increasing
-rapidly in nearly every field of application. Right now the usages
+rapidly in nearly every field of application. Right now, the usages
 are reaching from simply surfing the web to security sensitive tasks
 like banking transactions, the organization of all kinds of tickets
 and wireless payment methods.
@@ -27,9 +27,9 @@ installable applications for nearly every imaginable task so far.
 
 \section{Demand of App Protection Mechanisms}
 The popularity of operating systems generally result in an increasing interaction between developers and a large variety of Apps. At the same time it attracts malware and virus developers, which try to exploit the system due to its market size and the resulting high possible illegal profit.
-Although Google has established it's own App Store
-``Google Play Store'' where Apps are getting inspected by Google's Bouncer,
-it's possible to install Apps from so called ``unknown sources''
+Although Google has established their own App Store
+``Google Play Store'' where Apps are getting inspected by Google's ``Bouncer'',
+it is possible to install Apps from so called ``unknown sources''
 like websites and alternative App Stores.
 
 There are different attack vectors that can be considered by attackers.
@@ -37,12 +37,11 @@ The main ones are summarized into three following scenarios:
 
 \subsubsection*{Scenario 1: Piracy/Intellectual Property Theft}\label{section:scenario_1}
 Something that is present in every domain where program code is being written
-and can be sold is illegal copying of a whole executable program or copying and adapting its source code.
+and can be sold, is illegal copying of a whole executable program or copying and adapting its source code.
 Not every Android App is available for free. So being
-able to copy an App to another device and get it to run is a serious threat for developers. However, there do exist licensing mechanisms to check if a user is
-authorized to use the App, if not, the App can be exited.
+able to copy an App to another device and get it to run is a serious threat for developers. However, there do exist licensing mechanisms to check if a user is authorized to use the App. If he is not, the App can be exited.
 Another possibility for attackers would be to disassemble
-the App into its source code to copy and adapt the App and releasing it on its own (for instance with a different name and layout).
+the App into its source code to copy and adapt the App. Afterwards, the attacker could release it on its own (for instance with a different name and layout).
 This scenario is hazardous for Apps that do contain a lot of know-how in form of written code.
 
 
@@ -54,7 +53,7 @@ mechanism. The attacker can then repackage and reinstall the changed App
 with extended access rights. This leads to a financial loss for developers.
 
 \subsubsection*{Scenario 3: Malicious Code Injection}\label{section:scenario_3}
-Quite similar to scenario one the attacker chooses a popular App he wants to exploit but this time the focus lies on getting sensitive data from users.
+Quite similar to scenario one, the attacker chooses a popular App he wants to exploit but this time the focus lies on getting sensitive data from users.
 So a good example would be a banking App where users can do transactions and have to enter pins and TANS.
 To be able to sniff sensitive data, one possibility is to get the App’s source code like in scenario one and injecting own code that implements the malicious functionality. After repackaging it, potential users need to be tricked into installing the App, which appears to be the official banking App. This can be done using common social engineering techniques since it should not be possible to upload the App to an official App store if the original App is present.\\
 %With the same technique the attacker could also inject malicious
@@ -63,4 +62,4 @@ To be able to sniff sensitive data, one possibility is to get the App’s source
 %sensitive user data which can be exploited.
 
 Therefore there is an urgent need of copy protection mechanisms
-for Android Apps which basically means in most cases to prevent reverse code engineering of the distributed Application packages in order to hinder the repackaging of an App including malicious or generally altered code.
+for Android Apps. This basically means in most cases, to prevent reverse code engineering of the distributed Application packages. The goal is to hinder the repackaging of an App that includes malicious or generally altered code.
